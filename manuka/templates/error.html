@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block body %}
+<div class="centered_message">
+    <div class="message_box error">
+        <h2>Error</h2>
+        <p>{{ message }}
+        {%if errors %}
+            {% for error in errors %}
+                <br /><b>* {{ error }}</b>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+flask_testing
+stestr
+hacking
+coverage
+freezegun
+blinker

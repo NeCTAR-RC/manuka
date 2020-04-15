@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    <title>Nectar Terms and Conditions</title>
+    <link href='https://dashboard.rc.nectar.org.au/static/dashboard/css/style.css' media='screen' rel='stylesheet' />
+    <link href='https://dashboard.rc.nectar.org.au/static/dashboard/css/chosen.css' media='screen' rel='stylesheet' />
+    <style media="screen" type="text/css">
+      #main_nav {
+	  width: 100%;
+	  }
+      .main_content {
+	  max-width: 900px;
+	  }
+      .main_content p{
+	  margin: 10px 0;
+	  }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <ul id="main_nav">
+	<li id="home_link"><h1><a href="https://dashboard.rc.nectar.org.au/">OpenStack Dashboard</a></h1></li>
+	<li><a href="https://dashboard.rc.nectar.org.au/" class="active">User Dashboard</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <div id="main">
+	<div id="page_header">
+	  <h2>Terms and Conditions</h2>
+	</div>
+	<div class="main_content">
+	  <p>
+	    In order to use the Research Cloud, Users must abide by the
+	    following Terms of Use.
+	  </p>
+	  {% include 'terms_text.html' %}
+	</div>
+      </div>
+    </div>
+  </body>
+</html>
