@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block body %}
+  <body onload="document.forms['token'].submit()">
+    <form id="token" method="POST" action="{{ target }}">
+      <input type="hidden" name="token" value="{{ token }}"/>
+      <input type="hidden" name="tenant_id" value="{{ tenant_id }}"/>
+    </form>
+  </body>
+{% endblock %}
