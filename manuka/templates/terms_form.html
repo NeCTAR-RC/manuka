@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block body %}
+  <div id="terms" class="centered_wrapper">
+      {% if updated_terms %}
+      <div class="status_box">
+      <p>We've updated our terms and conditions, please agree to these new terms.
+      </p>
+      </div>
+      {% endif %}
+    <div class="content border_rounded border_shadow">
+      <h1>Terms of Use</h1>
+      <p>Please read these terms of use carefully. By pressing "Agree",
+	  you agree you have read these terms and agree to be bound and abide
+	  by them. Nectar (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;)
+	  reserves its right to modify these terms at any time.
+      </p>
+
+      {% include terms_version + '-terms_text.html' %}
+      <div class="button_box">
+	<form id="token" action="" method="POST">
+	  <input id="agree" type="submit" name="agree" value="Agree"/>
+	</form>
+	<a id="disagree" href="/Shibboleth.sso/Logout?return=http://nectar.org.au/">Disagree</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

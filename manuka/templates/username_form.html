@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block body %}
+<div id="terms" class="centered_wrapper">
+  <div class="content border_rounded border_shadow">
+    <h1>Your email has changed</h1>
+    <p>When you first log into the Nectar Research Cloud we use your email address as your username. To avoid potential authentication issues we do not automatically change your username when your email changes.</p>
+    <table>
+      <tr><td>Username:</td><td><b>{{ user.name }}</b></td></tr>
+      <tr><td>Email:</td><td><b>{{ user.email }}</b></td></tr>
+    </table>
+    <p><b>Do you want to change your username to match your email?</b></p>
+    <div class="button_box">
+      <form id="username" action="" method="POST">
+        <input id="ignore_username_ask_again" type="submit" name="ignore_username_ask_again" value="NO"/>
+        <input id="ignore_username" type="submit" name="ignore_username" value="NO and don't ask me again"/>
+        <input id="change_username" type="submit" name="change_username" value="YES"/>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

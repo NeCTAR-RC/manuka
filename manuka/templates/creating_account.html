@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block body %}
+  <div id="creating-account" class="centered_wrapper">
+    <div id="message" class="content border_rounded border_shadow">
+      <p>
+        <img src="{{ request.script_name }}static/throbber.gif"></img>
+      </p>
+      <p>
+        Creating account.....
+      </p>
+    </div>
+    <script type="text/javascript">
+     (function () {
+         var count = 0;
+
+         function callback (data) {
+             if (data.state == "created") {
+                 window.location = window.location.href;
+             }
+             if (count > 10) {
+                 $("#message").empty().html("<p>There was a problem creating your account, our system administrators will have been notified of the issue. <br /> Please contact <a href=\"{{support_url}}\">support</a> for further details.</p>");
+                 clearInterval(intervalID);
+             }
+             count += 1;
+         };
+
+         var intervalID = setInterval(function(){
+             $.ajax({
+                 url: "{{ request.script_name }}account_status",
+                 dataType: "json",
+                 success: callback});
+         }, 2000);
+     })();
+    </script>
+  </div>
+{% endblock %}

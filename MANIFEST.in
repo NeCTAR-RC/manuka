@@ -1,0 +1,4 @@
+include requirements.txt
+graft manuka/static
+graft manuka/templates
+global-exclude *.pyc
