@@ -1,0 +1,15 @@
+python-keystoneclient
+python-novaclient
+python-swiftclient
+keystoneauth1
+keystonemiddleware
+oslo.context
+oslo.config
+oslo.log
+oslo.messaging
+flask
+flask_migrate
+flask_sqlalchemy
+beaker
+cotyledon
+openstacksdk
