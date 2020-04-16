@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+. /usr/share/debconf/confmodule
+CONF=/etc/manuka/manuka.conf
+
+#PKGOS-INCLUDE#
+
+pkgos_var_user_group manuka
+
+exit 0

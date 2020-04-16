@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+#PKGOS-INCLUDE#
+
+if [ "${1}" = "purge" ] ; then
+	pkgos_dbc_postrm manuka manuka-common $@
+
+	rm -rf /var/lib/manuka || true
+        rm -rf /var/log/manuka || true
+        rm -rf /var/lock/manuka || true
+
+	rm -f /etc/manuka/policy.yaml
+	[ -d /etc/manuka ] && rmdir --ignore-fail-on-non-empty /etc/manuka
+fi
+
+#DEBHELPER#
+
+exit 0

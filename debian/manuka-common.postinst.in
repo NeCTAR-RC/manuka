@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+CONF=/etc/manuka/manuka.conf
+
+#PKGOS-INCLUDE#
+
+if [ "$1" = "configure" ] || [ "$1" = "reconfigure" ] ; then
+    . /usr/share/debconf/confmodule
+    . /usr/share/dbconfig-common/dpkg/postinst
+
+    pkgos_var_user_group manuka /bin/sh
+
+    # Create config files if they don't exist
+    pkgos_write_new_conf manuka manuka.conf
+    pkgos_write_new_conf manuka policy.yaml
+
+    chown -R root:manuka /etc/manuka
+
+fi
+
+#DEBHELPER#
+
+exit 0
