@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "954a840b_c5355455",
+        "filename": "tox.ini",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-04-16T06:40:50Z",
+      "side": 1,
+      "message": "manuaka?",
+      "revId": "627de1d5493d9c1a9f06ccefecacde52a83d9d07",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
