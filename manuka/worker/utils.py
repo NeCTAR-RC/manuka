@@ -11,6 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
 import logging
 import os
 import time
@@ -36,8 +37,9 @@ def safe_call(client, keystone_call, *args, **kwargs):
         return keystone_call(*args, **kwargs)
 
 
-def create_user(client, name, email, password, project=None, full_name=None):
+def create_user(client, name, email, project=None, full_name=None):
     """Add a new user"""
+    password = str(base64.encodestring(os.urandom(16))[:20], 'utf-8')
     try:
         user = safe_call(client,
                          client.users.create,

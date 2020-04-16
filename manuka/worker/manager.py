@@ -11,9 +11,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import base64
-import os
-
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -39,7 +36,6 @@ class Manager(object):
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
-        password = str(base64.encodestring(os.urandom(16))[:20], 'utf-8')
 
         # get the user from the database, if this fails then they
         # shouldn't be created
@@ -57,7 +53,7 @@ class Manager(object):
         LOG.info('Created Project %s', project.name)
 
         user = utils.create_user(client, shib_attrs["mail"],
-                                 shib_attrs["mail"], password, project,
+                                 shib_attrs["mail"], project,
                                  shib_attrs['fullname'])
         LOG.info('Created user %s', user.name)
 
