@@ -158,8 +158,8 @@ class TestViews(base.TestCase):
 
         # confirm that the keystone user was created
         mock_update.assert_called_once_with(
-            db, user, {'mail': 'test@example.com',
-                       'fullname': 'john smith', 'id': '1324'})
+            user, {'mail': 'test@example.com',
+                   'fullname': 'john smith', 'id': '1324'})
 
         self.assertEqual(user.state, "registered")
         self.assert200(response)

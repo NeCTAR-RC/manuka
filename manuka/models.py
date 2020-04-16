@@ -104,7 +104,7 @@ def keystone_authenticate(user_id, project_id=None, email=None,
     return token, projects[0].id, user
 
 
-def create_shibboleth_user(db, shib_attrs):
+def create_shibboleth_user(shib_attrs):
     """Create a new user from the Shibboleth attributes
 
     Required Shibboleth attributes are `id`, `fullname` and `mail`
@@ -173,7 +173,7 @@ def _merge_info_values(shib_user, shib_attrs, name, current):
         return shib_current
 
 
-def update_shibboleth_user(db, shib_user, shib_attrs):
+def update_shibboleth_user(shib_user, shib_attrs):
     """Update a Shibboleth User with new details passed from
     Shibboleth.
     """

@@ -43,7 +43,7 @@ class TestModels(base.TestCase):
         return shibuser
 
     def test_create_shibboleth_user(self):
-        models.create_shibboleth_user(db, self.shib_attrs)
+        models.create_shibboleth_user(self.shib_attrs)
         dbuser, = db.session.query(models.User).all()
         self.assertEqual(self.shib_attrs['id'], dbuser.persistent_id)
 
@@ -56,7 +56,7 @@ class TestModels(base.TestCase):
         user.shibboleth_attributes = {}
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(db, user, self.shib_attrs)
+        models.update_shibboleth_user(user, self.shib_attrs)
         dbuser, = db.session.query(models.User).all()
         self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
         self.assertEqual(self.shib_attrs["mail"], dbuser.email)
@@ -82,7 +82,7 @@ class TestModels(base.TestCase):
                                 'orcid': 'ugly'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(db, user, self.shib_attrs)
+        models.update_shibboleth_user(user, self.shib_attrs)
         dbuser, = db.session.query(models.User).all()
         self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
         self.assertEqual(self.shib_attrs["mail"], dbuser.email)
@@ -100,7 +100,7 @@ class TestModels(base.TestCase):
         self.shib_attrs.update({'affiliation': 'parasite'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(db, user, self.shib_attrs)
+        models.update_shibboleth_user(user, self.shib_attrs)
         dbuser, = db.session.query(models.User).all()
         self.assertEqual('member', dbuser.affiliation)
         self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)

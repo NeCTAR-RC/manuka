@@ -116,7 +116,7 @@ def root():
     shib_user = db.session.query(models.User).filter_by(
         persistent_id=shib_attrs["id"]).first()
     if not shib_user:
-        shib_user = models.create_shibboleth_user(db, shib_attrs)
+        shib_user = models.create_shibboleth_user(shib_attrs)
 
     session["user_id"] = shib_attrs["id"]
 
@@ -128,7 +128,7 @@ def root():
         shib_user.terms_accepted_at = date_now
         shib_user.state = "registered"
         shib_user.terms_version = current_terms_version
-        models.update_shibboleth_user(db, shib_user, shib_attrs)
+        models.update_shibboleth_user(shib_user, shib_attrs)
         db.session.commit()
         # after registering present the user with a page indicating
         # there account is being created
@@ -140,7 +140,7 @@ def root():
         # New terms version accepted
         shib_user.terms_version = current_terms_version
         shib_user.terms_accepted_at = datetime.datetime.now()
-        models.update_shibboleth_user(db, shib_user, shib_attrs)
+        models.update_shibboleth_user(shib_user, shib_attrs)
         db.session.commit()
 
     if request.form.get("ignore_username"):
@@ -198,7 +198,7 @@ def root():
             # useful error page...
             return flask.render_template("error.html", **data)
 
-    models.update_shibboleth_user(db, shib_user, shib_attrs)
+    models.update_shibboleth_user(shib_user, shib_attrs)
 
     if user.name != user.email and not shib_user.ignore_username_not_email:
         data = {"user": user}
