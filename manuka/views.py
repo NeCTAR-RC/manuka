@@ -27,7 +27,7 @@ from manuka import models
 from manuka.worker import api as worker_api
 
 
-bp = flask.Blueprint('default', __name__)
+bp = flask.Blueprint('login', __name__, url_prefix='/login')
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)

@@ -11,13 +11,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import flask_marshmallow
-import flask_migrate
-import flask_restful
-import flask_sqlalchemy
+from manuka.extensions import ma
+from manuka import models
 
 
-api = flask_restful.Api()
-db = flask_sqlalchemy.SQLAlchemy()
-ma = flask_marshmallow.Marshmallow()
-migrate = flask_migrate.Migrate()
+class UserSchema(ma.SQLAlchemySchema):
+
+    class Meta:
+        model = models.User
+        fields = ('id', 'displayname', 'email', 'state', 'registered_at',
+                  'last_login', 'terms_accepted_at', 'home_organization',
+                  'orcid', 'affiliation'
+        )
+
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
