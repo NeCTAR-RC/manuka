@@ -19,7 +19,7 @@ from oslo_log import log as logging
 
 LOG = logging.getLogger(__name__)
 
-_NOAUTH_PATHS = ['/', '/load-balancer/', '/healthcheck']
+AUTH_PATHS = ['/api']
 
 
 class KeystoneSession(object):
@@ -69,9 +69,9 @@ class SkippingAuthProtocol(auth_token.AuthProtocol):
 
     def process_request(self, request):
         path = request.path
-        if path in _NOAUTH_PATHS:
+        if path not in AUTH_PATHS:
             LOG.debug('Request path is %s and it does not require keystone '
                       'authentication', path)
             return None  # return NONE to reach actual logic
 
-        return super(SkippingAuthProtocol, self).process_request(request)
+        return super().process_request(request)
