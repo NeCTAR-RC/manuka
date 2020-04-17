@@ -30,6 +30,7 @@ class Endpoints(object):
 
     def __init__(self):
         self.manager = worker_manager.Manager()
+        breakpoint()
 
     def create_user(self, ctxt, shib_user):
         self.manager.create_user(shib_user)

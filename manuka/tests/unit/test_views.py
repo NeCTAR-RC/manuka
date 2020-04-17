@@ -73,7 +73,7 @@ class TestViewsNoShib(base.TestCase):
                        "from the AAF service:</b>"
 
     def test_no_attrs(self):
-        response = self.client.get('/')
+        response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('error.html')
         self.assertContext('message', self.missing_attr_msg)
@@ -85,30 +85,6 @@ class TestViewsNoShib(base.TestCase):
 
 @mock.patch('manuka.views.worker_api', new=mock.Mock())
 class TestViews(base.TestCase):
-
-    def make_shib_user(self, state='new', agreed_terms=True):
-        # create registered user
-        shibuser = models.User("1324")
-        shibuser.id = 1324
-        shibuser.user_id = 1324
-        shibuser.email = "test@example.com"
-        shibuser.shibboleth_attributes = {
-            'mail': 'test@example.com',
-            'fullname': 'john smith',
-            'id': '1324'
-        }
-        if agreed_terms and state != 'new':
-            date_now = datetime.now()
-            shibuser.registered_at = date_now
-            shibuser.terms_accepted_at = date_now
-            shibuser.terms_version = 'v1'
-        else:
-            shibuser.registered_at = None
-            shibuser.terms_accepted_at = None
-            shibuser.terms_version = None
-        shibuser.state = state
-        shibuser.ignore_username_not_email = False
-        return shibuser
 
     def setUp(self):
         super().setUp()
@@ -127,7 +103,7 @@ class TestViews(base.TestCase):
         user = self.make_shib_user(state='new', agreed_terms=False)
         mock_create.return_value = user
 
-        response = self.client.get('/')
+        response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
 
@@ -154,7 +130,7 @@ class TestViews(base.TestCase):
         token = mock.Mock()
         token.to_json.return_value = token_string
 
-        response = self.client.post('/', data={'agree': True})
+        response = self.client.post('/login/', data={'agree': True})
 
         # confirm that the keystone user was created
         mock_update.assert_called_once_with(
@@ -176,7 +152,7 @@ class TestViews(base.TestCase):
         shibuser = self.make_shib_user(state='registered')
         db.session.add(shibuser)
         db.session.commit()
-        response = self.client.get('/')
+        response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('creating_account.html')
 
@@ -200,7 +176,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="test@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.get('/')
+        response = self.client.get('/login/')
 
         self.assert200(response)
         self.assertTemplateUsed('redirect.html')
@@ -228,7 +204,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="foo@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.get('/')
+        response = self.client.get('/login/')
         mock_keystone_authenticate.assert_called_once_with(
             '1324', email=u'test@example.com', full_name=None,
             set_username_as_email=False)
@@ -256,7 +232,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="foo@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.post('/', data={'ignore_username': True})
+        response = self.client.post('/login/', data={'ignore_username': True})
 
         self.assert200(response)
         self.assertTemplateUsed('redirect.html')
@@ -284,7 +260,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="test@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.post('/', data={'change_username': True})
+        response = self.client.post('/login/', data={'change_username': True})
 
         mock_keystone_authenticate.assert_called_once_with(
             '1324', email=u'test@example.com', full_name=None,
@@ -307,7 +283,7 @@ class TestViews(base.TestCase):
         db.session.add(shibuser)
         db.session.commit()
 
-        response = self.client.get('/')
+        response = self.client.get('/login/')
 
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
@@ -331,7 +307,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="test@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.get('/?return-path=%s' % return_path)
+        response = self.client.get('/login/?return-path=%s' % return_path)
 
         self.assert200(response)
         self.assertTemplateUsed('redirect.html')
@@ -358,7 +334,7 @@ class TestViews(base.TestCase):
         user.configure_mock(name="test@example.com", email="test@example.com")
         mock_keystone_authenticate.return_value = token, project_id, user
 
-        response = self.client.get('/?return-path=http://bad')
+        response = self.client.get('/login/?return-path=http://bad')
 
         self.assert200(response)
         self.assertTemplateUsed('error.html')
