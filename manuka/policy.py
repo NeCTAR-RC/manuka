@@ -11,13 +11,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import flask_marshmallow
-import flask_migrate
-import flask_restful
-import flask_sqlalchemy
+from oslo_config import cfg
+from oslo_policy import policy
+
+from manuka.common import policies
+
+CONF = cfg.CONF
+_ENFORCER = None
 
 
-api = flask_restful.Api(prefix='/api')
-db = flask_sqlalchemy.SQLAlchemy()
-ma = flask_marshmallow.Marshmallow()
-migrate = flask_migrate.Migrate()
+def get_enforcer():
+    CONF([], project='manuka')
+    global _ENFORCER
+    if not _ENFORCER:
+        _ENFORCER = policy.Enforcer(CONF)
+        _ENFORCER.register_defaults(policies.list_rules())
+    return _ENFORCER
