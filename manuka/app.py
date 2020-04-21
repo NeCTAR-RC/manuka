@@ -44,6 +44,7 @@ def create_app(test_config=None, conf_file=None):
     else:
         app.config.update(test_config)
 
+    config.setup_logging(CONF)
     register_extensions(app)
     register_blueprints(app)
     # ensure the instance folder exists
