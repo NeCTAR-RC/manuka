@@ -23,7 +23,9 @@ import testtools
 
 
 import manuka
+from manuka import app
 from manuka.common import rpc
+from manuka import extensions
 from manuka.extensions import db
 from manuka import models
 
@@ -31,6 +33,7 @@ from manuka import models
 class TestCase(flask_testing.TestCase):
 
     def create_app(self):
+        app.register_resources(extensions.api)
         return manuka.create_app({
             'SECRET_KEY': 'secret',
             'TESTING': True,
@@ -46,6 +49,7 @@ class TestCase(flask_testing.TestCase):
         super().tearDown()
         db.session.remove()
         db.drop_all()
+        extensions.api.resources = []
 
     def make_shib_user(self, state='new', agreed_terms=True,
                        email='test@example.com', id=1324):
