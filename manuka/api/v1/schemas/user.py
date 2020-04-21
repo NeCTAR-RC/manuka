@@ -11,13 +11,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import flask_marshmallow
-import flask_migrate
-import flask_restful
-import flask_sqlalchemy
+from manuka.extensions import ma
+from manuka import models
 
 
-api = flask_restful.Api(prefix='/api')
-db = flask_sqlalchemy.SQLAlchemy()
-ma = flask_marshmallow.Marshmallow()
-migrate = flask_migrate.Migrate()
+class UserSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.User
+        load_instance = True
+        exclude = ('persistent_id', 'shibboleth_attributes')
+
+
+class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.User
+        load_instance = True
+        fields = ('orcid', 'affiliation', 'ignore_username_not_email')
+
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+user_update_schema = UserUpdateSchema()
