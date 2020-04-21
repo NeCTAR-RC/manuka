@@ -11,13 +11,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import flask_marshmallow
-import flask_migrate
+import flask
 import flask_restful
-import flask_sqlalchemy
+
+from manuka.common import keystone
+from manuka import policy
 
 
-api = flask_restful.Api(prefix='/api')
-db = flask_sqlalchemy.SQLAlchemy()
-ma = flask_marshmallow.Marshmallow()
-migrate = flask_migrate.Migrate()
+class Resource(flask_restful.Resource):
+
+    def authorize(self, rule, target={}, do_raise=True):
+        rule = self.POLICY_PREFIX % rule
+        enforcer = policy.get_enforcer()
+        enforcer.authorize(rule, target, self.oslo_context, do_raise=do_raise)
+
+    @property
+    def oslo_context(self):
+        return flask.request.environ.get(keystone.REQUEST_CONTEXT_ENV, None)
