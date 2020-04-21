@@ -11,13 +11,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from datetime import datetime
 from unittest import mock
 
 from oslo_config import cfg
 
 from manuka.extensions import db
-from manuka import models
 from manuka.tests.unit import base
 from manuka import views
 
@@ -85,30 +83,6 @@ class TestViewsNoShib(base.TestCase):
 
 @mock.patch('manuka.views.worker_api', new=mock.Mock())
 class TestViews(base.TestCase):
-
-    def make_shib_user(self, state='new', agreed_terms=True):
-        # create registered user
-        shibuser = models.User("1324")
-        shibuser.id = 1324
-        shibuser.user_id = 1324
-        shibuser.email = "test@example.com"
-        shibuser.shibboleth_attributes = {
-            'mail': 'test@example.com',
-            'fullname': 'john smith',
-            'id': '1324'
-        }
-        if agreed_terms and state != 'new':
-            date_now = datetime.now()
-            shibuser.registered_at = date_now
-            shibuser.terms_accepted_at = date_now
-            shibuser.terms_version = 'v1'
-        else:
-            shibuser.registered_at = None
-            shibuser.terms_accepted_at = None
-            shibuser.terms_version = None
-        shibuser.state = state
-        shibuser.ignore_username_not_email = False
-        return shibuser
 
     def setUp(self):
         super().setUp()
