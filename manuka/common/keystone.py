@@ -14,12 +14,14 @@
 from keystoneauth1 import loading as ks_loading
 from keystonemiddleware import auth_token
 from oslo_config import cfg
+from oslo_context import context
 from oslo_log import log as logging
 
 
 LOG = logging.getLogger(__name__)
 
-_NOAUTH_PATHS = ['/', '/load-balancer/', '/healthcheck']
+AUTH_PATH = '/api'
+REQUEST_CONTEXT_ENV = 'oslo_context'
 
 
 class KeystoneSession(object):
@@ -69,9 +71,20 @@ class SkippingAuthProtocol(auth_token.AuthProtocol):
 
     def process_request(self, request):
         path = request.path
-        if path in _NOAUTH_PATHS:
-            LOG.debug('Request path is %s and it does not require keystone '
-                      'authentication', path)
-            return None  # return NONE to reach actual logic
+        if path.startswith(AUTH_PATH):
+            return super().process_request(request)
 
-        return super(SkippingAuthProtocol, self).process_request(request)
+        LOG.debug('Request path is %s and it does not require keystone '
+                  'authentication', path)
+        return None  # return NONE to reach actual logic
+
+
+class KeystoneContext(object):
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        request_context = context.RequestContext.from_environ(environ)
+        environ[REQUEST_CONTEXT_ENV] = request_context
+        return self.app(environ, start_response)
