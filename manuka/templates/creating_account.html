@@ -8,7 +8,7 @@
   <div id="creating-account" class="centered_wrapper">
     <div id="message" class="content border_rounded border_shadow">
       <p>
-        <img src="{{ request.script_name }}static/throbber.gif"></img>
+        <img src="{{ url_for('static', filename='throbber.gif') }}"></img>
       </p>
       <p>
         Creating account.....
