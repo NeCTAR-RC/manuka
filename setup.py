@@ -22,6 +22,15 @@ setup(
             'manuka-api = manuka.cmd.api:main',
             'manuka-manage = manuka.cmd.manage:cli',
         ],
+        'oslo.config.opts': [
+            'manuka = manuka.config:list_opts',
+        ],
+        'oslo.policy.policies': [
+            'manuka = manuka.common.policies:list_rules',
+        ],
+        'oslo.policy.enforcer': [
+            'manuka = manuka.policy:get_enforcer',
+        ],
     },
     include_package_data=True,
     install_requires=[str(r.req) for r in requirements],

@@ -12,13 +12,18 @@
 #    under the License.
 
 from oslo_config import cfg
+from oslo_policy import policy
 
-from manuka.common import rpc
-from manuka import config
+from manuka.common import policies
+
+CONF = cfg.CONF
+_ENFORCER = None
 
 
-def prepare_service(argv=None):
-    """Sets global config from config file and sets up logging."""
-    argv = argv or []
-    config.init(argv[1:])
-    rpc.init()
+def get_enforcer():
+    CONF([], project='manuka')
+    global _ENFORCER
+    if not _ENFORCER:
+        _ENFORCER = policy.Enforcer(CONF)
+        _ENFORCER.register_defaults(policies.list_rules())
+    return _ENFORCER
