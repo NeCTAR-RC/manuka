@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
+import operator
 import socket
 import sys
 
@@ -102,6 +104,33 @@ def setup_logging(conf):
     :param conf: a cfg.ConfOpts object
     """
     product_name = "manuka"
+
     logging.setup(conf, product_name)
     LOG.info("Logging enabled!")
     LOG.debug("command line: %s", " ".join(sys.argv))
+
+
+# Used by oslo-config-generator entry point
+# https://docs.openstack.org/oslo.config/latest/cli/generator.html
+def list_opts():
+    return [
+        ('DEFAULT', default_opts),
+        ('smtp', smtp_opts),
+        ('keystone', keystone_opts),
+        ('swift', swift_opts),
+        ('worker', worker_opts),
+        ('database', database_opts),
+        ('flask', flask_opts),
+        add_auth_opts(),
+    ]
+
+
+def add_auth_opts():
+    opts = ks_loading.register_session_conf_options(cfg.CONF, 'service_auth')
+    opt_list = copy.deepcopy(opts)
+    opt_list.insert(0, ks_loading.get_auth_common_conf_options()[0])
+    for plugin_option in ks_loading.get_auth_plugin_conf_options('password'):
+        if all(option.name != plugin_option.name for option in opt_list):
+            opt_list.append(plugin_option)
+    opt_list.sort(key=operator.attrgetter('name'))
+    return ('service_list', opt_list)
