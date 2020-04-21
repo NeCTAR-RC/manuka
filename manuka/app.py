@@ -67,4 +67,5 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    app.register_blueprint(views.bp)
+    app.register_blueprint(views.default_bp)
+    app.register_blueprint(views.login_bp)

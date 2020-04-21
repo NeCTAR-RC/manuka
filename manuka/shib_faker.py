@@ -62,6 +62,9 @@ class FakeShibboleth(object):
         session = environ["beaker.session"]
         params = {}
         request = Request(environ)
+        if not request.path.startswith('/login'):
+            return self.app(environ, start_response)
+
         # Handle logout
         if environ['PATH_INFO'] == '/Shibboleth.sso/Logout':
             params = self._query_parameters(environ.get('QUERY_STRING', ""))
