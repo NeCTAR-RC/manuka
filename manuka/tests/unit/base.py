@@ -11,6 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from datetime import datetime
 from unittest import mock
 
 import fixtures
@@ -24,6 +25,7 @@ import testtools
 import manuka
 from manuka.common import rpc
 from manuka.extensions import db
+from manuka import models
 
 
 class TestCase(flask_testing.TestCase):
@@ -45,6 +47,33 @@ class TestCase(flask_testing.TestCase):
         super().tearDown()
         db.session.remove()
         db.drop_all()
+        cfg.CONF.reset()
+
+    def make_shib_user(self, state='new', agreed_terms=True,
+                       email='test@example.com', id=1324):
+        # create registered user
+        shibuser = models.User(id)
+        shibuser.id = id
+        shibuser.user_id = id
+        shibuser.email = email
+        shibuser.shibboleth_attributes = {
+            'mail': 'test@example.com',
+            'fullname': 'john smith',
+            'id': '1324'
+        }
+        if agreed_terms and state != 'new':
+            date_now = datetime.now()
+            shibuser.registered_at = date_now
+            shibuser.terms_accepted_at = date_now
+            shibuser.terms_version = 'v1'
+        else:
+            shibuser.registered_at = None
+            shibuser.terms_accepted_at = None
+            shibuser.terms_version = None
+        shibuser.state = state
+        shibuser.ignore_username_not_email = False
+        shibuser.orcid = 'testorchid'
+        return shibuser
 
 
 class TestRpc(testtools.TestCase):
