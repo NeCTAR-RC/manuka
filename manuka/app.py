@@ -16,16 +16,20 @@ import os
 from beaker import middleware as beaker
 from flask import Flask
 from oslo_config import cfg
+from oslo_log import log as logging
+from oslo_middleware import healthcheck
 
+from manuka.api import v1 as api_v1
+from manuka.common import keystone
 from manuka.common import rpc
 from manuka import config
-from manuka.extensions import db
-from manuka.extensions import migrate
+from manuka import extensions
 from manuka import shib_faker
 from manuka import views
 
 
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 
 def create_app(test_config=None, conf_file=None):
@@ -46,6 +50,7 @@ def create_app(test_config=None, conf_file=None):
         app.config.update(test_config)
 
     register_extensions(app)
+    register_resources(extensions.api)
     register_blueprints(app)
     # ensure the instance folder exists
     try:
@@ -57,16 +62,28 @@ def create_app(test_config=None, conf_file=None):
         app.wsgi_app = shib_faker.FakeShibboleth(app.wsgi_app)
         app.wsgi_app = beaker.SessionMiddleware(app.wsgi_app)
 
+    app.wsgi_app = healthcheck.Healthcheck(app.wsgi_app)
+
+    if CONF.auth_strategy == 'keystone':
+        app.wsgi_app = keystone.KeystoneContext(app.wsgi_app)
+        app.wsgi_app = keystone.SkippingAuthProtocol(app.wsgi_app, {})
     rpc.init()
+
     return app
 
 
 def register_extensions(app):
     """Register Flask extensions."""
-    db.init_app(app)
-    migrate.init_app(app, db)
+    extensions.api.init_app(app)
+    extensions.db.init_app(app)
+    extensions.migrate.init_app(app, extensions.db)
+    extensions.ma.init_app(app)
 
 
 def register_blueprints(app):
     app.register_blueprint(views.default_bp)
     app.register_blueprint(views.login_bp)
+
+
+def register_resources(api):
+    api_v1.initialize_resources(api)
