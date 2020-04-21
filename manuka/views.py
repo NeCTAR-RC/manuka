@@ -27,7 +27,8 @@ from manuka import models
 from manuka.worker import api as worker_api
 
 
-bp = flask.Blueprint('default', __name__)
+default_bp = flask.Blueprint('default', __name__)
+login_bp = flask.Blueprint('login', __name__, url_prefix='/login')
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class ShibbolethAttrMap(object):
                 return k
 
 
-@bp.route('/account_status')
+@login_bp.route('/account_status')
 def account_status():
     shib_user = db.session.query(models.User).filter_by(
         persistent_id=session.get("user_id")).first()
@@ -82,7 +83,7 @@ def account_status():
     return json.dumps(data)
 
 
-@bp.route('/', methods=('GET', 'POST'))
+@login_bp.route('/', methods=('GET', 'POST'))
 def root():
     shib_attrs = ShibbolethAttrMap.parse(request.environ)
     LOG.info("The AAF responded with: %s.", shib_attrs)
@@ -232,6 +233,7 @@ def root():
     return flask.render_template("redirect.html", **data)
 
 
-@bp.route('/terms.html')
+@default_bp.route('/terms.html')
 def terms():
-    return flask.render_template("terms.html")
+    template = "%s-terms_text.html" % CONF.terms_version
+    return flask.render_template(template)
