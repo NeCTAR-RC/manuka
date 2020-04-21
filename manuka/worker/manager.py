@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 class Manager(object):
 
     def __init__(self):
-        self.app = manuka.create_app()
+        self.app = manuka.create_app(init_config=False)
 
     def create_user(self, shib_attrs):
         k_session = keystone.KeystoneSession()
