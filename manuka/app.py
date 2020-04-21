@@ -40,6 +40,7 @@ def create_app(test_config=None, conf_file=None):
             SECRET_KEY=CONF.flask.secret_key,
             SQLALCHEMY_DATABASE_URI=CONF.database.connection,
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
+            SQLALCHEMY_POOL_RECYCLE=60,
         )
     else:
         app.config.update(test_config)
