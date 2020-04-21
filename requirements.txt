@@ -10,7 +10,10 @@ oslo.messaging
 oslo.policy
 flask
 flask_migrate
+flask_restful
 flask_sqlalchemy
+flask_marshmallow
+marshmallow_sqlalchemy
 beaker
 cotyledon
 openstacksdk
