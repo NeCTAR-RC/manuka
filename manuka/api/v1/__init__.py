@@ -11,13 +11,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import flask_marshmallow
-import flask_migrate
-import flask_restful
-import flask_sqlalchemy
+from manuka.api.v1.resources import user
 
 
-api = flask_restful.Api(prefix='/api')
-db = flask_sqlalchemy.SQLAlchemy()
-ma = flask_marshmallow.Marshmallow()
-migrate = flask_migrate.Migrate()
+def initialize_resources(api):
+    api.add_resource(user.UserList, '/v1/users/')
+    api.add_resource(user.User, '/v1/users/<id>/')
