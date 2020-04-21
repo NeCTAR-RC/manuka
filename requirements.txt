@@ -7,6 +7,7 @@ oslo.context
 oslo.config
 oslo.log
 oslo.messaging
+oslo.policy
 flask
 flask_migrate
 flask_sqlalchemy
