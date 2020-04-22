@@ -44,7 +44,7 @@ class TestUserApi(base.TestCase):
     def setUp(self):
         super().setUp()
         self.init_context()
-        user = self.make_shib_user(state='new', agreed_terms=False,
+        user = self.make_db_user(state='new', agreed_terms=False,
                                    email='test@example.com')
         db.session.add(user)
         db.session.commit()
@@ -101,7 +101,7 @@ class TestUserApiUser(TestUserApi):
 
     def setUp(self):
         super().setUp()
-        user_self = self.make_shib_user(state='new', agreed_terms=False,
+        user_self = self.make_db_user(state='new', agreed_terms=False,
                                         email='test@example.com',
                                         id=USER_ID)
         db.session.add(user_self)

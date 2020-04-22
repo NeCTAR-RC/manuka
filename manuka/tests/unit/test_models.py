@@ -12,60 +12,45 @@
 #    under the License.
 
 from datetime import datetime
+from unittest import mock
 
 from freezegun import freeze_time
+from oslo_config import cfg
+
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
 
 
+CONF = cfg.CONF
+
+
 class TestModels(base.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.shib_attrs = {
-            'mail': 'test@example.com',
-            'fullname': 'john smith',
-            'id': '1324'
-        }
 
-    def make_shib_user(self, state='new', agreed_terms=True):
-        # create registered user
-        shibuser = models.User("1324")
-        shibuser.id = "1324"
-        shibuser.user_id = 1324
-        shibuser.email = "test@example.com"
-        shibuser.shibboleth_attributes = self.shib_attrs
-        if agreed_terms and state != 'new':
-            shibuser.registered_at = datetime.now()
-        else:
-            shibuser.registered_at = None
-        shibuser.state = state
-        return shibuser
-
-    def test_create_shibboleth_user(self):
-        models.create_shibboleth_user(self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs['id'], dbuser.persistent_id)
+    def test_create_db_user(self):
+        user = models.create_db_user(self.shib_attrs)
+        db_user = db.session.query(models.User).get(user.id)
+        self.assertEqual(self.shib_attrs['id'], db_user.persistent_id)
 
     @freeze_time("2012-01-14")
-    def test_update_shibboleth_user(self):
+    def test_update_db_user(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_shib_user()
+        user = self.make_db_user()
         user.displayname = ''
         user.email = ''
         user.shibboleth_attributes = {}
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
-        self.assertEqual(self.shib_attrs["mail"], dbuser.email)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
-        self.assertEqual(datetime(2012, 1, 14), dbuser.last_login)
+        models.update_db_user(user, self.shib_attrs)
+        db_user = db.session.query(models.User).get(user.id)
+        self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
+        self.assertEqual(self.shib_attrs["mail"], db_user.email)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual(datetime(2012, 1, 14), db_user.last_login)
 
-    def test_update_shibboleth_user_merging(self):
+    def test_update_db_user_merging(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_shib_user()
+        user = self.make_db_user()
         user.displayname = ''
         user.email = ''
         user.phone_number = '460 261'
@@ -82,28 +67,109 @@ class TestModels(base.TestCase):
                                 'orcid': 'ugly'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
-        self.assertEqual(self.shib_attrs["mail"], dbuser.email)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
-        self.assertEqual('Godfrey', dbuser.first_name)
-        self.assertEqual('Cohen', dbuser.surname)
-        self.assertEqual('1800 815 270', dbuser.phone_number)
-        self.assertEqual('0401 234 567', dbuser.mobile_number)
-        self.assertEqual('staff', dbuser.affiliation)
-        self.assertIsNone(dbuser.home_organization)
-        self.assertEqual('pretty', dbuser.orcid)
+        models.update_db_user(user, self.shib_attrs)
+        db_user = db.session.query(models.User).get(user.id)
+        self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
+        self.assertEqual(self.shib_attrs["mail"], db_user.email)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual('Godfrey', db_user.first_name)
+        self.assertEqual('Cohen', db_user.surname)
+        self.assertEqual('1800 815 270', db_user.phone_number)
+        self.assertEqual('0401 234 567', db_user.mobile_number)
+        self.assertEqual('staff', db_user.affiliation)
+        self.assertIsNone(db_user.home_organization)
+        self.assertEqual('pretty', db_user.orcid)
 
     def test_update_bad_affiliation(self):
-        user = self.make_shib_user()
+        user = self.make_db_user()
         self.shib_attrs.update({'affiliation': 'parasite'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual('member', dbuser.affiliation)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
+        models.update_db_user(user, self.shib_attrs)
+        db_user = db.session.query(models.User).get(user.id)
+        self.assertEqual('member', db_user.affiliation)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
 
-    def test_keystone_authenticate(self):
-        pass
+    @mock.patch('keystoneauth1.identity.v3.Password')
+    @mock.patch('manuka.models.keystone_client.Client')
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    @mock.patch('manuka.models.sync_keystone_user')
+    def test_keystone_authenticate(self, mock_sync_keystone_user,
+                                   mock_get_admin_keystone_client,
+                                   mock_keystone_client,
+                                   mock_keystone_password):
+
+        client = mock_get_admin_keystone_client.return_value
+        keystone_user = client.users.get.return_value
+        keystone_domain = client.domains.get.return_value
+        user_client = mock_keystone_client.return_value
+        updated_keystone_user = mock_sync_keystone_user.return_value
+        p1 = mock.Mock()
+        p2 = mock.Mock()
+        user_client.projects.list.return_value = [p1, p2]
+        db_user = self.make_db_user()
+        db.session.add(db_user)
+        db.session.commit()
+
+        token, project_id, user = models.keystone_authenticate(db_user)
+
+        mock_sync_keystone_user.assert_called_once_with(
+            client, db_user, keystone_user, False)
+        client.users.get.assert_called_once_with(db_user.user_id)
+        client.domains.get.assert_called_once_with(
+            keystone_user.domain_id)
+
+        mock_keystone_password.assert_called_once_with(
+            username=updated_keystone_user.name,
+            password=CONF.keystone.authenticate_password,
+            auth_url=CONF.keystone.auth_url,
+            user_domain_name=keystone_domain.name,
+            project_domain_name='Default'
+        )
+
+        user_client.auth.client.get_token.assert_called_once_with()
+        user_client.projects.list.assert_called_once_with(
+            user=updated_keystone_user.id)
+
+        self.assertEqual(user_client.auth.client.get_token.return_value,
+                         token)
+        self.assertEqual(p1.id, project_id)
+        self.assertEqual(updated_keystone_user, user)
+
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    def test_sync_keystone_user(self, mock_keystone):
+        keystone_user = mock.Mock(email='email1', full_name='name1')
+        mock_client = mock_keystone.return_value
+        mock_client.users.get.return_value = keystone_user
+
+        db_user = self.make_db_user(email='email1')
+        db.session.add(db_user)
+        db.session.commit()
+
+        updated_keystone_user = models.sync_keystone_user(mock_client, db_user,
+                                                          keystone_user)
+
+        mock_client.users.update.assert_called_once_with(
+            keystone_user.id, full_name=db_user.displayname)
+        self.assertEqual(mock_client.users.update.return_value,
+                         updated_keystone_user)
+
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    def test_sync_keystone_user_sync_username(self, mock_keystone):
+        keystone_user = mock.Mock(email='email1', full_name='name1')
+        keystone_user.name = 'oldname'
+        mock_client = mock_keystone.return_value
+        mock_client.users.get.return_value = keystone_user
+
+        db_user = self.make_db_user(email='email1')
+        db.session.add(db_user)
+        db.session.commit()
+
+        updated_keystone_user = models.sync_keystone_user(
+            mock_client, db_user, keystone_user, set_username_as_email=True)
+
+        mock_client.users.update.assert_called_once_with(
+            keystone_user.id, full_name=db_user.displayname,
+            name='email1')
+        self.assertEqual(mock_client.users.update.return_value,
+                         updated_keystone_user)

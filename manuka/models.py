@@ -23,6 +23,7 @@ from manuka.common import clients
 from manuka.common import keystone
 from manuka.extensions import db
 
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
@@ -68,24 +69,16 @@ class User(db.Model):
         return "<Shibboleth User '%d', '%s')>" % (self.id, self.displayname)
 
 
-def keystone_authenticate(user_id, project_id=None, email=None,
-                          full_name=None, set_username_as_email=False):
+def keystone_authenticate(db_user, project_id=None,
+                          set_username_as_email=False):
     """Authenticate a user as their default project.
     """
     k_session = keystone.KeystoneSession()
     client = clients.get_admin_keystoneclient(k_session.get_session())
-    user = client.users.get(user_id)
+    user = client.users.get(db_user.user_id)
     domain = client.domains.get(user.domain_id)
-    update_attrs = {}
-    if (email and email != user.email):
-        update_attrs['email'] = email
-    if full_name and full_name != getattr(user, 'full_name', None):
-        update_attrs['full_name'] = full_name
-    if set_username_as_email:
-        update_attrs['name'] = update_attrs.get('email', user.email)
-    if update_attrs:
-        LOG.info("Updating user %s with %s", user.name, update_attrs)
-        user = keystone.users.update(user_id, **update_attrs)
+
+    user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
     kwargs = {'username': user.name,
               'password': CONF.keystone.authenticate_password,
@@ -101,21 +94,41 @@ def keystone_authenticate(user_id, project_id=None, email=None,
 
     token = user_client.auth.client.get_token()
     projects = user_client.projects.list(user=user.id)
+
     return token, projects[0].id, user
 
 
-def create_shibboleth_user(shib_attrs):
+def sync_keystone_user(client, db_user, keystone_user,
+                       set_username_as_email=False):
+    """Syncs attributes from manuka user -> keystone user
+        """
+    update_attrs = {}
+
+    if db_user.email != keystone_user.email:
+        update_attrs['email'] = db_user.email
+    if db_user.displayname != getattr(keystone_user, 'full_name', None):
+        update_attrs['full_name'] = db_user.displayname
+    if set_username_as_email:
+        update_attrs['name'] = db_user.email
+    if update_attrs:
+        LOG.info("Updating keystone user %s with %s", keystone_user.name,
+                 update_attrs)
+        keystone_user = client.users.update(keystone_user.id, **update_attrs)
+    return keystone_user
+
+
+def create_db_user(shib_attrs):
     """Create a new user from the Shibboleth attributes
 
     Required Shibboleth attributes are `id`, `fullname` and `mail`
 
     Return a newly created user.
     """
-    # add shibboleth user
-    shibuser = User(shib_attrs["id"])
-    db.session.add(shibuser)
+    # add db user
+    db_user = User(shib_attrs["id"])
+    db.session.add(db_user)
     db.session.commit()
-    return shibuser
+    return db_user
 
 
 def _normalize(value):
@@ -132,19 +145,19 @@ def _normalize(value):
     return value if len(value) > 0 else None
 
 
-def _merge_info_values(shib_user, shib_attrs, name, current):
+def _merge_info_values(db_user, shib_attrs, name, current):
     '''Merge non-core user info attributes from 3 sources
 
     The sources are the attributes provided by the IDP this time
     (in shib_attrs), the attributes provided by the IDP last time
-    (in shib_user.shibboleth_attributes) and the value from the
+    (in db_user.shibboleth_attributes) and the value from the
     database (current), which may or may not be user supplied.
 
     Return the normalized and merged value to go into the database
     '''
     shib_current = _normalize(shib_attrs.get(name))
     # (On a new registration, there won't be any previous shib attrs)
-    prev_attrs = shib_user.shibboleth_attributes or {}
+    prev_attrs = db_user.shibboleth_attributes or {}
     shib_previous = _normalize(prev_attrs.get(name))
     current = _normalize(current)
     if shib_current is None:
@@ -173,46 +186,46 @@ def _merge_info_values(shib_user, shib_attrs, name, current):
         return shib_current
 
 
-def update_shibboleth_user(shib_user, shib_attrs):
+def update_db_user(db_user, shib_attrs):
     """Update a Shibboleth User with new details passed from
     Shibboleth.
     """
-    shib_user.displayname = shib_attrs["fullname"]
-    shib_user.email = shib_attrs["mail"]
-    shib_user.first_name = _merge_info_values(shib_user, shib_attrs,
+    db_user.displayname = shib_attrs["fullname"]
+    db_user.email = shib_attrs["mail"]
+    db_user.first_name = _merge_info_values(db_user, shib_attrs,
                                               'firstname',
-                                              shib_user.first_name)
-    shib_user.surname = _merge_info_values(shib_user, shib_attrs,
+                                              db_user.first_name)
+    db_user.surname = _merge_info_values(db_user, shib_attrs,
                                            'surname',
-                                           shib_user.surname)
-    shib_user.phone_number = _merge_info_values(shib_user, shib_attrs,
+                                           db_user.surname)
+    db_user.phone_number = _merge_info_values(db_user, shib_attrs,
                                                 'telephonenumber',
-                                                shib_user.phone_number)
-    shib_user.mobile_number = _merge_info_values(shib_user, shib_attrs,
+                                                db_user.phone_number)
+    db_user.mobile_number = _merge_info_values(db_user, shib_attrs,
                                                  'mobilenumber',
-                                                 shib_user.mobile_number)
-    shib_user.home_organization = \
-        _merge_info_values(shib_user, shib_attrs,
+                                                 db_user.mobile_number)
+    db_user.home_organization = \
+        _merge_info_values(db_user, shib_attrs,
                            'homeorganization',
-                           shib_user.home_organization)
-    shib_user.orcid = _merge_info_values(shib_user, shib_attrs,
+                           db_user.home_organization)
+    db_user.orcid = _merge_info_values(db_user, shib_attrs,
                                          'orcid',
-                                         shib_user.orcid)
+                                         db_user.orcid)
     # Question: do we want to deal with affiliation differently?
     # For example, in the case where the IDP says "member" we
     # want the user to be able to say "staff" or "student" or ...
-    shib_user.affiliation = _merge_info_values(shib_user, shib_attrs,
+    db_user.affiliation = _merge_info_values(db_user, shib_attrs,
                                                'affiliation',
-                                               shib_user.affiliation)
-    if shib_user.affiliation not in AFFILIATION_VALUES:
+                                               db_user.affiliation)
+    if db_user.affiliation not in AFFILIATION_VALUES:
         # This could happen if the IDP (real or test) gives us bogus
         # affiliation values.
         LOG.info("Fixed bad affiliation for user %s: '%s' -> '%s'",
-                 shib_user.displayname, shib_user.affiliation, 'member')
-        shib_user.affiliation = 'member'
+                 db_user.displayname, db_user.affiliation, 'member')
+        db_user.affiliation = 'member'
 
-    shib_user.shibboleth_attributes = shib_attrs
+    db_user.shibboleth_attributes = shib_attrs
 
     date_now = datetime.datetime.now()
-    shib_user.last_login = date_now
+    db_user.last_login = date_now
     db.session.commit()
