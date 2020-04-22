@@ -98,7 +98,7 @@ class TestViews(base.TestCase):
          a token encoded in the response.
         """
         # mock user
-        user = self.make_shib_user(state='new', agreed_terms=False)
+        user = self.make_db_user(state='new', agreed_terms=False)
         mock_create.return_value = user
 
         response = self.client.get('/login/')
@@ -119,7 +119,7 @@ class TestViews(base.TestCase):
         """
 
         # mock user
-        user = self.make_shib_user(state='new')
+        user = self.make_db_user(state='new')
         mock_create.return_value = user
 
         # mock token
@@ -147,7 +147,7 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        shibuser = self.make_shib_user(state='registered')
+        shibuser = self.make_db_user(state='registered')
         db.session.add(shibuser)
         db.session.commit()
         response = self.client.get('/login/')
@@ -164,7 +164,7 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -192,7 +192,7 @@ class TestViews(base.TestCase):
         User will be shown a form asking if they would like to
         change username
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -220,7 +220,7 @@ class TestViews(base.TestCase):
 
         User will be logged in as they ignored different email
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -248,7 +248,7 @@ class TestViews(base.TestCase):
         User chosen to change username, then will be logged in
         """
 
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -277,7 +277,7 @@ class TestViews(base.TestCase):
         """
         CONF.set_override('terms_version', 'v2')
 
-        shibuser = self.make_shib_user(state='registered')
+        shibuser = self.make_db_user(state='registered')
         db.session.add(shibuser)
         db.session.commit()
 
@@ -295,7 +295,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -322,7 +322,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token

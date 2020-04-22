@@ -20,52 +20,31 @@ from manuka.tests.unit import base
 
 
 class TestModels(base.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.shib_attrs = {
-            'mail': 'test@example.com',
-            'fullname': 'john smith',
-            'id': '1324'
-        }
 
-    def make_shib_user(self, state='new', agreed_terms=True):
-        # create registered user
-        shibuser = models.User("1324")
-        shibuser.id = "1324"
-        shibuser.user_id = 1324
-        shibuser.email = "test@example.com"
-        shibuser.shibboleth_attributes = self.shib_attrs
-        if agreed_terms and state != 'new':
-            shibuser.registered_at = datetime.now()
-        else:
-            shibuser.registered_at = None
-        shibuser.state = state
-        return shibuser
-
-    def test_create_shibboleth_user(self):
-        models.create_shibboleth_user(self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs['id'], dbuser.persistent_id)
+    def test_create_db_user(self):
+        models.create_db_user(self.shib_attrs)
+        db_user, = db.session.query(models.User).all()
+        self.assertEqual(self.shib_attrs['id'], db_user.persistent_id)
 
     @freeze_time("2012-01-14")
-    def test_update_shibboleth_user(self):
+    def test_update_db_user(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_shib_user()
+        user = self.make_db_user()
         user.displayname = ''
         user.email = ''
         user.shibboleth_attributes = {}
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
-        self.assertEqual(self.shib_attrs["mail"], dbuser.email)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
-        self.assertEqual(datetime(2012, 1, 14), dbuser.last_login)
+        models.update_db_user(user, self.shib_attrs)
+        db_user, = db.session.query(models.User).all()
+        self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
+        self.assertEqual(self.shib_attrs["mail"], db_user.email)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual(datetime(2012, 1, 14), db_user.last_login)
 
-    def test_update_shibboleth_user_merging(self):
+    def test_update_db_user_merging(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_shib_user()
+        user = self.make_db_user()
         user.displayname = ''
         user.email = ''
         user.phone_number = '460 261'
@@ -82,28 +61,28 @@ class TestModels(base.TestCase):
                                 'orcid': 'ugly'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual(self.shib_attrs["fullname"], dbuser.displayname)
-        self.assertEqual(self.shib_attrs["mail"], dbuser.email)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
-        self.assertEqual('Godfrey', dbuser.first_name)
-        self.assertEqual('Cohen', dbuser.surname)
-        self.assertEqual('1800 815 270', dbuser.phone_number)
-        self.assertEqual('0401 234 567', dbuser.mobile_number)
-        self.assertEqual('staff', dbuser.affiliation)
-        self.assertIsNone(dbuser.home_organization)
-        self.assertEqual('pretty', dbuser.orcid)
+        models.update_db_user(user, self.shib_attrs)
+        db_user, = db.session.query(models.User).all()
+        self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
+        self.assertEqual(self.shib_attrs["mail"], db_user.email)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual('Godfrey', db_user.first_name)
+        self.assertEqual('Cohen', db_user.surname)
+        self.assertEqual('1800 815 270', db_user.phone_number)
+        self.assertEqual('0401 234 567', db_user.mobile_number)
+        self.assertEqual('staff', db_user.affiliation)
+        self.assertIsNone(db_user.home_organization)
+        self.assertEqual('pretty', db_user.orcid)
 
     def test_update_bad_affiliation(self):
-        user = self.make_shib_user()
+        user = self.make_db_user()
         self.shib_attrs.update({'affiliation': 'parasite'})
         db.session.add(user)
         db.session.commit()
-        models.update_shibboleth_user(user, self.shib_attrs)
-        dbuser, = db.session.query(models.User).all()
-        self.assertEqual('member', dbuser.affiliation)
-        self.assertEqual(self.shib_attrs, dbuser.shibboleth_attributes)
+        models.update_db_user(user, self.shib_attrs)
+        db_user, = db.session.query(models.User).all()
+        self.assertEqual('member', db_user.affiliation)
+        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
 
     def test_keystone_authenticate(self):
         pass
