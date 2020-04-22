@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86ce529f_c670341c",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-04-22T01:46:31Z",
+      "side": 1,
+      "message": "possible to do the policy check first before hitting the DB?",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 41
+      },
+      "revId": "4f99ddd8b79eec0174546f1bfb71fb8618a8fb58",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
