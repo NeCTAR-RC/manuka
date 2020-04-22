@@ -22,6 +22,30 @@
       "revId": "4f99ddd8b79eec0174546f1bfb71fb8618a8fb58",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2036896_0b3a5d37",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-22T02:51:22Z",
+      "side": 1,
+      "message": "Not possible as need the db_user.user_id attribute to check against. (see target that gets passed in)\nThis isn\u0027t the nicest and I want to re-factor all this to remove the need for a db_user.id and db_user.user_id attribute",
+      "parentUuid": "86ce529f_c670341c",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 41
+      },
+      "revId": "4f99ddd8b79eec0174546f1bfb71fb8618a8fb58",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
