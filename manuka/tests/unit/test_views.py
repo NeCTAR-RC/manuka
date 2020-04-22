@@ -88,7 +88,7 @@ class TestViews(base.TestCase):
         super().setUp()
         self.app.wsgi_app = TestShibWrapper(self.app.wsgi_app)
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     def test_new_user(self, mock_create):
         """Given a user who has registered
         And has accepted the terms of service
@@ -98,15 +98,15 @@ class TestViews(base.TestCase):
          a token encoded in the response.
         """
         # mock user
-        user = self.make_shib_user(state='new', agreed_terms=False)
+        user = self.make_db_user(state='new', agreed_terms=False)
         mock_create.return_value = user
 
         response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
 
-    @mock.patch("manuka.models.create_shibboleth_user")
-    @mock.patch("manuka.models.update_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
+    @mock.patch("manuka.models.update_db_user")
     def test_agreed_terms_user(self,
                                mock_update,
                                mock_create):
@@ -119,7 +119,7 @@ class TestViews(base.TestCase):
         """
 
         # mock user
-        user = self.make_shib_user(state='new')
+        user = self.make_db_user(state='new')
         mock_create.return_value = user
 
         # mock token
@@ -147,14 +147,14 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        shibuser = self.make_shib_user(state='registered')
+        shibuser = self.make_db_user(state='registered')
         db.session.add(shibuser)
         db.session.commit()
         response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('creating_account.html')
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_created_user(self,
                           mock_keystone_authenticate,
@@ -164,7 +164,7 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -182,7 +182,7 @@ class TestViews(base.TestCase):
         self.assertContext('token', token)
         self.assertContext('target', CONF.default_target)
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_email_changed(self,
                            mock_keystone_authenticate,
@@ -192,7 +192,8 @@ class TestViews(base.TestCase):
         User will be shown a form asking if they would like to
         change username
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db_user = self.make_db_user(state='created')
+        db.session.add(db_user)
         db.session.commit()
 
         # mock token
@@ -204,14 +205,13 @@ class TestViews(base.TestCase):
 
         response = self.client.get('/login/')
         mock_keystone_authenticate.assert_called_once_with(
-            '1324', email=u'test@example.com', full_name=None,
-            set_username_as_email=False)
+            db_user, set_username_as_email=False)
 
         # confirm that the redirect is passed correctly
         self.assert200(response)
         self.assertTemplateUsed('username_form.html')
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_email_changed_ignored(self,
                                    mock_keystone_authenticate,
@@ -220,7 +220,7 @@ class TestViews(base.TestCase):
 
         User will be logged in as they ignored different email
         """
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -238,7 +238,7 @@ class TestViews(base.TestCase):
         self.assertContext('token', token)
         self.assertContext('target', CONF.default_target)
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_email_changed_submit(self,
                                mock_keystone_authenticate,
@@ -248,7 +248,8 @@ class TestViews(base.TestCase):
         User chosen to change username, then will be logged in
         """
 
-        db.session.add(self.make_shib_user(state='created'))
+        db_user = self.make_db_user(state='created')
+        db.session.add(db_user)
         db.session.commit()
 
         # mock token
@@ -261,8 +262,7 @@ class TestViews(base.TestCase):
         response = self.client.post('/login/', data={'change_username': True})
 
         mock_keystone_authenticate.assert_called_once_with(
-            '1324', email=u'test@example.com', full_name=None,
-            set_username_as_email=True)
+            db_user, set_username_as_email=True)
 
         self.assert200(response)
         self.assertTemplateUsed('redirect.html')
@@ -277,7 +277,7 @@ class TestViews(base.TestCase):
         """
         CONF.set_override('terms_version', 'v2')
 
-        shibuser = self.make_shib_user(state='registered')
+        shibuser = self.make_db_user(state='registered')
         db.session.add(shibuser)
         db.session.commit()
 
@@ -286,7 +286,7 @@ class TestViews(base.TestCase):
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_return_path(self, mock_keystone_authenticate,
                          mock_create):
@@ -295,7 +295,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
@@ -313,7 +313,7 @@ class TestViews(base.TestCase):
         self.assertContext('token', token)
         self.assertContext('target', return_path)
 
-    @mock.patch("manuka.models.create_shibboleth_user")
+    @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_return_path_negative(self, mock_keystone_authenticate,
                          mock_create):
@@ -322,7 +322,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_shib_user(state='created'))
+        db.session.add(self.make_db_user(state='created'))
         db.session.commit()
 
         # mock token
