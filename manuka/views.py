@@ -77,9 +77,9 @@ class ShibbolethAttrMap(object):
 
 @login_bp.route('/account_status')
 def account_status():
-    shib_user = db.session.query(models.User).filter_by(
+    db_user = db.session.query(models.User).filter_by(
         persistent_id=session.get("user_id")).first()
-    data = {"state": shib_user.state}
+    data = {"state": db_user.state}
     return json.dumps(data)
 
 
@@ -114,22 +114,22 @@ def root():
             "errors": error_values}
         return flask.render_template("error.html", **data)
 
-    shib_user = db.session.query(models.User).filter_by(
+    db_user = db.session.query(models.User).filter_by(
         persistent_id=shib_attrs["id"]).first()
-    if not shib_user:
-        shib_user = models.create_shibboleth_user(shib_attrs)
+    if not db_user:
+        db_user = models.create_db_user(shib_attrs)
 
     session["user_id"] = shib_attrs["id"]
 
     current_terms_version = CONF.terms_version
 
-    if request.form.get("agree") and shib_user.state == "new":
+    if request.form.get("agree") and db_user.state == "new":
         date_now = datetime.datetime.now()
-        shib_user.registered_at = date_now
-        shib_user.terms_accepted_at = date_now
-        shib_user.state = "registered"
-        shib_user.terms_version = current_terms_version
-        models.update_shibboleth_user(shib_user, shib_attrs)
+        db_user.registered_at = date_now
+        db_user.terms_accepted_at = date_now
+        db_user.state = "registered"
+        db_user.terms_version = current_terms_version
+        models.update_db_user(db_user, shib_attrs)
         db.session.commit()
         # after registering present the user with a page indicating
         # there account is being created
@@ -137,30 +137,30 @@ def root():
         ctxt = context.RequestContext()
         worker.create_user(ctxt, shib_attrs)
 
-    if request.form.get("agree") and shib_user.state == "created":
+    if request.form.get("agree") and db_user.state == "created":
         # New terms version accepted
-        shib_user.terms_version = current_terms_version
-        shib_user.terms_accepted_at = datetime.datetime.now()
-        models.update_shibboleth_user(shib_user, shib_attrs)
+        db_user.terms_version = current_terms_version
+        db_user.terms_accepted_at = datetime.datetime.now()
+        models.update_db_user(db_user, shib_attrs)
         db.session.commit()
 
     if request.form.get("ignore_username"):
         # Ignore different username
-        shib_user.ignore_username_not_email = True
+        db_user.ignore_username_not_email = True
         db.session.commit()
 
-    if shib_user.terms_version != current_terms_version:
+    if db_user.terms_version != current_terms_version:
         data = {"title": "Terms and Conditions.",
                 "terms_version": current_terms_version,
-                "updated_terms": shib_user.terms_version}
+                "updated_terms": db_user.terms_version}
         return flask.render_template("terms_form.html", **data)
 
-    if shib_user.state == "registered":
+    if db_user.state == "registered":
         data = {"title": "Creating Account...",
                 "support_url": CONF.support_url}
         return flask.render_template("creating_account.html", **data)
 
-    if shib_user.state == "created":
+    if db_user.state == "created":
         set_username_as_email = False
 
         if request.form.get("change_username"):
@@ -169,9 +169,7 @@ def root():
 
         try:
             token, project_id, user = models.keystone_authenticate(
-                shib_user.user_id, email=shib_user.email,
-                full_name=shib_user.displayname,
-                set_username_as_email=set_username_as_email)
+                db_user, set_username_as_email=set_username_as_email)
         except Exception as e:
             # TODO(russell) the error handing this exception is
             # to broad.
@@ -182,8 +180,8 @@ def root():
             # we get into this state?  BTW, if the user is in this
             # state, he has lost everything in the cloud, and is
             # likely to be unhappy...
-            LOG.exception("A user known to rcshibboleth isn't known by "
-                          "Keystone! Their user id is: %s", shib_user.user_id)
+            LOG.exception("A user known to manuka isn't known by "
+                          "Keystone! Their user id is: %s", db_user.user_id)
             data = {
                 "title": "Error",
                 "message": 'Your details could not be found on the '
@@ -199,9 +197,9 @@ def root():
             # useful error page...
             return flask.render_template("error.html", **data)
 
-    models.update_shibboleth_user(shib_user, shib_attrs)
+    models.update_db_user(db_user, shib_attrs)
 
-    if user.name != user.email and not shib_user.ignore_username_not_email:
+    if user.name != user.email and not db_user.ignore_username_not_email:
         data = {"user": user}
         return flask.render_template("username_form.html", **data)
 
