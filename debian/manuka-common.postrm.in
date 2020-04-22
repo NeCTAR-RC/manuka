@@ -5,7 +5,6 @@ set -e
 #PKGOS-INCLUDE#
 
 if [ "${1}" = "purge" ] ; then
-	pkgos_dbc_postrm manuka manuka-common $@
 
 	rm -rf /var/lib/manuka || true
         rm -rf /var/log/manuka || true

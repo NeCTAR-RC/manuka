@@ -8,7 +8,6 @@ CONF=/etc/manuka/manuka.conf
 
 if [ "$1" = "configure" ] || [ "$1" = "reconfigure" ] ; then
     . /usr/share/debconf/confmodule
-    . /usr/share/dbconfig-common/dpkg/postinst
 
     pkgos_var_user_group manuka /bin/sh
 
