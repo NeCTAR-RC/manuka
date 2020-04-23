@@ -17,3 +17,5 @@ from manuka.api.v1.resources import user
 def initialize_resources(api):
     api.add_resource(user.UserList, '/v1/users/')
     api.add_resource(user.User, '/v1/users/<id>/')
+    api.add_resource(user.UserSearch, '/v1/users/search/')
+    api.add_resource(user.UserByOpenstackUserID, '/v1/users-os/<id>/')
