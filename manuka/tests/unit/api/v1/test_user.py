@@ -94,6 +94,41 @@ class TestUserApi(base.TestCase):
     def test_user_update_invalid(self):
         self._test_user_update_invalid(401)
 
+    def _test_user_search(self, query, expected_results):
+        data = {'search': query}
+        response = self.client.post('/api/v1/users/search/', data=data)
+        results = response.get_json().get('results')
+
+        self.assert200(response)
+        self.assertEqual(len(expected_results), len(results))
+        if len(expected_results) == 1:
+            self.assertUserEqual(expected_results[0], results[0])
+
+    def test_user_search(self):
+        user1 = self.make_db_user(id=1, displayname='displayname1',
+                                  email='search1@example.com')
+        user2 = self.make_db_user(id=2, displayname='displayname2',
+                                  email='search2@example.com')
+        user3 = self.make_db_user(id=3, displayname='other3',
+                                  email='search3@example.com')
+
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.add(user3)
+        db.session.commit()
+
+        self._test_user_search('displayname1', [user1])
+        self._test_user_search('search1', [user1])
+        self._test_user_search('displayname2', [user2])
+        self._test_user_search('search2', [user2])
+        self._test_user_search('displayname', [user1, user2])
+        self._test_user_search('search', [user1, user2, user3])
+
+    def test_user_search_small_query(self):
+        data = {'search': 'ab'}
+        response = self.client.post('/api/v1/users/search/', data=data)
+        self.assert400(response)
+
 
 class TestUserApiUser(TestUserApi):
 
@@ -131,3 +166,13 @@ class TestUserApiUser(TestUserApi):
 
     def test_user_update_invalid(self):
         self._test_user_update_invalid(404)
+
+    def test_user_search(self):
+        data = {'search': 'needle'}
+        response = self.client.post('/api/v1/users/search/', data=data)
+        self.assert403(response)
+
+    def test_user_search_small_query(self):
+        data = {'search': 'ab'}
+        response = self.client.post('/api/v1/users/search/', data=data)
+        self.assert403(response)
