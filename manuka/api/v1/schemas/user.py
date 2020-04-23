@@ -28,7 +28,8 @@ class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.User
         load_instance = True
-        fields = ('orcid', 'affiliation', 'ignore_username_not_email')
+        fields = ('orcid', 'affiliation', 'ignore_username_not_email',
+                  'mobile_number', 'phone_number')
 
 
 user_schema = UserSchema()
