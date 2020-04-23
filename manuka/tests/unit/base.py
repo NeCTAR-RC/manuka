@@ -56,12 +56,14 @@ class TestCase(flask_testing.TestCase):
         extensions.api.resources = []
 
     def make_db_user(self, state='new', agreed_terms=True,
-                       email='test@example.com', id=1324):
+                     email='test@example.com', id=1324,
+                     displayname='test user'):
         # create registered user
         db_user = models.User(id)
         db_user.id = id
         db_user.user_id = id
         db_user.email = email
+        db_user.displayname = displayname
         db_user.shibboleth_attributes = self.shib_attrs
 
         if agreed_terms and state != 'new':
