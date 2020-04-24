@@ -39,7 +39,7 @@ class TestCase(flask_testing.TestCase):
             'TESTING': True,
             'SQLALCHEMY_DATABASE_URI': "sqlite://",
             'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-        }, conf_file='manuka/tests/settings.conf')
+        }, conf_file='manuka/tests/etc/manuka.conf')
 
     def setUp(self):
         super().setUp()
