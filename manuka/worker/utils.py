@@ -17,7 +17,6 @@ import os
 import time
 
 import flask
-from keystoneclient import exceptions
 from oslo_config import cfg
 
 from manuka.common import clients
@@ -28,46 +27,22 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def safe_call(client, keystone_call, *args, **kwargs):
-    try:
-        return keystone_call(*args, **kwargs)
-    except exceptions.Unauthorized:
-        client.auth_token = None
-        client.authenticate()
-        return keystone_call(*args, **kwargs)
-
-
 def create_user(client, name, email, project=None, full_name=None):
     """Add a new user"""
     password = str(base64.encodestring(os.urandom(16))[:20], 'utf-8')
-    try:
-        user = safe_call(client,
-                         client.users.create,
-                         name=name,
-                         password=password,
-                         email=email,
-                         domain='default',
-                         default_project=project)
-        return safe_call(client,
-                         client.users.update,
-                         user.id,
-                         full_name=full_name)
-    except exceptions.ClientException:
-        LOG.error("The User %s already exists.", name)
-        raise
+    user = client.users.create(name=name,
+                               password=password,
+                               email=email,
+                               domain='default',
+                               default_project=project)
+    return client.users.update(user.id, full_name=full_name)
 
 
 def create_project(client, name, description, domain='default'):
     """Add a new project"""
-    try:
-        return safe_call(client,
-                         client.projects.create,
-                         name=name,
-                         domain=domain,
-                         description=description)
-    except exceptions.ClientException:
-        LOG.error("Error creating project %s.", name)
-        raise
+    return client.projects.create(name=name,
+                                  domain=domain,
+                                  description=description)
 
 
 def add_user_roles(client, user, project, roles=[]):
@@ -77,14 +52,13 @@ def add_user_roles(client, user, project, roles=[]):
     for role in get_roles(client, roles):
         LOG.info('Adding role %s to user %s project %s',
                  role.name, user.name, project.name)
-        safe_call(client, client.roles.grant, user=user,
-                  role=role, project=project)
+        client.roles.grant(user=user, role=role, project=project)
 
 
 def get_roles(client, role_names):
     roles = []
-    LOG.debug('Role %s', client.roles.list())
-    role_list = safe_call(client, client.roles.list)
+    role_list = client.roles.list()
+    LOG.debug('Roles %s', role_list)
 
     for role in role_list:
         LOG.debug('Testing role %s in %s', role.name, role_names)
@@ -98,12 +72,15 @@ def get_domain_for_idp(idp):
         domains = os.listdir(CONF.idp_domain_mapping_dir)
 
         for domain in domains:
-            f = open(os.path.join(CONF.idp_domain_mapping_dir, domain))
-            idps = f.read().split('\n')
-            f.close()
-            if idp in idps:
-                return domain
-    except IOError:
+            try:
+                with open(os.path.join(
+                        CONF.idp_domain_mapping_dir, domain)) as f:
+                    idps = f.read().split('\n')
+                    if idp in idps:
+                        return domain
+            except IOError:
+                continue
+    except FileNotFoundError:
         pass
     return 'default'
 
