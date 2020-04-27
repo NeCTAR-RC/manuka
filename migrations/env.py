@@ -7,7 +7,7 @@ from alembic import context
 from flask import current_app
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from manuka import models
+#from manuka import models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,8 +26,9 @@ logger = logging.getLogger('alembic.env')
 config.set_main_option(
     'sqlalchemy.url',
     str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
+#import pdb; pdb.set_trace()
 target_metadata = current_app.extensions['migrate'].db.metadata
-target_metadata = models.User.metadata
+#target_metadata = models.User.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

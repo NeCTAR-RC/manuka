@@ -60,12 +60,11 @@ class TestCase(flask_testing.TestCase):
                      email='test@example.com', id=1324,
                      displayname='test user'):
         # create registered user
-        db_user = models.User(id)
+        db_user = models.User()
         db_user.id = id
         db_user.user_id = id
         db_user.email = email
         db_user.displayname = displayname
-        db_user.shibboleth_attributes = self.shib_attrs
 
         if agreed_terms and state != 'new':
             date_now = datetime.now()
@@ -79,6 +78,12 @@ class TestCase(flask_testing.TestCase):
         db_user.state = state
         db_user.ignore_username_not_email = False
         db_user.orcid = 'testorchid'
+
+        external_id = models.ExternalId(db_user, id, self.shib_attrs)
+        db.session.add(db_user)
+        db.session.add(external_id)
+        db.session.commit()
+
         return db_user
 
 
