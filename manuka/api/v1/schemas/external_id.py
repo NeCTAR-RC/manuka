@@ -11,13 +11,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from manuka.api.v1.resources import external_id
-from manuka.api.v1.resources import user
+from manuka.extensions import ma
+from manuka import models
 
 
-def initialize_resources(api):
-    api.add_resource(user.UserList, '/v1/users/')
-    api.add_resource(user.User, '/v1/users/<id>/')
-    api.add_resource(user.UserSearch, '/v1/users/search/')
-    api.add_resource(user.UserByOpenstackUserID, '/v1/users-os/<id>/')
-    api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
+class ExternalIdSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.ExternalId
+        load_instance = True
+        exclude = ('id',)
+
+
+external_id_schema = ExternalIdSchema()
