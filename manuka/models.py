@@ -206,7 +206,7 @@ def update_db_user(db_user, shib_attrs):
                                                  db_user.mobile_number)
     db_user.home_organization = \
         _merge_info_values(db_user, shib_attrs,
-                           'homeorganization',
+                           'organisation',
                            db_user.home_organization)
     db_user.orcid = _merge_info_values(db_user, shib_attrs,
                                          'orcid',
