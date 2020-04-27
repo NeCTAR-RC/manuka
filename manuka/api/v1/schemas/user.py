@@ -20,7 +20,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.User
         load_instance = True
-        exclude = ('persistent_id', 'shibboleth_attributes')
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):

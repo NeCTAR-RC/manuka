@@ -30,48 +30,59 @@ class TestModels(base.TestCase):
     def test_create_db_user(self):
         user = models.create_db_user(self.shib_attrs)
         db_user = db.session.query(models.User).get(user.id)
-        self.assertEqual(self.shib_attrs['id'], db_user.persistent_id)
+        external_ids = db.session.query(models.ExternalId).filter_by(
+            user_id=user.id).all()
+        self.assertEqual(1, len(external_ids))
+        self.assertEqual(self.shib_attrs['id'], external_ids[0].persistent_id)
+        self.assertEqual(external_ids[0].user, db_user)
+        self.assertEqual('new', db_user.state)
 
     @freeze_time("2012-01-14")
     def test_update_db_user(self):
         # testing classic behavior: handling the mandatory attributes
         user = self.make_db_user()
+        external_id = user.external_ids[0]
         user.displayname = ''
         user.email = ''
-        user.shibboleth_attributes = {}
+        external_id.attributes = {}
+        db.session.add(external_id)
         db.session.add(user)
         db.session.commit()
-        models.update_db_user(user, self.shib_attrs)
+        models.update_db_user(user, external_id, self.shib_attrs)
         db_user = db.session.query(models.User).get(user.id)
         self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
         self.assertEqual(self.shib_attrs["mail"], db_user.email)
-        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual(self.shib_attrs, db_user.external_ids[0].attributes)
         self.assertEqual(datetime(2012, 1, 14), db_user.last_login)
 
     def test_update_db_user_merging(self):
         # testing classic behavior: handling the mandatory attributes
         user = self.make_db_user()
+        external_id = user.external_ids[0]
         user.displayname = ''
         user.email = ''
         user.phone_number = '460 261'
         user.mobile_number = '0401 234 567'
         user.affiliation = 'staff'
         user.orcid = 'pretty'
-        user.shibboleth_attributes = {'firstname': 'George',
-                                      'surname': 'Cohen',
-                                      'orcid': 'ugly'}
-        user.shibboleth_attributes.update(self.shib_attrs)
+        external_id.attributes = {'firstname': 'George',
+                                  'surname': 'Cohen',
+                                  'orcid': 'ugly'}
+        external_id.attributes.update(self.shib_attrs)
         self.shib_attrs.update({'firstname': ' Godfrey ',
                                 'surname': 'Cohen',
                                 'telephonenumber': '1800 815 270',
                                 'orcid': 'ugly'})
         db.session.add(user)
+        db.session.add(external_id)
         db.session.commit()
-        models.update_db_user(user, self.shib_attrs)
+
+        models.update_db_user(user, external_id, self.shib_attrs)
+
         db_user = db.session.query(models.User).get(user.id)
         self.assertEqual(self.shib_attrs["fullname"], db_user.displayname)
         self.assertEqual(self.shib_attrs["mail"], db_user.email)
-        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual(self.shib_attrs, db_user.external_ids[0].attributes)
         self.assertEqual('Godfrey', db_user.first_name)
         self.assertEqual('Cohen', db_user.surname)
         self.assertEqual('1800 815 270', db_user.phone_number)
@@ -82,13 +93,12 @@ class TestModels(base.TestCase):
 
     def test_update_bad_affiliation(self):
         user = self.make_db_user()
+        external_id = user.external_ids[0]
         self.shib_attrs.update({'affiliation': 'parasite'})
-        db.session.add(user)
-        db.session.commit()
-        models.update_db_user(user, self.shib_attrs)
+        models.update_db_user(user, external_id, self.shib_attrs)
         db_user = db.session.query(models.User).get(user.id)
         self.assertEqual('member', db_user.affiliation)
-        self.assertEqual(self.shib_attrs, db_user.shibboleth_attributes)
+        self.assertEqual(self.shib_attrs, db_user.external_ids[0].attributes)
 
     @mock.patch('keystoneauth1.identity.v3.Password')
     @mock.patch('manuka.models.keystone_client.Client')
@@ -108,8 +118,6 @@ class TestModels(base.TestCase):
         p2 = mock.Mock()
         user_client.projects.list.return_value = [p1, p2]
         db_user = self.make_db_user()
-        db.session.add(db_user)
-        db.session.commit()
 
         token, project_id, user = models.keystone_authenticate(db_user)
 
@@ -143,8 +151,6 @@ class TestModels(base.TestCase):
         mock_client.users.get.return_value = keystone_user
 
         db_user = self.make_db_user(email='email1')
-        db.session.add(db_user)
-        db.session.commit()
 
         updated_keystone_user = models.sync_keystone_user(mock_client, db_user,
                                                           keystone_user)
@@ -162,8 +168,6 @@ class TestModels(base.TestCase):
         mock_client.users.get.return_value = keystone_user
 
         db_user = self.make_db_user(email='email1')
-        db.session.add(db_user)
-        db.session.commit()
 
         updated_keystone_user = models.sync_keystone_user(
             mock_client, db_user, keystone_user, set_username_as_email=True)

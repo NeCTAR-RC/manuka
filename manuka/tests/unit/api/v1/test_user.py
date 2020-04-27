@@ -46,8 +46,6 @@ class TestUserApi(base.TestCase):
         self.init_context()
         user = self.make_db_user(state='new', agreed_terms=False,
                                    email='test@example.com')
-        db.session.add(user)
-        db.session.commit()
         self.user = user
 
     def init_context(self):
@@ -111,11 +109,6 @@ class TestUserApi(base.TestCase):
         user3 = self.make_db_user(id=3, displayname='other3',
                                   email='search3@example.com')
 
-        db.session.add(user1)
-        db.session.add(user2)
-        db.session.add(user3)
-        db.session.commit()
-
         self._test_user_search('displayname1', [user1])
         self._test_user_search('search1', [user1])
         self._test_user_search('displayname2', [user2])
@@ -138,8 +131,6 @@ class TestUserApiUser(TestUserApi):
         user_self = self.make_db_user(state='new', agreed_terms=False,
                                         email='test@example.com',
                                         id=USER_ID)
-        db.session.add(user_self)
-        db.session.commit()
         self.user_self = user_self
 
     def test_user_list(self):
