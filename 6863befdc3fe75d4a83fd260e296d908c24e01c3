@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7de9f19f_79306bba",
+        "filename": "manuka/models.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-04-27T07:02:48Z",
+      "side": 0,
+      "message": "Have we considered race conditions?  For instance, does the Dashboard lookup the user\u0027s keystone information when doing access control, or rendering the Dashboard templates?",
+      "revId": "6863befdc3fe75d4a83fd260e296d908c24e01c3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
