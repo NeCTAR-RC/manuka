@@ -102,9 +102,12 @@ class FakeShibboleth(object):
                 if header == 'affiliation':
                     value = random.choice(models.AFFILIATION_VALUES)
                 else:
-                    value = ''.join(random.choice(string.ascii_letters
-                                                  + string.digits)
-                                    for i in range(20))
+                    # include header name in value to make bugs more obvious
+                    value = "%s-%s" % \
+                            (header,
+                             ''.join(random.choice(string.ascii_letters
+                                                   + string.digits)
+                                     for i in range(20)))
                 session["fakeshib"][header] = value
             session.save()
 
