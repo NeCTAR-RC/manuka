@@ -17,10 +17,12 @@ from manuka import models
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
 
+    external_ids = ma.Nested("ExternalIdSchema", many=True)
+
     class Meta:
         model = models.User
         load_instance = True
-        exclude = ('persistent_id', 'shibboleth_attributes')
+        include_relationships = True
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
