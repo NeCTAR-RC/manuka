@@ -35,7 +35,6 @@ AFFILIATION_VALUES = ["faculty", "student", "staff",
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    persistent_id = db.Column(db.String(250), unique=True)
     user_id = db.Column(db.String(64))
     displayname = db.Column(db.String(250))
     email = db.Column(db.String(250))
@@ -44,14 +43,6 @@ class User(db.Model):
     last_login = db.Column(db.DateTime())
     terms_accepted_at = db.Column(db.DateTime())
     terms_version = db.Column(db.String(64))
-    # Hard-wiring the pickle protocol avoids version problems when rcshib
-    # and dashboard instances running different versions of Python with
-    # different default pickle protocols update the shibboleth attributes.
-    # We could treat this as transitional, but the problem may arise again,
-    # but permanent hard-wiring avoids recurrences of the problem.  (Unless
-    # protocol 2 is deprecated.  But we can handle that by bumping up the
-    # hard-wired protocol, and doing a migration to convert the pickles.)
-    shibboleth_attributes = db.Column(db.PickleType(protocol=2))
     ignore_username_not_email = db.Column(db.Boolean())
     first_name = db.Column(db.String(250))
     surname = db.Column(db.String(250))
@@ -60,13 +51,28 @@ class User(db.Model):
     home_organization = db.Column(db.String(250))
     orcid = db.Column(db.String(64))
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
+    external_ids = db.relationship("ExternalId", back_populates="user",
+                                   lazy='joined')
 
-    def __init__(self, persistent_id):
-        self.persistent_id = persistent_id
+    def __init__(self):
         self.state = "new"
 
     def __repr__(self):
         return "<Shibboleth User '%d', '%s')>" % (self.id, self.displayname)
+
+
+class ExternalId(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user = db.relationship("User", back_populates="external_ids")
+    persistent_id = db.Column(db.String(250), unique=True)
+    attributes = db.Column(db.JSON)
+    last_login = db.Column(db.DateTime())
+
+    def __init__(self, user, persistent_id, attributes):
+        self.user = user
+        self.persistent_id = persistent_id
+        self.attributes = attributes
 
 
 def keystone_authenticate(db_user, project_id=None,
@@ -125,10 +131,12 @@ def create_db_user(shib_attrs):
     Return a newly created user.
     """
     # add db user
-    db_user = User(shib_attrs["id"])
+    db_user = User()
+    external_id = ExternalId(db_user, shib_attrs['id'], shib_attrs)
     db.session.add(db_user)
+    db.session.add(external_id)
     db.session.commit()
-    return db_user
+    return db_user, external_id
 
 
 def _normalize(value):
@@ -145,7 +153,7 @@ def _normalize(value):
     return value if len(value) > 0 else None
 
 
-def _merge_info_values(db_user, shib_attrs, name, current):
+def _merge_info_values(external_id, shib_attrs, name, current):
     '''Merge non-core user info attributes from 3 sources
 
     The sources are the attributes provided by the IDP this time
@@ -157,7 +165,7 @@ def _merge_info_values(db_user, shib_attrs, name, current):
     '''
     shib_current = _normalize(shib_attrs.get(name))
     # (On a new registration, there won't be any previous shib attrs)
-    prev_attrs = db_user.shibboleth_attributes or {}
+    prev_attrs = external_id.attributes or {}
     shib_previous = _normalize(prev_attrs.get(name))
     current = _normalize(current)
     if shib_current is None:
@@ -186,35 +194,35 @@ def _merge_info_values(db_user, shib_attrs, name, current):
         return shib_current
 
 
-def update_db_user(db_user, shib_attrs):
-    """Update a Shibboleth User with new details passed from
+def update_db_user(db_user, external_id, shib_attrs):
+    """Update a DB User with new details passed from
     Shibboleth.
     """
     db_user.displayname = shib_attrs["fullname"]
     db_user.email = shib_attrs["mail"]
-    db_user.first_name = _merge_info_values(db_user, shib_attrs,
+    db_user.first_name = _merge_info_values(external_id, shib_attrs,
                                               'firstname',
                                               db_user.first_name)
-    db_user.surname = _merge_info_values(db_user, shib_attrs,
+    db_user.surname = _merge_info_values(external_id, shib_attrs,
                                            'surname',
                                            db_user.surname)
-    db_user.phone_number = _merge_info_values(db_user, shib_attrs,
+    db_user.phone_number = _merge_info_values(external_id, shib_attrs,
                                                 'telephonenumber',
                                                 db_user.phone_number)
-    db_user.mobile_number = _merge_info_values(db_user, shib_attrs,
+    db_user.mobile_number = _merge_info_values(external_id, shib_attrs,
                                                  'mobilenumber',
                                                  db_user.mobile_number)
     db_user.home_organization = \
-        _merge_info_values(db_user, shib_attrs,
+        _merge_info_values(external_id, shib_attrs,
                            'organisation',
                            db_user.home_organization)
-    db_user.orcid = _merge_info_values(db_user, shib_attrs,
+    db_user.orcid = _merge_info_values(external_id, shib_attrs,
                                          'orcid',
                                          db_user.orcid)
     # Question: do we want to deal with affiliation differently?
     # For example, in the case where the IDP says "member" we
     # want the user to be able to say "staff" or "student" or ...
-    db_user.affiliation = _merge_info_values(db_user, shib_attrs,
+    db_user.affiliation = _merge_info_values(external_id, shib_attrs,
                                                'affiliation',
                                                db_user.affiliation)
     if db_user.affiliation not in AFFILIATION_VALUES:
@@ -224,8 +232,9 @@ def update_db_user(db_user, shib_attrs):
                  db_user.displayname, db_user.affiliation, 'member')
         db_user.affiliation = 'member'
 
-    db_user.shibboleth_attributes = shib_attrs
+    external_id.attributes = shib_attrs
 
     date_now = datetime.datetime.now()
     db_user.last_login = date_now
+    external_id.last_login = date_now
     db.session.commit()
