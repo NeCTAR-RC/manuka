@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6bc00f2_5b52f5e9",
+        "filename": "manuka/tests/unit/base.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-04-27T00:20:27Z",
+      "side": 1,
+      "message": "should this also be set to the email variable?",
+      "range": {
+        "startLine": 60,
+        "startChar": 20,
+        "endLine": 60,
+        "endChar": 38
+      },
+      "revId": "1e29454b4d7ad00824ecde6bb5b4c50e13e789d2",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "570f0beb_0984e833",
+        "filename": "manuka/tests/unit/base.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-04-27T00:20:27Z",
+      "side": 1,
+      "message": "same with this",
+      "range": {
+        "startLine": 62,
+        "startChar": 18,
+        "endLine": 62,
+        "endChar": 24
+      },
+      "revId": "1e29454b4d7ad00824ecde6bb5b4c50e13e789d2",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
