@@ -193,7 +193,7 @@ def update_shibboleth_user(shib_user, shib_attrs):
                                                  shib_user.mobile_number)
     shib_user.home_organization = \
         _merge_info_values(shib_user, shib_attrs,
-                           'homeorganization',
+                           'organisation',
                            shib_user.home_organization)
     shib_user.orcid = _merge_info_values(shib_user, shib_attrs,
                                          'orcid',
