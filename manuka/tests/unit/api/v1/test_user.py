@@ -46,16 +46,33 @@ class TestUserApi(base.TestCase):
         self.init_context()
         user = self.make_db_user(state='new', agreed_terms=False,
                                    email='test@example.com')
-        db.session.add(user)
-        db.session.commit()
         self.user = user
 
     def init_context(self):
         self.app.wsgi_app = TestKeystoneWrapper(self.app.wsgi_app, self.ROLES)
 
-    def assertUserEqual(self, user, user_dict):
-        for key, value in user_dict.items():
-            self.assertEqual(getattr(user, key), value)
+    def assertExternalIdsEqual(self, eids, api_eids):
+        if eids is None:
+            self.assertEqual({}, api_eids)
+        else:
+            self.assertEqual(len(eids), len(api_eids))
+            db_persistent_ids = [e.persistent_id for e in eids]
+            api_persistent_ids = [e['persistent_id'] for e in api_eids]
+            self.assertEqual(db_persistent_ids, api_persistent_ids)
+            db_attrs = [e.attributes for e in eids]
+            api_attrs = [e['attributes'] for e in api_eids]
+            self.assertEqual(db_attrs, api_attrs)
+
+    def assertUserEqual(self, user, api_user):
+        if user is None:
+            user_dict = {}
+        else:
+            user_dict = user.__dict__
+        for key, value in api_user.items():
+            if key == 'external_ids':
+                self.assertExternalIdsEqual(user.external_ids, value)
+            else:
+                self.assertEqual(user_dict.get(key), value)
 
     def test_user_list(self):
         response = self.client.get('/api/v1/users/')
@@ -111,11 +128,6 @@ class TestUserApi(base.TestCase):
         user3 = self.make_db_user(id=3, displayname='other3',
                                   email='search3@example.com')
 
-        db.session.add(user1)
-        db.session.add(user2)
-        db.session.add(user3)
-        db.session.commit()
-
         self._test_user_search('displayname1', [user1])
         self._test_user_search('search1', [user1])
         self._test_user_search('displayname2', [user2])
@@ -138,8 +150,6 @@ class TestUserApiUser(TestUserApi):
         user_self = self.make_db_user(state='new', agreed_terms=False,
                                         email='test@example.com',
                                         id=USER_ID)
-        db.session.add(user_self)
-        db.session.commit()
         self.user_self = user_self
 
     def test_user_list(self):
