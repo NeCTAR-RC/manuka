@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f0f38f4_64283c38",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-04-27T07:50:26Z",
+      "side": 1,
+      "message": "Redundant tests.  See lines 56 and 59",
+      "revId": "7171d27568b7bf192af696a9803e4ccf0d89427d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f025d366_0a606642",
+        "filename": "manuka/api/v1/schemas/user.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-04-27T07:50:26Z",
+      "side": 1,
+      "message": "There should be a copyright ARDC line I think.  It is not strictly required by law, but it makes\nit easier to trace source code back to its source.  This applies to all files in the tree with\na license notice.",
+      "revId": "7171d27568b7bf192af696a9803e4ccf0d89427d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef807a04_de26129f",
+        "filename": "manuka/common/policies.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-04-27T07:50:26Z",
+      "side": 1,
+      "message": "What are these restricted fields?  Are they aopparent in a separate commit?  I can\u0027t work out what you are intending to do here ... and I suspect that it will be important on the Dashboard side.",
+      "revId": "7171d27568b7bf192af696a9803e4ccf0d89427d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
