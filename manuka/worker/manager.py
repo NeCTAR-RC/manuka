@@ -40,8 +40,9 @@ class Manager(object):
 
         # get the user from the database, if this fails then they
         # shouldn't be created
-        db_user = db.session.query(models.User).filter_by(
+        external_id = db.session.query(models.ExternalId).filter_by(
             persistent_id=attrs["id"]).first()
+        db_user = external_id.user
 
         idp = attrs.get('idp')
         domain = utils.get_domain_for_idp(idp)

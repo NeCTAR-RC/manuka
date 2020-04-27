@@ -15,7 +15,6 @@ from unittest import mock
 
 from oslo_config import cfg
 
-from manuka.extensions import db
 from manuka.tests.unit import base
 from manuka import views
 
@@ -88,8 +87,7 @@ class TestViews(base.TestCase):
         super().setUp()
         self.app.wsgi_app = TestShibWrapper(self.app.wsgi_app)
 
-    @mock.patch("manuka.models.create_db_user")
-    def test_new_user(self, mock_create):
+    def test_new_user(self):
         """Given a user who has registered
         And has accepted the terms of service
         When the user visits the site
@@ -98,8 +96,7 @@ class TestViews(base.TestCase):
          a token encoded in the response.
         """
         # mock user
-        user = self.make_db_user(state='new', agreed_terms=False)
-        mock_create.return_value = user
+        self.make_db_user(state='new', agreed_terms=False)
 
         response = self.client.get('/login/')
         self.assert200(response)
@@ -132,8 +129,9 @@ class TestViews(base.TestCase):
 
         # confirm that the keystone user was created
         mock_update.assert_called_once_with(
-            user, {'mail': 'test@example.com',
-                   'fullname': 'john smith', 'id': '1324'})
+            user, user.external_ids[0], {'mail': 'test@example.com',
+                                         'fullname': 'john smith',
+                                         'id': '1324'})
 
         self.assertEqual(user.state, "registered")
         self.assert200(response)
@@ -147,9 +145,7 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        shibuser = self.make_db_user(state='registered')
-        db.session.add(shibuser)
-        db.session.commit()
+        self.make_db_user(state='registered')
         response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('creating_account.html')
@@ -164,8 +160,7 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        db.session.add(self.make_db_user(state='created'))
-        db.session.commit()
+        self.make_db_user(state='created')
 
         # mock token
         token = "secret"
@@ -193,8 +188,6 @@ class TestViews(base.TestCase):
         change username
         """
         db_user = self.make_db_user(state='created')
-        db.session.add(db_user)
-        db.session.commit()
 
         # mock token
         token = "secret"
@@ -220,8 +213,7 @@ class TestViews(base.TestCase):
 
         User will be logged in as they ignored different email
         """
-        db.session.add(self.make_db_user(state='created'))
-        db.session.commit()
+        self.make_db_user(state='created')
 
         # mock token
         token = "secret"
@@ -249,8 +241,6 @@ class TestViews(base.TestCase):
         """
 
         db_user = self.make_db_user(state='created')
-        db.session.add(db_user)
-        db.session.commit()
 
         # mock token
         token = "secret"
@@ -277,9 +267,7 @@ class TestViews(base.TestCase):
         """
         CONF.set_override('terms_version', 'v2')
 
-        shibuser = self.make_db_user(state='registered')
-        db.session.add(shibuser)
-        db.session.commit()
+        self.make_db_user(state='registered')
 
         response = self.client.get('/login/')
 
@@ -295,8 +283,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_db_user(state='created'))
-        db.session.commit()
+        self.make_db_user(state='created')
 
         # mock token
         token = "secret"
@@ -322,8 +309,7 @@ class TestViews(base.TestCase):
         return_path = "https://test.example.com/auth/token"
         CONF.set_override('whitelist', [return_path])
 
-        db.session.add(self.make_db_user(state='created'))
-        db.session.commit()
+        self.make_db_user(state='created')
 
         # mock token
         token = "secret"
