@@ -114,10 +114,12 @@ def root():
             "errors": error_values}
         return flask.render_template("error.html", **data)
 
-    db_user = db.session.query(models.User).filter_by(
+    external_id = db.session.query(models.ExternalId).filter_by(
         persistent_id=shib_attrs["id"]).first()
-    if not db_user:
-        db_user = models.create_db_user(shib_attrs)
+    if not external_id:
+        db_user, external_id = models.create_db_user(shib_attrs)
+    else:
+        db_user = external_id.user
 
     session["user_id"] = shib_attrs["id"]
 
@@ -129,7 +131,7 @@ def root():
         db_user.terms_accepted_at = date_now
         db_user.state = "registered"
         db_user.terms_version = current_terms_version
-        models.update_db_user(db_user, shib_attrs)
+        models.update_db_user(db_user, external_id, shib_attrs)
         db.session.commit()
         # after registering present the user with a page indicating
         # there account is being created
@@ -141,7 +143,7 @@ def root():
         # New terms version accepted
         db_user.terms_version = current_terms_version
         db_user.terms_accepted_at = datetime.datetime.now()
-        models.update_db_user(db_user, shib_attrs)
+        models.update_db_user(db_user, external_id, shib_attrs)
         db.session.commit()
 
     if request.form.get("ignore_username"):
@@ -197,7 +199,7 @@ def root():
             # useful error page...
             return flask.render_template("error.html", **data)
 
-    models.update_db_user(db_user, shib_attrs)
+    models.update_db_user(db_user, external_id, shib_attrs)
 
     if user.name != user.email and not db_user.ignore_username_not_email:
         data = {"user": user}
