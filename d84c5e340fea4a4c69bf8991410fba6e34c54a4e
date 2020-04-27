@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f80e6da6_bd4de614",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-04-27T00:31:55Z",
+      "side": 1,
+      "message": "I realise this is a transition, but could this be moved into the User function above and add a kwarg to decide which to search for? Would remove duplicate code",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 45
+      },
+      "revId": "d84c5e340fea4a4c69bf8991410fba6e34c54a4e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
