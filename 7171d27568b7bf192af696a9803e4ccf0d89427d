@@ -50,6 +50,24 @@
       "revId": "7171d27568b7bf192af696a9803e4ccf0d89427d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08f0dafc_1847f46d",
+        "filename": "manuka/common/policies.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-28T00:37:43Z",
+      "side": 1,
+      "message": "They\u0027re not used for anything yet but could be useful in the future if there are fields we want only certain roles to be able to view and update",
+      "parentUuid": "ef807a04_de26129f",
+      "revId": "7171d27568b7bf192af696a9803e4ccf0d89427d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
