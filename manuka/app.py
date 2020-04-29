@@ -14,7 +14,7 @@
 import os
 
 from beaker import middleware as beaker
-from flask import Flask
+import flask
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_middleware import healthcheck
@@ -39,7 +39,7 @@ def create_app(test_config=None, conf_file=None, init_config=True):
             config.init(conf_file=conf_file)
         else:
             config.init()
-    app = Flask(__name__)
+    app = flask.Flask(__name__)
     if test_config is None:
         app.config.from_mapping(
             SECRET_KEY=CONF.flask.secret_key,
@@ -51,9 +51,11 @@ def create_app(test_config=None, conf_file=None, init_config=True):
         app.config.update(test_config)
 
     config.setup_logging(CONF)
-    register_extensions(app)
+    api_bp = flask.Blueprint('api', __name__, url_prefix='/api')
+    register_extensions(app, api_bp)
     register_resources(extensions.api)
     register_blueprints(app)
+    app.register_blueprint(api_bp)
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
@@ -74,9 +76,9 @@ def create_app(test_config=None, conf_file=None, init_config=True):
     return app
 
 
-def register_extensions(app):
+def register_extensions(app, api_bp):
     """Register Flask extensions."""
-    extensions.api.init_app(app)
+    extensions.api.init_app(api_bp)
     extensions.db.init_app(app)
     extensions.migrate.init_app(app, extensions.db)
     extensions.ma.init_app(app)

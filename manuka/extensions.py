@@ -17,7 +17,7 @@ import flask_restful
 import flask_sqlalchemy
 
 
-api = flask_restful.Api(prefix='/api')
+api = flask_restful.Api()
 db = flask_sqlalchemy.SQLAlchemy()
 ma = flask_marshmallow.Marshmallow()
 migrate = flask_migrate.Migrate()
