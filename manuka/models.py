@@ -35,7 +35,7 @@ AFFILIATION_VALUES = ["faculty", "student", "staff",
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(64))
+    keystone_user_id = db.Column(db.String(64), unique=True)
     displayname = db.Column(db.String(250))
     email = db.Column(db.String(250))
     state = db.Column(db.Enum("new", "registered", "created"))
@@ -81,7 +81,7 @@ def keystone_authenticate(db_user, project_id=None,
     """
     k_session = keystone.KeystoneSession()
     client = clients.get_admin_keystoneclient(k_session.get_session())
-    user = client.users.get(db_user.user_id)
+    user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
