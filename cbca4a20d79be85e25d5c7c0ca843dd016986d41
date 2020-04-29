@@ -16,6 +16,24 @@
       "revId": "cbca4a20d79be85e25d5c7c0ca843dd016986d41",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "979a7d3e_4e3d5275",
+        "filename": "migrations/versions/52e8555a0886_initial_migration.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-29T01:52:43Z",
+      "side": 1,
+      "message": "No, id is the primary key",
+      "parentUuid": "d29319d4_e272a3fb",
+      "revId": "cbca4a20d79be85e25d5c7c0ca843dd016986d41",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
