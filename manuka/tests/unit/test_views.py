@@ -326,3 +326,15 @@ class TestViews(base.TestCase):
         self.assertContext('message', "You attempted to authenticate to the "
                            "http://bad URL, "
                            "which is not permitted by this service.")
+
+    def test_account_status_no_user(self):
+        response = self.client.get('/login/account_status')
+        self.assert404(response)
+
+    def test_account_status(self):
+        self.make_db_user(state='registered')
+        with self.client.session_transaction() as sess:
+            sess['shib_user_id'] = '1324'
+        response = self.client.get('/login/account_status')
+        self.assert200(response)
+        self.assertEqual(b'{"state": "registered"}', response.get_data())

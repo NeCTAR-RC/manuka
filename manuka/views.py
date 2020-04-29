@@ -77,9 +77,10 @@ class ShibbolethAttrMap(object):
 
 @login_bp.route('/account_status')
 def account_status():
-    db_user = db.session.query(models.User).filter_by(
-        persistent_id=session.get("user_id")).first()
-    data = {"state": db_user.state}
+    external_id = db.session.query(models.ExternalId).filter_by(
+        persistent_id=session.get("shib_user_id")).first_or_404()
+
+    data = {"state": external_id.user.state}
     return json.dumps(data)
 
 
@@ -121,7 +122,7 @@ def root():
     else:
         db_user = external_id.user
 
-    session["user_id"] = shib_attrs["id"]
+    session["shib_user_id"] = shib_attrs["id"]
 
     current_terms_version = CONF.terms_version
 
@@ -183,7 +184,8 @@ def root():
             # state, he has lost everything in the cloud, and is
             # likely to be unhappy...
             LOG.exception("A user known to manuka isn't known by "
-                          "Keystone! Their user id is: %s", db_user.user_id)
+                          "Keystone! Their user id is: %s",
+                          db_user.keystone_user_id)
             data = {
                 "title": "Error",
                 "message": 'Your details could not be found on the '
