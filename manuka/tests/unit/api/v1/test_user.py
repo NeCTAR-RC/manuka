@@ -78,8 +78,7 @@ class TestUserApi(base.TestCase):
                                      json=data)
 
         self.assert200(response)
-        self.user.orcid = new_orcid
-        self.assertUserEqual(self.user, response.get_json())
+
         db_user = db.session.query(models.User).get(self.user.id)
         self.assertUserEqual(db_user, response.get_json())
 
@@ -170,8 +169,7 @@ class TestUserApiUser(TestUserApi):
         response = self.client.patch('/api/v1/users/%s/' % USER_ID,
                                      json=data)
         self.assert200(response)
-        self.user_self.orcid = new_orcid
-        self.assertUserEqual(self.user_self, response.get_json())
+
         db_user = db.session.query(models.User).get(USER_ID)
         self.assertUserEqual(db_user, response.get_json())
 
