@@ -14,9 +14,9 @@
 import click
 from flask.cli import FlaskGroup
 
-import manuka
+from manuka import app
 
 
-@click.group(cls=FlaskGroup, create_app=manuka.create_app)
+@click.group(cls=FlaskGroup, create_app=app.create_app)
 def cli():
     """Management script for the Manuka application."""

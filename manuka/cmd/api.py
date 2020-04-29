@@ -14,7 +14,7 @@
 
 from oslo_config import cfg
 
-import manuka
+from manuka import app
 
 
 CONF = cfg.CONF
@@ -22,11 +22,11 @@ CONF = cfg.CONF
 
 def main():
 
-    app = manuka.create_app()
-    app.run(host=CONF.flask.host, port=CONF.flask.port)
+    application = app.create_app()
+    application.run(host=CONF.flask.host, port=CONF.flask.port)
 
 
 if __name__ == '__main__':
     main()
 else:
-    application = manuka.create_app()
+    application = app.create_app()

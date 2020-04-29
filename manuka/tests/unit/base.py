@@ -22,7 +22,6 @@ from oslo_messaging import conffixture as messaging_conffixture
 import testtools
 
 
-import manuka
 from manuka import app
 from manuka.common import rpc
 from manuka import extensions
@@ -34,7 +33,7 @@ class TestCase(flask_testing.TestCase):
 
     def create_app(self):
         app.register_resources(extensions.api)
-        return manuka.create_app({
+        return app.create_app({
             'SECRET_KEY': 'secret',
             'TESTING': True,
             'SQLALCHEMY_DATABASE_URI': "sqlite://",
