@@ -1,0 +1,10 @@
+[run]
+omit =
+   manuka/cmd/*
+   manuka/worker/consumer.py
+   manuka/worker/endpoints.py
+   manuka/common/service.py
+   manuka/worker/api.py
+   manuka/shib_faker.py
+   manuka/common/rpc.py
+   manuka/common/clients.py

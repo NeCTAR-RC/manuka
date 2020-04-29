@@ -32,7 +32,6 @@ from manuka import models
 class TestCase(flask_testing.TestCase):
 
     def create_app(self):
-        app.register_resources(extensions.api)
         return app.create_app({
             'SECRET_KEY': 'secret',
             'TESTING': True,
