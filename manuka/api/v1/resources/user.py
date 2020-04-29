@@ -45,7 +45,7 @@ class UserList(base.Resource):
         args = parser.parse_args()
 
         query = db.session.query(models.User)
-        query = query.filter(models.User.user_id.isnot(None))
+        query = query.filter(models.User.keystone_user_id.isnot(None))
         registered_at__lt = args.get('registered_at__lt')
 
         if registered_at__lt:
@@ -54,7 +54,7 @@ class UserList(base.Resource):
         if args.get('state'):
             query = query.filter(
                 models.User.state == args.get('state'))
-        query = query.order_by(models.User.user_id)
+        query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, user.users_schema, args)
 
 
@@ -79,7 +79,7 @@ class UserSearch(base.Resource):
         query = db.session.query(models.User).filter(or_(
             models.User.email.ilike("%%%s%%" % search),
             models.User.displayname.ilike("%%%s%%" % search)))
-        query = query.order_by(models.User.user_id)
+        query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, user.users_schema, args)
 
 
@@ -96,7 +96,7 @@ class User(base.Resource):
             flask_restful.abort(404,
                                 message="User {} doesn't exist".format(id))
 
-        target = {'user_id': db_user.user_id}
+        target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('get', target)
         except policy.PolicyNotAuthorized:
@@ -116,7 +116,7 @@ class User(base.Resource):
         if not db_user:
             flask_restful.abort(404,
                                 message="User {} doesn't exist".format(id))
-        target = {'user_id': db_user.user_id}
+        target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('update', target)
         except policy.PolicyNotAuthorized:
@@ -140,5 +140,5 @@ class UserByOpenstackUserID(User):
         # Get the user that has logged in the most recently that is associated
         # with the given openstack user ID
         return db.session.query(models.User) \
-                         .filter_by(user_id=id) \
+                         .filter_by(keystone_user_id=id) \
                          .order_by(models.User.last_login.desc()).first()
