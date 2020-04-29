@@ -61,7 +61,7 @@ class Manager(object):
         utils.add_user_roles(client, project=project, user=user,
                              roles=['Member'])
 
-        db_user.user_id = user.id
+        db_user.keystone_user_id = user.id
         db_user.state = "created"
         db.session.add(db_user)
         db.session.commit()
