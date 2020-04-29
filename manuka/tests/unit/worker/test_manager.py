@@ -78,7 +78,7 @@ class TestManager(base.TestCase):
             user=user,
             roles=['Member'])
 
-        self.assertEqual(user.id, db_user.user_id)
+        self.assertEqual(user.id, db_user.keystone_user_id)
         self.assertEqual('created', db_user.state)
 
         mock_utils.send_welcome_email.assert_called_once_with(
