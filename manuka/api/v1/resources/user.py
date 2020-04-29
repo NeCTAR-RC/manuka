@@ -96,7 +96,7 @@ class User(base.Resource):
             flask_restful.abort(404,
                                 message="User {} doesn't exist".format(id))
 
-        target = {'user_id': db_user.user_id}
+        target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('get', target)
         except policy.PolicyNotAuthorized:
@@ -116,7 +116,7 @@ class User(base.Resource):
         if not db_user:
             flask_restful.abort(404,
                                 message="User {} doesn't exist".format(id))
-        target = {'user_id': db_user.user_id}
+        target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('update', target)
         except policy.PolicyNotAuthorized:
