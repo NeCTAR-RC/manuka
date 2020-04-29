@@ -35,7 +35,7 @@ AFFILIATION_VALUES = ["faculty", "student", "staff",
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(64))
+    user_id = db.Column(db.String(64), unique=True)
     displayname = db.Column(db.String(250))
     email = db.Column(db.String(250))
     state = db.Column(db.Enum("new", "registered", "created"))
