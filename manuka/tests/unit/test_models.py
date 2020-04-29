@@ -123,7 +123,7 @@ class TestModels(base.TestCase):
 
         mock_sync_keystone_user.assert_called_once_with(
             client, db_user, keystone_user, False)
-        client.users.get.assert_called_once_with(db_user.user_id)
+        client.users.get.assert_called_once_with(db_user.keystone_user_id)
         client.domains.get.assert_called_once_with(
             keystone_user.domain_id)
 

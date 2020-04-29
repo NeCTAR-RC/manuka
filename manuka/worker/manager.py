@@ -61,7 +61,7 @@ class Manager(object):
                              roles=['Member'])
 
         with self.app.app_context():
-            db_user.user_id = user.id
+            db_user.keystone_user_id = user.id
             db_user.state = "created"
             db.session.add(db_user)
             db.session.commit()
