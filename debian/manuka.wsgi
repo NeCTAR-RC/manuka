@@ -11,6 +11,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import manuka
+from manuka import app
 
-application = manuka.create_app()
+application = app.create_app()
