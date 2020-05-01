@@ -17,12 +17,17 @@ from manuka import models
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
 
+    id = ma.auto_field(column_name='keystone_user_id')
+
     class Meta:
         model = models.User
         load_instance = True
+        exclude = ('keystone_user_id',)
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
+
+    id = ma.auto_field(column_name='keystone_user_id')
 
     class Meta:
         model = models.User
