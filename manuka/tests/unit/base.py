@@ -63,7 +63,7 @@ class TestCase(flask_testing.TestCase):
         # create registered user
         db_user = models.User()
         db_user.id = id
-        db_user.keystone_user_id = id
+        db_user.keystone_user_id = "ksid-%s" % id
         db_user.email = email
         db_user.displayname = displayname
 
