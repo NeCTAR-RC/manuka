@@ -38,7 +38,10 @@ class UserList(base.Resource):
         except policy.PolicyNotAuthorized:
             flask_restful.abort(403, message="Not authorised")
 
-        db_users = db.session.query(models.User).all()
+        query = db.session.query(models.User)
+        query = query.filter(models.User.keystone_user_id.isnot(None))
+        db_users = query.all()
+
         return {'results': user.users_schema.dump(db_users)}
 
 
@@ -59,10 +62,13 @@ class UserSearch(base.Resource):
         if len(search) < 3:
             flask_restful.abort(400,
                                 message="Search must be at least 3 characters")
-        db_users = db.session.query(models.User).filter(or_(
+        query = db.session.query(models.User)
+        query = query.filter(models.User.keystone_user_id.isnot(None))
+        query = query.filter(or_(
             models.User.email.ilike("%%%s%%" % search),
-            models.User.displayname.ilike("%%%s%%" % search),
-        )).all()
+            models.User.displayname.ilike("%%%s%%" % search)))
+
+        db_users = query.all()
 
         return {'results': user.users_schema.dump(db_users)}
 
@@ -72,7 +78,8 @@ class User(base.Resource):
     POLICY_PREFIX = policies.USER_PREFIX
 
     def _get_user(self, id):
-        return db.session.query(models.User).filter_by(id=id).first()
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first()
 
     def get(self, id):
         db_user = self._get_user(id)
@@ -119,10 +126,4 @@ class User(base.Resource):
 
 # Transition API used by dashboard user info module
 class UserByOpenstackUserID(User):
-
-    def _get_user(self, id):
-        # Get the user that has logged in the most recently that is associated
-        # with the given openstack user ID
-        return db.session.query(models.User) \
-                         .filter_by(user_id=id) \
-                         .order_by(models.User.last_login.desc()).first()
+    pass
