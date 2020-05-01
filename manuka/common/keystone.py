@@ -18,6 +18,7 @@ from oslo_context import context
 from oslo_log import log as logging
 
 
+CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 AUTH_PATH = '/api'
@@ -31,8 +32,8 @@ class KeystoneSession(object):
         self._auth = None
 
         self.section = section
-        ks_loading.register_auth_conf_options(cfg.CONF, self.section)
-        ks_loading.register_session_conf_options(cfg.CONF, self.section)
+        ks_loading.register_auth_conf_options(CONF, self.section)
+        ks_loading.register_session_conf_options(CONF, self.section)
 
     def get_session(self):
         """Initializes a Keystone session.
@@ -41,14 +42,14 @@ class KeystoneSession(object):
         """
         if not self._session:
             self._session = ks_loading.load_session_from_conf_options(
-                cfg.CONF, self.section, auth=self.get_auth())
+                CONF, self.section, auth=self.get_auth())
 
         return self._session
 
     def get_auth(self):
         if not self._auth:
             self._auth = ks_loading.load_auth_from_conf_options(
-                cfg.CONF, self.section)
+                CONF, self.section)
         return self._auth
 
     def get_service_user_id(self):
@@ -85,6 +86,12 @@ class KeystoneContext(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        request_context = context.RequestContext.from_environ(environ)
-        environ[REQUEST_CONTEXT_ENV] = request_context
+        request_context = None
+        if CONF.auth_strategy == 'keystone':
+            request_context = context.RequestContext.from_environ(environ)
+        elif CONF.auth_strategy == 'noauth':
+            request_context = context.RequestContext(
+                is_admin=True, roles=['admin'])
+        if request_context is not None:
+            environ[REQUEST_CONTEXT_ENV] = request_context
         return self.app(environ, start_response)
