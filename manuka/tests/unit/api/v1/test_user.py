@@ -22,6 +22,7 @@ from manuka.tests.unit import base
 
 CONF = cfg.CONF
 USER_ID = 999
+KEYSTONE_USER_ID = 'ksid-999'
 
 
 class TestKeystoneWrapper(object):
@@ -31,7 +32,8 @@ class TestKeystoneWrapper(object):
         self.roles = roles
 
     def __call__(self, environ, start_response):
-        cntx = context.RequestContext(roles=self.roles, user_id=USER_ID)
+        cntx = context.RequestContext(roles=self.roles,
+                                      user_id=KEYSTONE_USER_ID)
         environ[keystone.REQUEST_CONTEXT_ENV] = cntx
 
         return self.app(environ, start_response)
@@ -45,7 +47,7 @@ class TestUserApi(base.TestCase):
         super().setUp()
         self.init_context()
         user = self.make_db_user(state='new', agreed_terms=False,
-                                   email='test@example.com')
+                                 email='test@example.com')
         self.user = user
 
     def init_context(self):
@@ -66,6 +68,7 @@ class TestUserApi(base.TestCase):
             user_dict = {}
         else:
             user_dict = user.__dict__
+            user_dict['id'] = user_dict.pop('keystone_user_id')
         for key, value in api_user.items():
             if key == 'external_ids':
                 self.assertExternalIdsEqual(user.external_ids, value)
@@ -81,7 +84,8 @@ class TestUserApi(base.TestCase):
         self.assertUserEqual(self.user, results[0])
 
     def test_user_get(self):
-        response = self.client.get('/api/v1/users/%s/' % self.user.id)
+        response = self.client.get('/api/v1/users/%s/' %
+                                   self.user.keystone_user_id)
 
         self.assert200(response)
         self.assertUserEqual(self.user, response.get_json())
@@ -89,7 +93,8 @@ class TestUserApi(base.TestCase):
     def test_user_update(self):
         new_orcid = 'new-orcid'
         data = {'orcid': new_orcid}
-        response = self.client.patch('/api/v1/users/%s/' % self.user.id,
+        response = self.client.patch('/api/v1/users/%s/' %
+                                     self.user.keystone_user_id,
                                      json=data)
 
         self.assert200(response)
@@ -100,7 +105,8 @@ class TestUserApi(base.TestCase):
     def _test_user_update_invalid(self, status):
         new_id = '2333'
         data = {'id': new_id}
-        response = self.client.patch('/api/v1/users/%s/' % self.user.id,
+        response = self.client.patch('/api/v1/users/%s/' %
+                                     self.user.keystone_user_id,
                                      json=data)
 
         self.assertStatus(response, status)
@@ -155,18 +161,20 @@ class TestUserApiUser(TestUserApi):
         self.assert403(response)
 
     def test_user_get(self):
-        response = self.client.get('/api/v1/users/%s/' % self.user.id)
+        response = self.client.get('/api/v1/users/%s/' %
+                                   self.user.keystone_user_id)
         self.assert404(response)
 
     def test_user_update(self):
         new_orcid = 'new-orcid'
         data = {'orcid': new_orcid}
-        response = self.client.patch('/api/v1/users/%s/' % self.user.id,
+        response = self.client.patch('/api/v1/users/%s/' %
+                                     self.user.keystone_user_id,
                                      json=data)
         self.assert404(response)
 
     def test_user_get_self(self):
-        response = self.client.get('/api/v1/users/%s/' % USER_ID)
+        response = self.client.get('/api/v1/users/%s/' % KEYSTONE_USER_ID)
 
         self.assert200(response)
         self.assertUserEqual(self.user_self, response.get_json())
@@ -174,7 +182,7 @@ class TestUserApiUser(TestUserApi):
     def test_user_update_self(self):
         new_orcid = 'new-orcid'
         data = {'orcid': new_orcid}
-        response = self.client.patch('/api/v1/users/%s/' % USER_ID,
+        response = self.client.patch('/api/v1/users/%s/' % KEYSTONE_USER_ID,
                                      json=data)
         self.assert200(response)
 

@@ -45,7 +45,7 @@ class UserList(base.Resource):
         args = parser.parse_args()
 
         query = db.session.query(models.User)
-        query = query.filter(models.User.user_id.isnot(None))
+        query = query.filter(models.User.keystone_user_id.isnot(None))
         registered_at__lt = args.get('registered_at__lt')
 
         if registered_at__lt:
@@ -54,7 +54,7 @@ class UserList(base.Resource):
         if args.get('state'):
             query = query.filter(
                 models.User.state == args.get('state'))
-        query = query.order_by(models.User.user_id)
+        query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, user.users_schema, args)
 
 
@@ -76,10 +76,14 @@ class UserSearch(base.Resource):
         if len(search) < 3:
             flask_restful.abort(400,
                                 message="Search must be at least 3 characters")
-        query = db.session.query(models.User).filter(or_(
+
+        query = db.session.query(models.User)
+        query = query.filter(models.User.keystone_user_id.isnot(None))
+        query = query.filter(or_(
             models.User.email.ilike("%%%s%%" % search),
             models.User.displayname.ilike("%%%s%%" % search)))
-        query = query.order_by(models.User.user_id)
+
+        query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, user.users_schema, args)
 
 
@@ -88,7 +92,8 @@ class User(base.Resource):
     POLICY_PREFIX = policies.USER_PREFIX
 
     def _get_user(self, id):
-        return db.session.query(models.User).filter_by(id=id).first()
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first()
 
     def get(self, id):
         db_user = self._get_user(id)
@@ -135,10 +140,4 @@ class User(base.Resource):
 
 # Transition API used by dashboard user info module
 class UserByOpenstackUserID(User):
-
-    def _get_user(self, id):
-        # Get the user that has logged in the most recently that is associated
-        # with the given openstack user ID
-        return db.session.query(models.User) \
-                         .filter_by(user_id=id) \
-                         .order_by(models.User.last_login.desc()).first()
+    pass

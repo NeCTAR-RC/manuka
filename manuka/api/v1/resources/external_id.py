@@ -38,7 +38,7 @@ class ExternalId(base.Resource):
             flask_restful.abort(
                 404, message="External_Id {} doesn't exist".format(id))
 
-        target = {'user_id': db_external_id.user.user_id}
+        target = {'user_id': db_external_id.user.keystone_user_id}
         try:
             self.authorize('get', target)
         except policy.PolicyNotAuthorized:

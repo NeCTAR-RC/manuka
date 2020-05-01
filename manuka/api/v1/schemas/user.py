@@ -17,15 +17,19 @@ from manuka import models
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
 
+    id = ma.auto_field(column_name='keystone_user_id')
     external_ids = ma.Nested("ExternalIdSchema", many=True)
 
     class Meta:
         model = models.User
         load_instance = True
         include_relationships = True
+        exclude = ('keystone_user_id',)
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
+
+    id = ma.auto_field(column_name='keystone_user_id')
 
     class Meta:
         model = models.User
