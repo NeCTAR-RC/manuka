@@ -30,13 +30,11 @@ class ExternalId(base.Resource):
     POLICY_PREFIX = policies.USER_PREFIX
 
     def _get_external_id(self, id):
-        return db.session.query(models.ExternalId).filter_by(id=id).first()
+        return db.session.query(models.ExternalId).filter_by(
+            id=id).first_or_404()
 
     def get(self, id):
         db_external_id = self._get_external_id(id)
-        if not db_external_id:
-            flask_restful.abort(
-                404, message="External_Id {} doesn't exist".format(id))
 
         target = {'user_id': db_external_id.user.keystone_user_id}
         try:
