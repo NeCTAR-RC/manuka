@@ -93,13 +93,10 @@ class User(base.Resource):
 
     def _get_user(self, id):
         return db.session.query(models.User) \
-                         .filter_by(keystone_user_id=id).first()
+                         .filter_by(keystone_user_id=id).first_or_404()
 
     def get(self, id):
         db_user = self._get_user(id)
-        if not db_user:
-            flask_restful.abort(404,
-                                message="User {} doesn't exist".format(id))
 
         target = {'user_id': db_user.keystone_user_id}
         try:
@@ -118,9 +115,6 @@ class User(base.Resource):
             flask_restful.abort(400, message=errors)
 
         db_user = self._get_user(id)
-        if not db_user:
-            flask_restful.abort(404,
-                                message="User {} doesn't exist".format(id))
         target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('update', target)
