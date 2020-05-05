@@ -32,14 +32,30 @@ class UserList(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
 
-    def get(self):
+    def get(self, **kwargs):
         try:
             self.authorize('list')
         except policy.PolicyNotAuthorized:
             flask_restful.abort(403, message="Not authorised")
 
-        db_users = db.session.query(models.User).all()
-        return {'results': user.users_schema.dump(db_users)}
+        parser = reqparse.RequestParser()
+        parser.add_argument('registered_at__lt')
+        parser.add_argument('state')
+        parser.add_argument('limit', type=int)
+        args = parser.parse_args()
+
+        query = db.session.query(models.User)
+        query = query.filter(models.User.user_id.isnot(None))
+        registered_at__lt = args.get('registered_at__lt')
+
+        if registered_at__lt:
+            query = query.filter(
+                models.User.registered_at < registered_at__lt)
+        if args.get('state'):
+            query = query.filter(
+                models.User.state == args.get('state'))
+        query = query.order_by(models.User.user_id)
+        return self.paginate(query, user.users_schema, args)
 
 
 class UserSearch(base.Resource):
@@ -54,17 +70,17 @@ class UserSearch(base.Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('search', required=True)
+        parser.add_argument('limit', type=int)
         args = parser.parse_args()
         search = args.get('search')
         if len(search) < 3:
             flask_restful.abort(400,
                                 message="Search must be at least 3 characters")
-        db_users = db.session.query(models.User).filter(or_(
+        query = db.session.query(models.User).filter(or_(
             models.User.email.ilike("%%%s%%" % search),
-            models.User.displayname.ilike("%%%s%%" % search),
-        )).all()
-
-        return {'results': user.users_schema.dump(db_users)}
+            models.User.displayname.ilike("%%%s%%" % search)))
+        query = query.order_by(models.User.user_id)
+        return self.paginate(query, user.users_schema, args)
 
 
 class User(base.Resource):
