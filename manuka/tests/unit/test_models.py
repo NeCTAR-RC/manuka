@@ -90,7 +90,7 @@ class TestModels(base.TestCase):
         self.assertEqual('1800 815 270', db_user.phone_number)
         self.assertEqual('0401 234 567', db_user.mobile_number)
         self.assertEqual('staff', db_user.affiliation)
-        self.assertIsNone(db_user.home_organization)
+        self.assertIsNone(db_user.organisation)
         self.assertEqual('pretty', db_user.orcid)
 
     def test_update_bad_affiliation(self):
