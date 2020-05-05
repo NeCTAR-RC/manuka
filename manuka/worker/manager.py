@@ -33,15 +33,15 @@ class Manager(object):
         self.app = app.create_app(init_config=False)
 
     def create_user(self, attrs):
+        self.app.app_context().push()
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
 
         # get the user from the database, if this fails then they
         # shouldn't be created
-        with self.app.app_context():
-            db_user = db.session.query(models.User).filter_by(
-                persistent_id=attrs["id"]).first()
+        db_user = db.session.query(models.User).filter_by(
+            persistent_id=attrs["id"]).first()
 
         idp = attrs.get('idp')
         domain = utils.get_domain_for_idp(idp)
@@ -60,11 +60,10 @@ class Manager(object):
         utils.add_user_roles(client, project=project, user=user,
                              roles=['Member'])
 
-        with self.app.app_context():
-            db_user.user_id = user.id
-            db_user.state = "created"
-            db.session.add(db_user)
-            db.session.commit()
+        db_user.user_id = user.id
+        db_user.state = "created"
+        db.session.add(db_user)
+        db.session.commit()
 
         utils.send_welcome_email(user, project)
         LOG.info('Send welcome email to %s', user.email)
