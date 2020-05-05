@@ -32,17 +32,30 @@ class UserList(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
 
-    def get(self):
+    def get(self, **kwargs):
         try:
             self.authorize('list')
         except policy.PolicyNotAuthorized:
             flask_restful.abort(403, message="Not authorised")
 
+        parser = reqparse.RequestParser()
+        parser.add_argument('registered_at__lt')
+        parser.add_argument('state')
+        parser.add_argument('limit', type=int)
+        args = parser.parse_args()
+
         query = db.session.query(models.User)
         query = query.filter(models.User.keystone_user_id.isnot(None))
-        db_users = query.all()
+        registered_at__lt = args.get('registered_at__lt')
 
-        return {'results': user.users_schema.dump(db_users)}
+        if registered_at__lt:
+            query = query.filter(
+                models.User.registered_at < registered_at__lt)
+        if args.get('state'):
+            query = query.filter(
+                models.User.state == args.get('state'))
+        query = query.order_by(models.User.keystone_user_id)
+        return self.paginate(query, user.users_schema, args)
 
 
 class UserSearch(base.Resource):
@@ -57,6 +70,7 @@ class UserSearch(base.Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('search', required=True)
+        parser.add_argument('limit', type=int)
         args = parser.parse_args()
         search = args.get('search')
         if len(search) < 3:
@@ -67,10 +81,8 @@ class UserSearch(base.Resource):
         query = query.filter(or_(
             models.User.email.ilike("%%%s%%" % search),
             models.User.displayname.ilike("%%%s%%" % search)))
-
-        db_users = query.all()
-
-        return {'results': user.users_schema.dump(db_users)}
+        query = query.order_by(models.User.keystone_user_id)
+        return self.paginate(query, user.users_schema, args)
 
 
 class User(base.Resource):
