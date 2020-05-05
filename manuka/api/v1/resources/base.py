@@ -12,10 +12,14 @@
 #    under the License.
 
 import flask
+from flask import request
 import flask_restful
 
 from manuka.common import keystone
 from manuka import policy
+
+
+API_LIMIT = 1000
 
 
 class Resource(flask_restful.Resource):
@@ -28,3 +32,17 @@ class Resource(flask_restful.Resource):
     @property
     def oslo_context(self):
         return flask.request.environ.get(keystone.REQUEST_CONTEXT_ENV, None)
+
+    def paginate(self, query, schema, args):
+        limit = args.get('limit')
+        if limit is None:
+            limit = API_LIMIT
+
+        items = query.paginate(per_page=limit)
+        response = {'results': schema.dump(items.items),
+                    'total': items.total}
+
+        if items.has_next:
+            response['next'] = "%s?page=%s" % (request.base_url,
+                                               items.next_num)
+        return response
