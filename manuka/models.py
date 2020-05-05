@@ -48,7 +48,7 @@ class User(db.Model):
     surname = db.Column(db.String(250))
     phone_number = db.Column(db.String(64))
     mobile_number = db.Column(db.String(64))
-    home_organization = db.Column(db.String(250))
+    organisation = db.Column(db.String(250))
     orcid = db.Column(db.String(64))
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
     external_ids = db.relationship("ExternalId", back_populates="user",
@@ -213,10 +213,10 @@ def update_db_user(db_user, external_id, shib_attrs):
     db_user.mobile_number = _merge_info_values(external_id, shib_attrs,
                                                  'mobilenumber',
                                                  db_user.mobile_number)
-    db_user.home_organization = \
+    db_user.organisation = \
         _merge_info_values(external_id, shib_attrs,
                            'organisation',
-                           db_user.home_organization)
+                           db_user.organisation)
     db_user.orcid = _merge_info_values(external_id, shib_attrs,
                                          'orcid',
                                          db_user.orcid)
