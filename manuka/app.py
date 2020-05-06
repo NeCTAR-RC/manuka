@@ -80,7 +80,9 @@ def register_extensions(app, api_bp):
     """Register Flask extensions."""
     extensions.api.init_app(api_bp)
     extensions.db.init_app(app)
-    extensions.migrate.init_app(app, extensions.db)
+    extensions.migrate.init_app(
+        app, extensions.db,
+        directory=os.path.join(app.root_path, 'migrations'))
     extensions.ma.init_app(app)
 
 
