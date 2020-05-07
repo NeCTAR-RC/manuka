@@ -45,7 +45,10 @@ def create_app(test_config=None, conf_file=None, init_config=True):
             SECRET_KEY=CONF.flask.secret_key,
             SQLALCHEMY_DATABASE_URI=CONF.database.connection,
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
-            SQLALCHEMY_POOL_RECYCLE=60,
+            SQLALCHEMY_ENGINE_OPTIONS = {
+                "pool_pre_ping": True,
+                "pool_recycle": 60
+            }
         )
     else:
         app.config.update(test_config)
