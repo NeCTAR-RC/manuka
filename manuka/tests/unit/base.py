@@ -27,6 +27,7 @@ from manuka.common import rpc
 from manuka import extensions
 from manuka.extensions import db
 from manuka import models
+from manuka.tests.unit import fake_shib
 
 
 class TestCase(flask_testing.TestCase):
@@ -44,9 +45,10 @@ class TestCase(flask_testing.TestCase):
         self.addCleanup(mock.patch.stopall)
         db.create_all()
         self.shib_attrs = {
-            'mail': 'test@example.com',
-            'fullname': 'john smith',
-            'id': '1324'}
+            'mail': fake_shib.EMAIL,
+            'fullname': fake_shib.DISPLAYNAME,
+            'idp': fake_shib.IDP,
+            'id': fake_shib.ID}
 
     def tearDown(self):
         super().tearDown()

@@ -20,6 +20,7 @@ from oslo_config import cfg
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit import fake_shib
 
 
 CONF = cfg.CONF
@@ -33,7 +34,8 @@ class TestModels(base.TestCase):
         external_ids = db.session.query(models.ExternalId).filter_by(
             user_id=user.id).all()
         self.assertEqual(1, len(external_ids))
-        self.assertEqual(self.shib_attrs['id'], external_ids[0].persistent_id)
+        self.assertEqual(fake_shib.ID, external_ids[0].persistent_id)
+        self.assertEqual(fake_shib.IDP, external_ids[0].idp)
         self.assertEqual(external_ids[0].user, db_user)
         self.assertEqual('new', db_user.state)
 

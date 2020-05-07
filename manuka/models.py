@@ -134,6 +134,7 @@ def create_db_user(shib_attrs):
     # add db user
     db_user = User()
     external_id = ExternalId(db_user, shib_attrs['id'], shib_attrs)
+    external_id.idp = shib_attrs.get('idp')
     db.session.add(db_user)
     db.session.add(external_id)
     db.session.commit()
