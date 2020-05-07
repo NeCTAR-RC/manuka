@@ -15,7 +15,10 @@ from unittest import mock
 
 from oslo_config import cfg
 
+from manuka.extensions import db
+from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit import fake_shib
 from manuka import views
 
 
@@ -42,18 +45,6 @@ class TestShibbolethAttrMap(base.TestCase):
                          "mail")
         self.assertEqual(views.ShibbolethAttrMap.get_attr("location"),
                          "l")
-
-
-class TestShibWrapper(object):
-
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-        environ['mail'] = 'test@example.com'
-        environ['displayName'] = "john smith"
-        environ['persistent-id'] = "1324"
-        return self.app(environ, start_response)
 
 
 @mock.patch('manuka.views.worker_api', new=mock.Mock())
@@ -85,7 +76,7 @@ class TestViews(base.TestCase):
 
     def setUp(self):
         super().setUp()
-        self.app.wsgi_app = TestShibWrapper(self.app.wsgi_app)
+        self.app.wsgi_app = fake_shib.TestShibWrapper(self.app.wsgi_app)
 
     def test_new_user(self):
         """Given a user who has registered
@@ -95,12 +86,13 @@ class TestViews(base.TestCase):
         And the user will be redirected to the portal with
          a token encoded in the response.
         """
-        # mock user
-        self.make_db_user(state='new', agreed_terms=False)
 
         response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
+        external_id = db.session.query(models.ExternalId).filter_by(
+            persistent_id=fake_shib.ID).first()
+        self.assertEqual(fake_shib.IDP, external_id.idp)
 
     @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.update_db_user")
@@ -129,9 +121,10 @@ class TestViews(base.TestCase):
 
         # confirm that the keystone user was created
         mock_update.assert_called_once_with(
-            user, user.external_ids[0], {'mail': 'test@example.com',
-                                         'fullname': 'john smith',
-                                         'id': '1324'})
+            user, user.external_ids[0], {'mail': fake_shib.EMAIL,
+                                         'fullname': fake_shib.DISPLAYNAME,
+                                         'id': fake_shib.ID,
+                                         'idp': fake_shib.IDP})
 
         self.assertEqual(user.state, "registered")
         self.assert200(response)
