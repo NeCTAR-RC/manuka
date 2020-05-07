@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e16b982c_0a090b1e",
+        "filename": "manuka/views.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-05-07T01:28:15Z",
+      "side": 1,
+      "message": "There\u0027s no persistent_id on the User table any more?",
+      "revId": "a377bf774eadcd1c3a8812fe59d3ada035e4b4e3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
