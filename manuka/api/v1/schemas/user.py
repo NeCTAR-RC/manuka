@@ -38,6 +38,28 @@ class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
                   'mobile_number', 'phone_number')
 
 
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-user_update_schema = UserUpdateSchema()
+class PendingUserSchema(ma.SQLAlchemyAutoSchema):
+
+    external_ids = ma.Nested("ExternalIdSchema", many=True)
+
+    class Meta:
+        model = models.User
+        load_instance = True
+        include_relationships = True
+
+
+class PendingUserUpdateSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.User
+        load_instance = True
+        fields = ('orcid', 'affiliation', 'ignore_username_not_email',
+                  'mobile_number', 'phone_number')
+
+
+user = UserSchema()
+users = UserSchema(many=True)
+user_update = UserUpdateSchema()
+pending_user = PendingUserSchema()
+pending_users = PendingUserSchema(many=True)
+pending_user_update = PendingUserUpdateSchema()
