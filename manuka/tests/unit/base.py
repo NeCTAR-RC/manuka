@@ -14,16 +14,12 @@
 from datetime import datetime
 from unittest import mock
 
-import fixtures
 import flask_testing
 from oslo_config import cfg
-import oslo_messaging as messaging
-from oslo_messaging import conffixture as messaging_conffixture
-import testtools
-
+from oslo_context import context
 
 from manuka import app
-from manuka.common import rpc
+from manuka.common import keystone
 from manuka import extensions
 from manuka.extensions import db
 from manuka import models
@@ -59,11 +55,14 @@ class TestCase(flask_testing.TestCase):
 
     def make_db_user(self, state='new', agreed_terms=True,
                      email='test@example.com', id=1324,
-                     displayname='test user'):
+                     displayname='test user', keystone_user_id=0):
         # create registered user
         db_user = models.User()
         db_user.id = id
-        db_user.keystone_user_id = "ksid-%s" % id
+        if keystone_user_id == 0:
+            db_user.keystone_user_id = "ksid-%s" % id
+        else:
+            db_user.keystone_user_id = keystone_user_id
         db_user.email = email
         db_user.displayname = displayname
 
@@ -81,34 +80,76 @@ class TestCase(flask_testing.TestCase):
         db_user.orcid = 'testorchid'
 
         external_id = models.ExternalId(db_user, id, self.shib_attrs)
+        external_id.idp = fake_shib.IDP
         db.session.add(db_user)
         db.session.add(external_id)
         db.session.commit()
 
-        return db_user
+        return db_user, external_id
+
+    def assertExternalIdsEqual(self, eids, api_eids):
+        self.assertEqual(len(eids), len(api_eids))
+        if eids is None:
+            self.assertEqual({}, api_eids)
+        else:
+            self.assertEqual(len(eids), len(api_eids))
+            db_idps = [e.idp for e in eids]
+            api_idps = [e['idp'] for e in api_eids]
+            self.assertEqual(db_idps, api_idps)
+
+    def assertUserEqual(self, user, api_user, keystone_id_as_id=True):
+        if user is None:
+            user_dict = {}
+        else:
+            user_dict = user.__dict__
+            if keystone_id_as_id:
+                user_dict['id'] = user_dict.pop('keystone_user_id')
+        for key, value in api_user.items():
+            if key == 'external_ids':
+                self.assertExternalIdsEqual(user.external_ids, value)
+            else:
+                user_value = user_dict.get(key)
+                if type(user_value) == datetime:
+                    user_value = user_value.strftime('%Y-%m-%dT%H:%M:%S.%f')
+
+                self.assertEqual(user_value, value,
+                                 msg="%s attribute not equal" % key)
+
+    def assertExternalIdEqual(self, external_id, api_external_id):
+        if external_id is None:
+            external_id_dict = {}
+        else:
+            external_id_dict = external_id.__dict__
+        for key, value in api_external_id.items():
+            self.assertEqual(external_id_dict.get(key), value,
+                             msg="%s attribute not equal" % key)
 
 
-class TestRpc(testtools.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._buses = {}
+USER_ID = 999
+KEYSTONE_USER_ID = 'ksid-999'
 
-    def _fake_create_transport(self, url):
-        if url not in self._buses:
-            self._buses[url] = messaging.get_rpc_transport(
-                cfg.CONF,
-                url=url)
-        return self._buses[url]
+
+class TestKeystoneWrapper(object):
+
+    def __init__(self, app, roles):
+        self.app = app
+        self.roles = roles
+
+    def __call__(self, environ, start_response):
+        cntx = context.RequestContext(roles=self.roles,
+                                      user_id=KEYSTONE_USER_ID)
+        environ[keystone.REQUEST_CONTEXT_ENV] = cntx
+
+        return self.app(environ, start_response)
+
+
+class ApiTestCase(TestCase):
+
+    ROLES = ['admin']
 
     def setUp(self):
         super().setUp()
-        self.addCleanup(rpc.cleanup)
-        self.messaging_conf = messaging_conffixture.ConfFixture(cfg.CONF)
-        self.messaging_conf.transport_url = 'fake:/'
-        self.useFixture(self.messaging_conf)
-        self.useFixture(fixtures.MonkeyPatch(
-            'manuka.common.rpc.create_transport',
-            self._fake_create_transport))
-        with mock.patch('manuka.common.rpc.get_transport_url') as mock_gtu:
-            mock_gtu.return_value = None
-            rpc.init()
+        self.init_context()
+
+    def init_context(self):
+        self.app.wsgi_app = TestKeystoneWrapper(self.app.wsgi_app, self.ROLES)

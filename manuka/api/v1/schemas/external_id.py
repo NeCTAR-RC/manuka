@@ -20,7 +20,15 @@ class ExternalIdSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.ExternalId
         load_instance = True
-        exclude = ('id', 'persistent_id', 'attributes')
+        exclude = ('persistent_id', 'attributes')
 
 
-external_id_schema = ExternalIdSchema()
+class NestedExternalIdSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.ExternalId
+        load_instance = True
+        exclude = ('persistent_id', 'attributes')
+
+
+external_id = ExternalIdSchema()

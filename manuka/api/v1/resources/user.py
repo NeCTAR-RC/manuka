@@ -19,7 +19,7 @@ from oslo_policy import policy
 from sqlalchemy import or_
 
 from manuka.api.v1.resources import base
-from manuka.api.v1.schemas import user
+from manuka.api.v1.schemas import user as schemas
 from manuka.common import policies
 from manuka.extensions import db
 from manuka import models
@@ -31,6 +31,11 @@ LOG = logging.getLogger(__name__)
 class UserList(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
+    schema = schemas.users
+
+    def _get_users(self):
+        return db.session.query(models.User) \
+            .filter(models.User.keystone_user_id.isnot(None))
 
     def get(self, **kwargs):
         try:
@@ -44,8 +49,7 @@ class UserList(base.Resource):
         parser.add_argument('limit', type=int)
         args = parser.parse_args()
 
-        query = db.session.query(models.User)
-        query = query.filter(models.User.keystone_user_id.isnot(None))
+        query = self._get_users()
         registered_at__lt = args.get('registered_at__lt')
 
         if registered_at__lt:
@@ -55,12 +59,13 @@ class UserList(base.Resource):
             query = query.filter(
                 models.User.state == args.get('state'))
         query = query.order_by(models.User.keystone_user_id)
-        return self.paginate(query, user.users_schema, args)
+        return self.paginate(query, args)
 
 
 class UserSearch(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
+    schema = schemas.users
 
     def post(self):
         try:
@@ -84,12 +89,14 @@ class UserSearch(base.Resource):
             models.User.displayname.ilike("%%%s%%" % search)))
 
         query = query.order_by(models.User.keystone_user_id)
-        return self.paginate(query, user.users_schema, args)
+        return self.paginate(query, args)
 
 
 class User(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
+    schema = schemas.user
+    update_schema = schemas.user_update
 
     def _get_user(self, id):
         return db.session.query(models.User) \
@@ -105,12 +112,12 @@ class User(base.Resource):
             flask_restful.abort(404,
                                 message="User {} doesn't exist".format(id))
 
-        return user.user_schema.dump(db_user)
+        return self.schema.dump(db_user)
 
-    def patch(self, id, **kwargs):
+    def patch(self, id):
         data = request.get_json()
 
-        errors = user.user_schema.validate(data)
+        errors = schemas.user.validate(data)
         if errors:
             flask_restful.abort(400, message=errors)
 
@@ -120,18 +127,48 @@ class User(base.Resource):
             self.authorize('update', target)
         except policy.PolicyNotAuthorized:
             flask_restful.abort(404,
-                                message="User {} doesn't exist".format(id))
+                                message="User {} dosn't exist".format(id))
 
-        errors = user.user_update_schema.validate(data)
+        errors = self.update_schema.validate(data)
         if errors:
             flask_restful.abort(401, message="Not authorized to edit ")
 
-        db_user = user.user_schema.load(data, instance=db_user)
+        db_user = self.update_schema.load(data, instance=db_user)
         db.session.commit()
 
-        return user.user_schema.dump(db_user)
+        return self.schema.dump(db_user)
 
 
 # Transition API used by dashboard user info module
 class UserByOpenstackUserID(User):
     pass
+
+
+class PendingUserList(UserList):
+
+    schema = schemas.pending_users
+    update_schema = schemas.pending_user_update
+
+    def _get_users(self):
+        return db.session.query(models.User).filter_by(keystone_user_id=None)
+
+
+class PendingUser(User):
+
+    schema = schemas.pending_user
+
+    def _get_user(self, id):
+        return db.session.query(models.User) \
+                         .filter_by(id=id).first_or_404()
+
+    def delete(self, id):
+        try:
+            self.authorize('delete')
+        except policy.PolicyNotAuthorized:
+            flask_restful.abort(404,
+                                message="User {} doesn't exist".format(id))
+
+        db_user = self._get_user(id)
+        db.session.delete(db_user)
+        db.session.commit()
+        return '', 204

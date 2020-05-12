@@ -89,6 +89,12 @@ user_rules = [
         operations=[{'path': '/v1/users/{user_id}/',
                      'method': 'PATCH'}]),
     policy.DocumentedRuleDefault(
+        name=USER_PREFIX % 'delete',
+        check_str='rule:%s' % ADMIN_OR_WRITER,
+        description='Delete user.',
+        operations=[{'path': '/v1/users/{user_id}/',
+                     'method': 'DELETE'}]),
+    policy.DocumentedRuleDefault(
         name=USER_PREFIX % 'get_restricted_fields',
         check_str='rule:%s' % ADMIN_OR_READER,
         description='View restricted user fields',
@@ -104,10 +110,36 @@ user_rules = [
                      'method': 'PATCH'}]),
 ]
 
+EXTERNAL_ID_PREFIX = "account:external-id:%s"
+
+external_id_rules = [
+    policy.DocumentedRuleDefault(
+        name=EXTERNAL_ID_PREFIX % 'get',
+        check_str='rule:%s' % ADMIN_OR_READER,
+        description='Show external id details.',
+        operations=[{'path': '/v1/external-ids/{external_id}/',
+                     'method': 'GET'},
+                    {'path': '/v1/external-ids/{external_id}/',
+                     'method': 'HEAD'}]),
+    policy.DocumentedRuleDefault(
+        name=EXTERNAL_ID_PREFIX % 'update',
+        check_str='rule:%s' % ADMIN_OR_WRITER,
+        description='Update a external_id',
+        operations=[{'path': '/v1/external-ids/{external_id}/',
+                     'method': 'PATCH'}]),
+    policy.DocumentedRuleDefault(
+        name=EXTERNAL_ID_PREFIX % 'delete',
+        check_str='rule:%s' % ADMIN_OR_WRITER,
+        description='Delete external_id.',
+        operations=[{'path': '/v1/external-ids/{external_id}/',
+                     'method': 'DELETE'}]),
+]
+
 
 enforcer.register_defaults(base_rules)
 enforcer.register_defaults(user_rules)
+enforcer.register_defaults(external_id_rules)
 
 
 def list_rules():
-    return base_rules + user_rules
+    return base_rules + user_rules + external_id_rules

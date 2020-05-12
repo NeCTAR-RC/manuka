@@ -12,68 +12,22 @@
 #    under the License.
 
 from oslo_config import cfg
-from oslo_context import context
 
-from manuka.common import keystone
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
 
 
 CONF = cfg.CONF
-USER_ID = 999
-KEYSTONE_USER_ID = 'ksid-999'
 
 
-class TestKeystoneWrapper(object):
-
-    def __init__(self, app, roles):
-        self.app = app
-        self.roles = roles
-
-    def __call__(self, environ, start_response):
-        cntx = context.RequestContext(roles=self.roles,
-                                      user_id=KEYSTONE_USER_ID)
-        environ[keystone.REQUEST_CONTEXT_ENV] = cntx
-
-        return self.app(environ, start_response)
-
-
-class TestUserApi(base.TestCase):
-
-    ROLES = ['admin']
+class TestUserApi(base.ApiTestCase):
 
     def setUp(self):
         super().setUp()
-        self.init_context()
-        user = self.make_db_user(state='new', agreed_terms=False,
-                                 email='test@example.com')
+        user, external_id = self.make_db_user(state='new', agreed_terms=False,
+                                              email='test@example.com')
         self.user = user
-
-    def init_context(self):
-        self.app.wsgi_app = TestKeystoneWrapper(self.app.wsgi_app, self.ROLES)
-
-    def assertExternalIdsEqual(self, eids, api_eids):
-        self.assertEqual(len(eids), len(api_eids))
-        if eids is None:
-            self.assertEqual({}, api_eids)
-        else:
-            self.assertEqual(len(eids), len(api_eids))
-            db_idps = [e.idp for e in eids]
-            api_idps = [e['idp'] for e in api_eids]
-            self.assertEqual(db_idps, api_idps)
-
-    def assertUserEqual(self, user, api_user):
-        if user is None:
-            user_dict = {}
-        else:
-            user_dict = user.__dict__
-            user_dict['id'] = user_dict.pop('keystone_user_id')
-        for key, value in api_user.items():
-            if key == 'external_ids':
-                self.assertExternalIdsEqual(user.external_ids, value)
-            else:
-                self.assertEqual(user_dict.get(key), value)
 
     def test_user_list(self):
         response = self.client.get('/api/v1/users/')
@@ -125,12 +79,12 @@ class TestUserApi(base.TestCase):
             self.assertUserEqual(expected_results[0], results[0])
 
     def test_user_search(self):
-        user1 = self.make_db_user(id=1, displayname='displayname1',
-                                  email='search1@example.com')
-        user2 = self.make_db_user(id=2, displayname='displayname2',
-                                  email='search2@example.com')
-        user3 = self.make_db_user(id=3, displayname='other3',
-                                  email='search3@example.com')
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='search1@example.com')
+        user2, external_id = self.make_db_user(
+            id=2, displayname='displayname2', email='search2@example.com')
+        user3, external_id = self.make_db_user(
+            id=3, displayname='other3', email='search3@example.com')
 
         self._test_user_search('displayname1', [user1])
         self._test_user_search('search1', [user1])
@@ -144,6 +98,11 @@ class TestUserApi(base.TestCase):
         response = self.client.post('/api/v1/users/search/', data=data)
         self.assert400(response)
 
+    def test_user_delete(self):
+        response = self.client.delete('/api/v1/users/%s/' %
+                                      self.user.id)
+        self.assertStatus(response, 405)
+
 
 class TestUserApiUser(TestUserApi):
 
@@ -151,9 +110,9 @@ class TestUserApiUser(TestUserApi):
 
     def setUp(self):
         super().setUp()
-        user_self = self.make_db_user(state='new', agreed_terms=False,
-                                        email='test@example.com',
-                                        id=USER_ID)
+        user_self, external_id = self.make_db_user(
+            state='new', agreed_terms=False, email='test@example.com',
+            id=base.USER_ID)
         self.user_self = user_self
 
     def test_user_list(self):
@@ -174,7 +133,7 @@ class TestUserApiUser(TestUserApi):
         self.assert404(response)
 
     def test_user_get_self(self):
-        response = self.client.get('/api/v1/users/%s/' % KEYSTONE_USER_ID)
+        response = self.client.get('/api/v1/users/%s/' % base.KEYSTONE_USER_ID)
 
         self.assert200(response)
         self.assertUserEqual(self.user_self, response.get_json())
@@ -182,11 +141,12 @@ class TestUserApiUser(TestUserApi):
     def test_user_update_self(self):
         new_orcid = 'new-orcid'
         data = {'orcid': new_orcid}
-        response = self.client.patch('/api/v1/users/%s/' % KEYSTONE_USER_ID,
+        response = self.client.patch('/api/v1/users/%s/' %
+                                     base.KEYSTONE_USER_ID,
                                      json=data)
         self.assert200(response)
 
-        db_user = db.session.query(models.User).get(USER_ID)
+        db_user = db.session.query(models.User).get(base.USER_ID)
         self.assertUserEqual(db_user, response.get_json())
 
     def test_user_update_invalid(self):
@@ -201,3 +161,36 @@ class TestUserApiUser(TestUserApi):
         data = {'search': 'ab'}
         response = self.client.post('/api/v1/users/search/', data=data)
         self.assert403(response)
+
+
+class PendingTestUserApi(base.ApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        user, external_id = self.make_db_user(
+            state='registered', agreed_terms=True, email='test@example.com',
+            keystone_user_id=None)
+        self.user = user
+
+    def assertUserEqual(self, user, api_user):
+        return super().assertUserEqual(user, api_user, keystone_id_as_id=False)
+
+    def test_user_list(self):
+        response = self.client.get('/api/v1/pending-users/')
+
+        self.assert200(response)
+        results = response.get_json().get('results')
+        self.assertEqual(1, len(results))
+        self.assertUserEqual(self.user, results[0])
+
+    def test_user_get(self):
+        response = self.client.get('/api/v1/pending-users/%s/' %
+                                   self.user.id)
+
+        self.assert200(response)
+        self.assertUserEqual(self.user, response.get_json())
+
+    def test_user_delete(self):
+        response = self.client.delete('/api/v1/pending-users/%s/' %
+                                      self.user.id)
+        self.assertStatus(response, 204)
