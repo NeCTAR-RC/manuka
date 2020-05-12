@@ -42,8 +42,7 @@ class TestModels(base.TestCase):
     @freeze_time("2012-01-14")
     def test_update_db_user(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_db_user()
-        external_id = user.external_ids[0]
+        user, external_id = self.make_db_user()
         user.displayname = ''
         user.email = ''
         external_id.attributes = {}
@@ -59,8 +58,7 @@ class TestModels(base.TestCase):
 
     def test_update_db_user_merging(self):
         # testing classic behavior: handling the mandatory attributes
-        user = self.make_db_user()
-        external_id = user.external_ids[0]
+        user, external_id = self.make_db_user()
         user.displayname = ''
         user.email = ''
         user.phone_number = '460 261'
@@ -94,8 +92,7 @@ class TestModels(base.TestCase):
         self.assertEqual('pretty', db_user.orcid)
 
     def test_update_bad_affiliation(self):
-        user = self.make_db_user()
-        external_id = user.external_ids[0]
+        user, external_id = self.make_db_user()
         self.shib_attrs.update({'affiliation': 'parasite'})
         models.update_db_user(user, external_id, self.shib_attrs)
         db_user = db.session.query(models.User).get(user.id)
@@ -119,7 +116,7 @@ class TestModels(base.TestCase):
         p1 = mock.Mock()
         p2 = mock.Mock()
         user_client.projects.list.return_value = [p1, p2]
-        db_user = self.make_db_user()
+        db_user, external_id = self.make_db_user()
 
         token, project_id, user = models.keystone_authenticate(db_user)
 
@@ -152,7 +149,7 @@ class TestModels(base.TestCase):
         mock_client = mock_keystone.return_value
         mock_client.users.get.return_value = keystone_user
 
-        db_user = self.make_db_user(email='email1')
+        db_user, external_id = self.make_db_user(email='email1')
 
         updated_keystone_user = models.sync_keystone_user(mock_client, db_user,
                                                           keystone_user)
@@ -169,7 +166,7 @@ class TestModels(base.TestCase):
         mock_client = mock_keystone.return_value
         mock_client.users.get.return_value = keystone_user
 
-        db_user = self.make_db_user(email='email1')
+        db_user, external_id = self.make_db_user(email='email1')
 
         updated_keystone_user = models.sync_keystone_user(
             mock_client, db_user, keystone_user, set_username_as_email=True)

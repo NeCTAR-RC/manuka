@@ -44,7 +44,7 @@ class TestManager(base.TestCase):
         user = mock_utils.create_user.return_value
         user.id = 'ksu-123'
         domain = mock_utils.get_domain_for_idp.return_value
-        db_user = self.make_db_user()
+        db_user, external_id = self.make_db_user()
         db_user_id = db_user.id
         self.shib_attrs['idp'] = 'fake-idp'
 

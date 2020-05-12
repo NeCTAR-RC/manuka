@@ -52,7 +52,7 @@ class User(db.Model):
     orcid = db.Column(db.String(64))
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
     external_ids = db.relationship("ExternalId", back_populates="user",
-                                   lazy='joined')
+                                   lazy='joined', cascade="all,delete")
 
     def __init__(self):
         self.state = "new"

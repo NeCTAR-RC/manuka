@@ -33,13 +33,13 @@ class Resource(flask_restful.Resource):
     def oslo_context(self):
         return flask.request.environ.get(keystone.REQUEST_CONTEXT_ENV, None)
 
-    def paginate(self, query, schema, args):
+    def paginate(self, query, args):
         limit = args.get('limit')
         if limit is None:
             limit = API_LIMIT
 
         items = query.paginate(per_page=limit)
-        response = {'results': schema.dump(items.items),
+        response = {'results': self.schema.dump(items.items),
                     'total': items.total}
 
         if items.has_next:

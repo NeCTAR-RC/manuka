@@ -108,7 +108,7 @@ class TestViews(base.TestCase):
         """
 
         # mock user
-        user = self.make_db_user(state='new')
+        user, external_id = self.make_db_user(state='new')
         mock_create.return_value = user
 
         # mock token
@@ -180,7 +180,7 @@ class TestViews(base.TestCase):
         User will be shown a form asking if they would like to
         change username
         """
-        db_user = self.make_db_user(state='created')
+        db_user, external_id = self.make_db_user(state='created')
 
         # mock token
         token = "secret"
@@ -233,7 +233,7 @@ class TestViews(base.TestCase):
         User chosen to change username, then will be logged in
         """
 
-        db_user = self.make_db_user(state='created')
+        db_user, external_id = self.make_db_user(state='created')
 
         # mock token
         token = "secret"
