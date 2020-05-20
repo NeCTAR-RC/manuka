@@ -33,10 +33,11 @@ base_rules = [
         check_str='role:admin or is_admin:1'),
     policy.RuleDefault(
         name='reader',
-        check_str='role:reader or role:read_only'),
+        check_str='role:reader or role:read_only '
+                  'or role:cloud_admin or role:helpdesk'),
     policy.RuleDefault(
         name='writer',
-        check_str='role:operator or role:helpdesk'),
+        check_str='role:cloud_admin or role:helpdesk'),
     policy.RuleDefault(
         name='owner',
         check_str='user_id:%(user_id)s'),
@@ -53,7 +54,7 @@ base_rules = [
         name=ADMIN_OR_READER,
         check_str='rule:admin_required or rule:reader'),
     policy.RuleDefault(
-    name=ADMIN_OR_WRITER,
+        name=ADMIN_OR_WRITER,
         check_str='rule:admin_required or rule:writer'),
 ]
 
