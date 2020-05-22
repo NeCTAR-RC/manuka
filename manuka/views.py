@@ -124,6 +124,15 @@ def root():
 
     session["shib_user_id"] = shib_attrs["id"]
 
+    invitation_token = request.args.get('invitation-token')
+    if invitation_token:
+        invitation = db.session.query(models.Invitation).filter_by(
+            token=invitation_token).first()
+        if not invitation:
+            LOG.warn("Invitation not found for token %s", invitation_token)
+        else:
+            session["invitation_id"] = invitation.id
+
     current_terms_version = CONF.terms_version
 
     if request.form.get("agree") and db_user.state == "new":
@@ -138,7 +147,8 @@ def root():
         # there account is being created
         worker = worker_api.WorkerAPI()
         ctxt = context.RequestContext()
-        worker.create_user(ctxt, shib_attrs)
+        invitation_id = session.pop('invitation_id', None)
+        worker.create_user(ctxt, shib_attrs, invitation_id)
 
     if request.form.get("agree") and db_user.state == "created":
         # New terms version accepted
@@ -206,6 +216,8 @@ def root():
     if user.name != user.email and not db_user.ignore_username_not_email:
         data = {"user": user}
         return flask.render_template("username_form.html", **data)
+
+    invitation_token = request.args.get('invitation-token')
 
     # sjjf: default to the configured target URL, but allow the source
     # to specify a different return-path. The specified return path is

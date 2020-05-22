@@ -111,8 +111,7 @@ class TestUserApiUser(TestUserApi):
     def setUp(self):
         super().setUp()
         user_self, external_id = self.make_db_user(
-            state='new', agreed_terms=False, email='test@example.com',
-            id=base.USER_ID)
+            id=base.USER_ID, keystone_user_id=base.KEYSTONE_USER_ID)
         self.user_self = user_self
 
     def test_user_list(self):

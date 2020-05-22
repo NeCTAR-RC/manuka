@@ -25,6 +25,7 @@ ADMIN_OR_OWNER_OR_WRITER = 'admin_or_owner_or_writer'
 ADMIN_OR_OWNER_OR_READER = 'admin_or_owner_or_reader'
 ADMIN_OR_READER = 'admin_or_reader'
 ADMIN_OR_WRITER = 'admin_or_writer'
+TENANT_MANAGER = 'tenant_manager'
 
 
 base_rules = [
@@ -56,6 +57,9 @@ base_rules = [
     policy.RuleDefault(
         name=ADMIN_OR_WRITER,
         check_str='rule:admin_required or rule:writer'),
+    policy.RuleDefault(
+        name=TENANT_MANAGER,
+        check_str='role:TenantManager'),
 ]
 
 USER_PREFIX = "account:user:%s"
@@ -136,11 +140,53 @@ external_id_rules = [
                      'method': 'DELETE'}]),
 ]
 
+INVITATION_PREFIX = "account:invitation:%s"
+
+invitation_rules = [
+    policy.DocumentedRuleDefault(
+        name=INVITATION_PREFIX % 'get',
+        check_str='rule:%s' % ADMIN_OR_OWNER_OR_READER,
+        description='Show invitation details.',
+        operations=[{'path': '/v1/invitations/{invitation}/',
+                     'method': 'GET'},
+                    {'path': '/v1/invitations/{invitation}/',
+                     'method': 'HEAD'}]),
+    policy.DocumentedRuleDefault(
+        name=INVITATION_PREFIX % 'list',
+        check_str='',
+        description='List invitations.',
+        operations=[{'path': '/v1/invitations/',
+                     'method': 'GET'},
+                    {'path': '/v1/invitations/',
+                     'method': 'HEAD'}]),
+    policy.DocumentedRuleDefault(
+        name=INVITATION_PREFIX % 'list:all_projects',
+        check_str='rule:%s' % ADMIN_OR_READER,
+        description='List invitations for all projects.',
+        operations=[{'path': '/v1/invitations/',
+                     'method': 'GET'},
+                    {'path': '/v1/invitations/',
+                     'method': 'HEAD'}]),
+    policy.DocumentedRuleDefault(
+        name=INVITATION_PREFIX % 'create',
+        check_str='rule:%s' % TENANT_MANAGER,
+        description='Create an invitation',
+        operations=[{'path': '/v1/invitations/{invitation}/',
+                     'method': 'PATCH'}]),
+    policy.DocumentedRuleDefault(
+        name=INVITATION_PREFIX % 'delete',
+        check_str='rule:%s' % ADMIN_OR_OWNER_OR_WRITER,
+        description='Delete invitation.',
+        operations=[{'path': '/v1/invitations/{invitation}/',
+                     'method': 'DELETE'}]),
+]
+
 
 enforcer.register_defaults(base_rules)
 enforcer.register_defaults(user_rules)
 enforcer.register_defaults(external_id_rules)
+enforcer.register_defaults(invitation_rules)
 
 
 def list_rules():
-    return base_rules + user_rules + external_id_rules
+    return base_rules + user_rules + external_id_rules + invitation_rules

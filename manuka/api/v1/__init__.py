@@ -12,6 +12,7 @@
 #    under the License.
 
 from manuka.api.v1.resources import external_id
+from manuka.api.v1.resources import invitation
 from manuka.api.v1.resources import user
 
 
@@ -21,5 +22,6 @@ def initialize_resources(api):
     api.add_resource(user.PendingUserList, '/v1/pending-users/')
     api.add_resource(user.PendingUser, '/v1/pending-users/<id>/')
     api.add_resource(user.UserSearch, '/v1/users/search/')
-    api.add_resource(user.UserByOpenstackUserID, '/v1/users-os/<id>/')
     api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
+    api.add_resource(invitation.InvitationList, '/v1/invitations/')
+    api.add_resource(invitation.Invitation, '/v1/invitations/<id>/')

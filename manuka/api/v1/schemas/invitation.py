@@ -11,28 +11,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_config import cfg
-from oslo_log import log as logging
+from manuka.extensions import ma
+from manuka import models
 
 
-from manuka.worker import manager as worker_manager
+class InvitationSchema(ma.SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = models.Invitation
+        load_instance = True
+        include_relationships = True
 
 
-CONF = cfg.CONF
+class InvitationCreateSchema(ma.SQLAlchemyAutoSchema):
 
-LOG = logging.getLogger(__name__)
+    class Meta:
+        model = models.Invitation
+        load_instance = True
+        exclude = ('id', 'token', 'created_at', 'project_id',)
 
 
-class Endpoints(object):
-
-    # API version history:
-    #   1.0 - Initial version.
-
-    def __init__(self):
-        self.manager = worker_manager.Manager()
-
-    def create_user(self, ctxt, db_user, invitation_id=None):
-        self.manager.create_user(db_user, invitation_id)
-
-    def send_invitation(self, ctxt, invitation_id):
-        self.manager.send_invitation(invitation_id)
+invitation = InvitationSchema()
+invitations = InvitationSchema(many=True)
+create_invitation = InvitationCreateSchema()

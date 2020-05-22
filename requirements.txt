@@ -9,6 +9,7 @@ oslo.config
 oslo.log
 oslo.messaging
 oslo.policy
+oslo.utils
 flask>=1.0.2
 marshmallow>=3.4.0
 flask_migrate>=2.1.1

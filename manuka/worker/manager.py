@@ -32,7 +32,7 @@ class Manager(object):
     def __init__(self):
         self.app = app.create_app(init_config=False)
 
-    def create_user(self, attrs):
+    def create_user(self, attrs, invitation_id=None):
         self.app.app_context().push()
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
@@ -61,6 +61,15 @@ class Manager(object):
         utils.add_user_roles(client, project=project, user=user,
                              roles=['Member'])
 
+        if invitation_id:
+            invitation = db.session.query(models.Invitation).get(invitation_id)
+            if invitation:
+                project = invitation.project_id
+                utils.add_user_roles(client, project=project, user=user,
+                                     roles=['Member'])
+            else:
+                LOG.warn("Invitation not found %s", invitation_id)
+
         db_user.keystone_user_id = user.id
         db_user.state = "created"
         db.session.add(db_user)
@@ -81,3 +90,10 @@ class Manager(object):
             utils.set_swift_quota(session, project.id, swift_quota)
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
         LOG.info('%s: Completed Processing.', user.id)
+
+    def send_invitation(self, invitation_id):
+        invitation = db.session.query(models.Invitation).get(invitation_id)
+
+#        url = 
+        
+        utils.send_invitation_email()
