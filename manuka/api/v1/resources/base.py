@@ -14,20 +14,24 @@
 import flask
 from flask import request
 import flask_restful
+from oslo_log import log as logging
 
 from manuka.common import keystone
 from manuka import policy
 
 
 API_LIMIT = 1000
+LOG = logging.getLogger(__name__)
 
 
 class Resource(flask_restful.Resource):
 
     def authorize(self, rule, target={}, do_raise=True):
         rule = self.POLICY_PREFIX % rule
+        LOG.debug("Cheking rule %s", rule)
         enforcer = policy.get_enforcer()
-        enforcer.authorize(rule, target, self.oslo_context, do_raise=do_raise)
+        return enforcer.authorize(rule, target, self.oslo_context,
+                                  do_raise=do_raise)
 
     @property
     def oslo_context(self):
@@ -39,7 +43,7 @@ class Resource(flask_restful.Resource):
             limit = API_LIMIT
 
         items = query.paginate(per_page=limit)
-        response = {'results': self.schema.dump(items.items),
+        response = {'results': self.list_schema.dump(items.items),
                     'total': items.total}
 
         if items.has_next:

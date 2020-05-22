@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 class UserList(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
-    schema = schemas.users
+    list_schema = schemas.users
 
     def _get_users(self):
         return db.session.query(models.User) \
@@ -65,7 +65,7 @@ class UserList(base.Resource):
 class UserSearch(base.Resource):
 
     POLICY_PREFIX = policies.USER_PREFIX
-    schema = schemas.users
+    list_schema = schemas.users
 
     def post(self):
         try:
@@ -105,6 +105,8 @@ class User(base.Resource):
     def get(self, id):
         db_user = self._get_user(id)
 
+        LOG.warn("target %s", db_user.keystone_user_id)
+        LOG.warn("context %s", self.oslo_context.user_id)
         target = {'user_id': db_user.keystone_user_id}
         try:
             self.authorize('get', target)
@@ -139,14 +141,9 @@ class User(base.Resource):
         return self.schema.dump(db_user)
 
 
-# Transition API used by dashboard user info module
-class UserByOpenstackUserID(User):
-    pass
-
-
 class PendingUserList(UserList):
 
-    schema = schemas.pending_users
+    list_schema = schemas.pending_users
     update_schema = schemas.pending_user_update
 
     def _get_users(self):

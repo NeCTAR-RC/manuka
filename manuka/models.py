@@ -12,12 +12,14 @@
 #    under the License.
 
 import datetime
+import secrets
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneclient.v3 import client as keystone_client
 from oslo_config import cfg
 from oslo_log import log
+from oslo_utils import uuidutils
 
 from manuka.common import clients
 from manuka.common import keystone
@@ -74,6 +76,23 @@ class ExternalId(db.Model):
         self.user = user
         self.persistent_id = persistent_id
         self.attributes = attributes
+
+
+class Invitation(db.Model):
+    id = db.Column(db.String(32), primary_key=True, nullable=False)
+    project_id = db.Column(db.String(64), nullable=False)
+    email = db.Column(db.String(250), nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey(User.id),
+                              nullable=False)
+    created_by = db.relationship("User")
+    token = db.Column(db.String(32), nullable=False)
+    created_at = db.Column(db.DateTime(), nullable=False)
+
+    def __init__(self, email):
+        self.id = uuidutils.generate_uuid()
+        self.token = secrets.token_urlsafe(32)
+        self.created_at = datetime.datetime.now()
+        self.email = email
 
 
 def keystone_authenticate(db_user, project_id=None,

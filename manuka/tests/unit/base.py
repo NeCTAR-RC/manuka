@@ -126,7 +126,8 @@ class TestCase(flask_testing.TestCase):
 
 
 USER_ID = 999
-KEYSTONE_USER_ID = 'ksid-999'
+KEYSTONE_USER_ID = 'ksuid-999'
+KEYSTONE_PROJECT_ID = 'kspid-999'
 
 
 class TestKeystoneWrapper(object):
@@ -137,7 +138,8 @@ class TestKeystoneWrapper(object):
 
     def __call__(self, environ, start_response):
         cntx = context.RequestContext(roles=self.roles,
-                                      user_id=KEYSTONE_USER_ID)
+                                      user_id=KEYSTONE_USER_ID,
+                                      project_id=KEYSTONE_PROJECT_ID)
         environ[keystone.REQUEST_CONTEXT_ENV] = cntx
 
         return self.app(environ, start_response)

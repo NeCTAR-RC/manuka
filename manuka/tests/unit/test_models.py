@@ -176,3 +176,16 @@ class TestModels(base.TestCase):
             name='email1')
         self.assertEqual(mock_client.users.update.return_value,
                          updated_keystone_user)
+
+    @freeze_time("2012-01-14")
+    @mock.patch('manuka.models.uuidutils')
+    @mock.patch('manuka.models.secrets')
+    def test_invitation_create(self, mock_secrets, mock_uuidutils):
+        email = 'test@example.org'
+        secret = mock_secrets.token_urlsafe.return_value
+        uuid = mock_uuidutils.generate_uuid.return_value
+        invitation = models.Invitation(email=email)
+        self.assertEqual(email, invitation.email)
+        self.assertEqual(secret, invitation.token)
+        self.assertEqual(uuid, invitation.id)
+        self.assertEqual(datetime(2012, 1, 14), invitation.created_at)
