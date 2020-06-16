@@ -1,3 +1,4 @@
+pbr
 python-keystoneclient
 python-novaclient
 python-swiftclient
