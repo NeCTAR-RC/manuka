@@ -33,7 +33,7 @@ setup(
         ],
     },
     include_package_data=True,
-    install_requires=[str(r.req) for r in requirements],
+    install_requires=[str(r.requirement) for r in requirements],
     license="Apache",
     zip_safe=False,
 )
