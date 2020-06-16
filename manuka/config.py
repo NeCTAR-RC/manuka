@@ -79,7 +79,16 @@ smtp_opts = [
     cfg.StrOpt('from_email',)
 ]
 
+orcid_opts = [
+    cfg.StrOpt('key'),
+    cfg.StrOpt('secret',
+               secret=True),
+    cfg.BoolOpt('sandbox',
+                default=False),
+]
 
+
+cfg.CONF.register_opts(orcid_opts, group='orcid')
 cfg.CONF.register_opts(smtp_opts, group='smtp')
 cfg.CONF.register_opts(keystone_opts, group='keystone')
 cfg.CONF.register_opts(swift_opts, group='swift')
@@ -120,6 +129,7 @@ def setup_logging(conf):
 def list_opts():
     return [
         ('DEFAULT', default_opts),
+        ('orcid', orcid_opts),
         ('smtp', smtp_opts),
         ('keystone', keystone_opts),
         ('swift', swift_opts),
