@@ -20,6 +20,8 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from swiftclient import client as swift_client
 
+from manuka.common import orcid_client
+
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -62,3 +64,7 @@ def get_swift_client(sesh, project_id):
                                     'AUTH_%s' % project_id)
         os_opts['object_storage_url'] = '%s' % endpoint
     return swift_client.Connection(session=sesh, os_options=os_opts)
+
+
+def get_orcid_client():
+    return orcid_client.Client()
