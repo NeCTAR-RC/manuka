@@ -57,11 +57,19 @@ class FakePublicAPI(object):
 
 
 class FakeRequest(object):
-    url = "https://testing"
+    def __init__(self, url="https://testing", **kwargs):
+        self.url = url
 
 
 class FakeResponse(object):
-    status_code = 500
+    def __init__(self, status_code=500, **kwargs):
+        self.status_code = status_code
+
+
+class FakeHTTPError(exceptions.HTTPError):
+    def __init__(self, **kwargs):
+        super().__init__(request=FakeRequest(**kwargs),
+                         response=FakeResponse(**kwargs))
 
 
 class UnreliableFakePublicAPI(FakePublicAPI):
@@ -81,16 +89,14 @@ class UnreliableFakePublicAPI(FakePublicAPI):
         # First request for a given query fail with a fake 500 response.
         if query != self.last_query:
             self.last_query = query
-            raise exceptions.HTTPError(request=FakeRequest,
-                                       response=FakeResponse())
+            raise FakeHTTPError()
 
 
 class FailingFakePublicAPI(UnreliableFakePublicAPI):
 
     def _do_fail(self, query):
         # Always fail
-        raise exceptions.HTTPError(request=FakeRequest,
-                                   response=FakeResponse())
+        raise FakeHTTPError()
 
 
 class OrcidClientTest(base.TestCase):

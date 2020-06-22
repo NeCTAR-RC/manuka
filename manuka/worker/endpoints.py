@@ -33,3 +33,6 @@ class Endpoints(object):
 
     def create_user(self, ctxt, attrs):
         self.manager.create_user(attrs)
+
+    def refresh_orcid(self, ctxt, user_id):
+        self.manager.refresh_orcid(user_id)
