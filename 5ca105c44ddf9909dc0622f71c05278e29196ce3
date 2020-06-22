@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "580a135b_1ea965db",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "new requirement so should be added to requirements.txt\n\nImport modules not classes so do\n\nfrom requests import exceptions\n\nAlso should be placed in the same import group as oslo things below",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3178695a_9af347c2",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "This should also be in the same import group as oslo stuff above.\n\nShould also import the module not the class here so just do\n\nimport orcid",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 27
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a316ac4_58cab3b9",
+        "filename": "manuka/tests/etc/manuka.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "missing newline",
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbfca858_544b714c",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "same import nits as other class",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "542f8f73_68a6e489",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "not required",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 12
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca98a124_50cbc252",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "could just change this to\n\ndef __init__(self):\n  self.last_query \u003d None",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 30
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4628fd6c_9cac42c1",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T06:19:33Z",
+      "side": 1,
+      "message": "not required",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 41
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
