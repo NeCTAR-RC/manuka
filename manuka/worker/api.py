@@ -16,6 +16,9 @@ import oslo_messaging
 from manuka.common import rpc
 
 
+API_VERSION = '1.1'
+
+
 class WorkerAPI(object):
 
     def __init__(self):
@@ -23,5 +26,9 @@ class WorkerAPI(object):
         self._client = oslo_messaging.RPCClient(rpc.TRANSPORT, target)
 
     def create_user(self, ctxt, attrs):
-        cctxt = self._client.prepare(version='1.0')
+        cctxt = self._client.prepare(version=API_VERSION)
         cctxt.cast(ctxt, 'create_user', attrs=attrs)
+
+    def refresh_orcid(self, ctxt, user_id):
+        cctxt = self._client.prepare(version=API_VERSION)
+        cctxt.cast(ctxt, 'refresh_orcid', user_id=user_id)
