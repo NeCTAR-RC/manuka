@@ -207,6 +207,11 @@ def root():
         data = {"user": user}
         return flask.render_template("username_form.html", **data)
 
+    if not db_user.orcid:
+        worker = worker_api.WorkerAPI()
+        ctxt = context.RequestContext()
+        worker.refresh_orcid(ctxt, db_user.id)
+
     # sjjf: default to the configured target URL, but allow the source
     # to specify a different return-path. The specified return path is
     # then verfied against a white list.
