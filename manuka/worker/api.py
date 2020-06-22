@@ -25,3 +25,8 @@ class WorkerAPI(object):
     def create_user(self, ctxt, attrs):
         cctxt = self._client.prepare(version='1.0')
         cctxt.cast(ctxt, 'create_user', attrs=attrs)
+
+    def refresh_orcid(self, ctxt, id, email):
+        cctxt = self._client.prepare(version='1.0')
+        cctxt.cast(ctxt, 'refresh_orcid', id=id, email=email)
+

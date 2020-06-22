@@ -14,6 +14,7 @@
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from requests.exceptions import HTTPError
 
 from manuka import app
 from manuka.common import clients
@@ -81,3 +82,25 @@ class Manager(object):
             utils.set_swift_quota(session, project.id, swift_quota)
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
         LOG.info('%s: Completed Processing.', user.id)
+
+    def refresh_orcid(self, id, email):
+        self.app.app_context().push()
+
+        external_id = db.session.query(models.ExternalId).filter_by(
+            persistent_id=id).first()
+        db_user = external_id.user
+        k_id = db_user.keystone_user_id
+        LOG.info('%s: Trying to find orcid for %s.', k_id, email)
+
+        orcid_client = clients.get_orcid_client()
+        try:
+            orcid = orcid_client.search_by_email(email)
+            if orcid:
+                LOG.info('%s: Found orcid %s', k_id, orcid)
+                db_user.orcid = orcid
+                db.session.add(db_user)
+                db.session.commit()
+            else:
+                LOG.info('%s: No orcid found', k_id)
+        except HTTPError:
+            LOG.info('%s: Cannot access ORCID service', k_id)
