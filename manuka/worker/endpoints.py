@@ -31,5 +31,5 @@ class Endpoints(object):
     def __init__(self):
         self.manager = worker_manager.Manager()
 
-    def create_user(self, ctxt, db_user):
-        self.manager.create_user(db_user)
+    def create_user(self, ctxt, attrs):
+        self.manager.create_user(attrs)
