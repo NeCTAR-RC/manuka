@@ -13,7 +13,7 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-
+from requests import exceptions
 
 from manuka import app
 from manuka.common import clients
@@ -81,3 +81,25 @@ class Manager(object):
             utils.set_swift_quota(session, project.id, swift_quota)
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
         LOG.info('%s: Completed Processing.', user.id)
+
+    def refresh_orcid(self, user_id):
+        self.app.app_context().push()
+
+        db_user = db.session.query(models.User).get(user_id)
+        email = db_user.email
+        LOG.info('%s: Trying to find orcid for %s.', user_id, email)
+
+        orcid_client = clients.get_orcid_client()
+        try:
+            orcid = orcid_client.search_by_email(email)
+        except exceptions.HTTPError as e:
+            LOG.info('%s: ORCID service request failed (%s), url %s',
+                     k_id, e.response.status_code, e.request.url)
+        else:
+            if orcid:
+                LOG.info('%s: Found orcid %s', user_id, orcid)
+                db_user.orcid = orcid
+                db.session.add(db_user)
+                db.session.commit()
+            else:
+                LOG.info('%s: No orcid found', user_id)
