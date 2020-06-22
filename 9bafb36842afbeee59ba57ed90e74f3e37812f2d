@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17249f81_34a68589",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T23:03:39Z",
+      "side": 1,
+      "message": "this isn\u0027t needed, see comment in test file",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 27
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfb7eb7f_a409bba0",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T23:03:39Z",
+      "side": 1,
+      "message": "I feel this is probably better to be a static method in the Client class, it\u0027s not used outside the class",
+      "range": {
+        "startLine": 29,
+        "startChar": 3,
+        "endLine": 29,
+        "endChar": 14
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9170d4fb_e6d8e883",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T23:03:39Z",
+      "side": 1,
+      "message": "this should go below unittest, unittest is a builtin, requests is third party\n\nbuiltins\n...\n\nthird-party\n...\n\nlocal\n...",
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44d52b97_799cd165",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-22T23:03:39Z",
+      "side": 1,
+      "message": "you should be patching \u0027orcid.PublicAPI\u0027 here",
+      "range": {
+        "startLine": 98,
+        "startChar": 11,
+        "endLine": 98,
+        "endChar": 49
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
