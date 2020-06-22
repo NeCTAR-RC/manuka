@@ -22,6 +22,6 @@ class WorkerAPI(object):
         target = oslo_messaging.Target(topic='manuka-worker', version='1.0')
         self._client = oslo_messaging.RPCClient(rpc.TRANSPORT, target)
 
-    def create_user(self, ctxt, db_user):
+    def create_user(self, ctxt, attrs):
         cctxt = self._client.prepare(version='1.0')
-        cctxt.cast(ctxt, 'create_user', db_user=db_user)
+        cctxt.cast(ctxt, 'create_user', attrs=attrs)

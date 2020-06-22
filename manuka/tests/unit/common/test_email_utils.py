@@ -19,7 +19,7 @@ from manuka.tests.unit import base
 
 
 @mock.patch('smtplib.SMTP')
-class TestViewsNoShib(base.TestCase):
+class TestEmailUtils(base.TestCase):
 
     def test_send_email(self, mock_smtp_class):
         mock_smtp = mock.Mock()
