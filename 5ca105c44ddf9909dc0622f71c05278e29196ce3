@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "89b4b3d7_74256f05",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "580a135b_1ea965db",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3178695a_9af347c2",
         "filename": "manuka/common/orcid_client.py",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f67c86da_f96b07c9",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3178695a_9af347c2",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 27
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a316ac4_58cab3b9",
         "filename": "manuka/tests/etc/manuka.conf",
         "patchSetId": 10
@@ -62,6 +110,24 @@
       "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c2ca595_17a459aa",
+        "filename": "manuka/tests/etc/manuka.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a316ac4_58cab3b9",
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "21a73f16_f5cab3e8",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbfca858_544b714c",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "542f8f73_68a6e489",
         "filename": "manuka/tests/unit/common/test_orcid_client.py",
         "patchSetId": 10
@@ -108,6 +198,30 @@
       "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04d5f8f5_44f1790a",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "It is required.  There are keyword args in the real PubliAPI class.  If this __init__ is not here then the \u0027object\u0027 constructor is called with args that it doesn\u0027t understand.",
+      "parentUuid": "542f8f73_68a6e489",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 12
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "9e24c128_4e5566ab",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "The delegation is not strictly needed ... unless I change the superclass constructor to do something. But it is better not to make assumptions that could easily change.  Implementor\u0027s choice",
+      "parentUuid": "ca98a124_50cbc252",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 30
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4628fd6c_9cac42c1",
         "filename": "manuka/tests/unit/common/test_orcid_client.py",
         "patchSetId": 10
@@ -154,6 +292,30 @@
       "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72e73dbe_70ccbb4b",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-22T07:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4628fd6c_9cac42c1",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 41
+      },
+      "revId": "5ca105c44ddf9909dc0622f71c05278e29196ce3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
