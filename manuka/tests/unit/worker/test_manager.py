@@ -14,10 +14,12 @@
 from unittest import mock
 
 from oslo_config import cfg
+from requests import exceptions
 
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit.common import test_orcid_client
 from manuka.worker import manager as worker_manager
 
 
@@ -90,3 +92,49 @@ class TestManager(base.TestCase):
             mock.ANY, project.id)
         mock_utils.set_swift_quota.assert_called_once_with(
             mock.ANY, project.id, swift_quota)
+
+    def test_refresh_orcid(self, mock_app, mock_keystone):
+        mock_app.return_value = self.app
+        manager = worker_manager.Manager()
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+
+            # Try with an unknown email
+            db_user, external_id = self.make_db_user()
+            db_user_id = db_user.id
+            manager.refresh_orcid(db_user_id)
+            db_user = db.session.query(models.User) \
+                                .filter(models.User.id == db_user_id) \
+                                .one()
+            self.assertEqual('testorchid', db_user.orcid)
+
+            # Try with a known (to the fake orcid api) email
+            db_user, external_id = self.make_db_user(
+                id=1, displayname='displayname1', email='foo@bar.com')
+            db_user_id = db_user.id
+            manager.refresh_orcid(db_user_id)
+            db_user = db.session.query(models.User) \
+                                .filter(models.User.id == db_user_id) \
+                                .one()
+            # This is the value from the fake API
+            self.assertEqual('0000-0001-0000-0001', db_user.orcid)
+
+    def test_refresh_orcid_failing(self, mock_app, mock_keystone):
+        mock_app.return_value = self.app
+        manager = worker_manager.Manager()
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.side_effect = \
+            test_orcid_client.FakeHTTPError()
+        mock_get_client = mock.MagicMock(return_value=mock_client)
+        with mock.patch('manuka.common.clients.get_orcid_client',
+                        mock_get_client):
+            db_user, external_id = self.make_db_user()
+            db_user_id = db_user.id
+            try:
+                manager.refresh_orcid(db_user_id)
+            except exceptions.HTTPError:
+                self.fail("HTTPError propagated unexpectedly")
+            db_user = db.session.query(models.User) \
+                                .filter(models.User.id == db_user_id) \
+                                .one()
+            self.assertEqual('testorchid', db_user.orcid)
