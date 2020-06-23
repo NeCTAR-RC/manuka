@@ -96,7 +96,7 @@ class TestManager(base.TestCase):
     @mock.patch('manuka.worker.manager.utils')
     def test_refresh_orcid(self, mock_utils,
                            mock_ks_auth, mock_app, mock_keystone):
-        with mock.patch('manuka.common.orcid_client.PublicAPI',
+        with mock.patch('orcid.PublicAPI',
                         new=test_orcid_client.FakePublicAPI):
             mock_app.return_value = self.app
             db_user, external_id = self.make_db_user()
