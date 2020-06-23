@@ -11,23 +11,23 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_config import cfg
+from unittest import mock
 
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
 
 
-CONF = cfg.CONF
-
-
-class TestUserApi(base.ApiTestCase):
+class TestUserApiBase(base.ApiTestCase):
 
     def setUp(self):
         super().setUp()
         user, external_id = self.make_db_user(state='new', agreed_terms=False,
                                               email='test@example.com')
         self.user = user
+
+
+class TestUserApi(TestUserApiBase):
 
     def test_user_list(self):
         response = self.client.get('/api/v1/users/')
@@ -101,7 +101,21 @@ class TestUserApi(base.ApiTestCase):
     def test_user_delete(self):
         response = self.client.delete('/api/v1/users/%s/' %
                                       self.user.id)
-        self.assertStatus(response, 405)
+        self.assert405(response)
+
+    def test_orcid_refresh(self):
+        with mock.patch('manuka.worker.utils.refresh_orcid') as mock_refresh:
+            mock_refresh.return_value = True
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assert200(response)
+
+    def test_orcid_refresh_failed(self):
+        with mock.patch('manuka.worker.utils.refresh_orcid') as mock_refresh:
+            mock_refresh.return_value = False
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assert500(response)
 
 
 class TestUserApiUser(TestUserApi):
@@ -161,6 +175,27 @@ class TestUserApiUser(TestUserApi):
         data = {'search': 'ab'}
         response = self.client.post('/api/v1/users/search/', data=data)
         self.assert403(response)
+
+    def test_orcid_refresh(self):
+        with mock.patch('manuka.worker.utils.refresh_orcid') as mock_refresh:
+            mock_refresh.return_value = True
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assert404(response)
+
+    def test_orcid_refresh_failed(self):
+        with mock.patch('manuka.worker.utils.refresh_orcid') as mock_refresh:
+            mock_refresh.return_value = False
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assert404(response)
+
+    def test_orcid_refresh_self(self):
+        with mock.patch('manuka.worker.utils.refresh_orcid') as mock_refresh:
+            mock_refresh.return_value = True
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user_self.keystone_user_id)
+            self.assert200(response)
 
 
 class PendingTestUserApi(base.ApiTestCase):

@@ -14,12 +14,10 @@
 from unittest import mock
 
 from oslo_config import cfg
-from requests import exceptions
 
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
-from manuka.tests.unit.common import test_orcid_client
 from manuka.worker import manager as worker_manager
 
 
@@ -92,58 +90,11 @@ class TestManager(base.TestCase):
         mock_utils.set_swift_quota.assert_called_once_with(
             mock.ANY, project.id, swift_quota)
 
-    def test_refresh_orcid_unknown(self, mock_app, mock_keystone):
+    @mock.patch('manuka.worker.manager.utils')
+    def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone):
         manager = worker_manager.Manager()
-        with mock.patch('manuka.common.clients.get_orcid_client') \
-             as mock_get_client:
-            mock_client = mock.MagicMock()
-            mock_client.search_by_email.return_value = None
-            mock_get_client.return_value = mock_client
-
-            db_user, external_id = self.make_db_user()
-            db_user_id = db_user.id
-            db_user_email = db_user.email
-            manager.refresh_orcid(db_user_id)
-            db_user = db.session.query(models.User).get(db_user_id)
-            self.assertEqual('testorchid', db_user.orcid)
-            mock_client.search_by_email.assert_called_once_with(
-                db_user_email)
-
-    def test_refresh_orcid_known(self, mock_app, mock_keystone):
-        manager = worker_manager.Manager()
-        with mock.patch('manuka.common.clients.get_orcid_client') \
-             as mock_get_client:
-            mock_client = mock.MagicMock()
-            mock_client.search_by_email.return_value = '0000-0001-0000-0001'
-            mock_get_client.return_value = mock_client
-
-            db_user, external_id = self.make_db_user(
-                id=1, displayname='displayname1', email='foo@bar.com')
-            db_user_id = db_user.id
-            db_user_email = db_user.email
-            manager.refresh_orcid(db_user_id)
-            db_user = db.session.query(models.User).get(db_user_id)
-            self.assertEqual('0000-0001-0000-0001', db_user.orcid)
-            mock_client.search_by_email.assert_called_once_with(
-                db_user_email)
-
-    def test_refresh_orcid_failing(self, mock_app, mock_keystone):
-        manager = worker_manager.Manager()
-        with mock.patch('manuka.common.clients.get_orcid_client') \
-             as mock_get_client:
-            mock_client = mock.MagicMock()
-            mock_client.search_by_email.side_effect = \
-                test_orcid_client.FakeHTTPError()
-            mock_get_client.return_value = mock_client
-
-            db_user, external_id = self.make_db_user()
-            db_user_id = db_user.id
-            db_user_email = db_user.email
-            try:
-                manager.refresh_orcid(db_user_id)
-            except exceptions.HTTPError:
-                self.fail("HTTPError propagated unexpectedly")
-            db_user = db.session.query(models.User).get(db_user_id)
-            self.assertEqual('testorchid', db_user.orcid)
-            mock_client.search_by_email.assert_called_once_with(
-                db_user_email)
+        mock_utils.refresh_orcid.return_value = True
+        db_user, external_id = self.make_db_user()
+        manager.refresh_orcid(db_user.id)
+        mock_utils.refresh_orcid.assert_called_once_with(
+            db_user)

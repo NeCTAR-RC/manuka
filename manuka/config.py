@@ -86,6 +86,10 @@ orcid_opts = [
                secret=True),
     cfg.BoolOpt('sandbox',
                 default=False),
+    cfg.IntOpt('max_retries',
+               default=5),
+    cfg.IntOpt('retry_delay',
+               default=5),
 ]
 
 

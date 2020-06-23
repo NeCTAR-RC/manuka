@@ -14,8 +14,12 @@
 from unittest import mock
 
 from oslo_config import cfg
+from requests import exceptions
 
+from manuka.extensions import db
+from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit.common import test_orcid_client
 from manuka.worker import utils
 
 
@@ -153,3 +157,81 @@ class TestUtils(base.TestCase):
             'Project Trial Allocation created',
             mock.ANY,
             CONF.smtp.host)
+
+    @mock.patch('manuka.common.clients.get_orcid_client')
+    def test_refresh_orcid_unknown(self, mock_get_client):
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.return_value = None
+        mock_get_client.return_value = mock_client
+
+        db_user, external_id = self.make_db_user(orcid='mumble')
+        db_user_id = db_user.id
+        db_user_email = db_user.email
+        self.assertTrue(utils.refresh_orcid(db_user))
+        mock_client.search_by_email.assert_called_once_with(
+            db_user_email)
+
+        # Check the orcid has not changed
+        db_user = db.session.query(models.User).get(db_user_id)
+        self.assertEqual('mumble', db_user.orcid)
+
+    @mock.patch('manuka.common.clients.get_orcid_client')
+    def test_refresh_orcid_known(self, mock_get_client):
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.return_value = '0000-0001-0000-0001'
+        mock_get_client.return_value = mock_client
+
+        db_user, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com',
+            orcid='mumble')
+        db_user_id = db_user.id
+        db_user_email = db_user.email
+        self.assertTrue(utils.refresh_orcid(db_user))
+        mock_client.search_by_email.assert_called_once_with(
+            db_user_email)
+
+        # Check the orcid has changed
+        db_user = db.session.query(models.User).get(db_user_id)
+        self.assertEqual('0000-0001-0000-0001', db_user.orcid)
+
+    @mock.patch('manuka.common.clients.get_orcid_client')
+    def test_refresh_orcid_no_change(self, mock_get_client):
+        # This exercises a different code-path to the previous
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.return_value = '0000-0001-0000-0001'
+        mock_get_client.return_value = mock_client
+
+        db_user, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com',
+            orcid='0000-0001-0000-0001')
+        db_user_id = db_user.id
+        db_user_email = db_user.email
+        self.assertTrue(utils.refresh_orcid(db_user))
+        mock_client.search_by_email.assert_called_once_with(
+            db_user_email)
+
+        # Check the orcid has not changed
+        db_user = db.session.query(models.User).get(db_user_id)
+        self.assertEqual('0000-0001-0000-0001', db_user.orcid)
+
+    @mock.patch('manuka.common.clients.get_orcid_client')
+    def test_refresh_orcid_failing(self, mock_get_client):
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.side_effect = \
+            test_orcid_client.FakeHTTPError()
+        mock_get_client.return_value = mock_client
+
+        db_user, external_id = self.make_db_user(orcid='mutter')
+        db_user_id = db_user.id
+        db_user_email = db_user.email
+        try:
+            self.assertFalse(utils.refresh_orcid(db_user))
+        except exceptions.HTTPError:
+            self.fail("HTTPError propagated unexpectedly")
+
+        mock_client.search_by_email.assert_called_once_with(
+            db_user_email)
+
+        # Check the orcid has not changed
+        db_user = db.session.query(models.User).get(db_user_id)
+        self.assertEqual('mutter', db_user.orcid)
