@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73707d6e_dbb16efd",
+        "filename": "manuka/common/clients.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-06-23T05:14:25Z",
+      "side": 1,
+      "message": "Could we change this to manuka.common instead? I had a feeling this relative style import was discouraged",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 26
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c469c069_987a7ade",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-06-23T05:14:25Z",
+      "side": 1,
+      "message": "Could you simply just do:\n\nself.max_retries \u003d max_retries\n\ninstead? If not, how about this (more pythonic, and achieves the same result I think):\nself.max_retries \u003d max_retries or 0\n\nsame with the next line.",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 65
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fb7d483_17b092e6",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-06-23T05:14:25Z",
+      "side": 1,
+      "message": "I haven\u0027t looked at the ORCID API yet, but if you\u0027re using requests, you could have it handle this for you. It\u0027s pretty nice and can save you from having to do this yourself.\n\nWon\u0027t -1 for this though",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 16
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
