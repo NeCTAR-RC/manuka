@@ -25,9 +25,9 @@ CONF = cfg.CONF
 
 class Client(object):
 
-    def __init__(self, max_retries=5, retry_delay=5):
-        self.max_retries = max_retries if max_retries >= 0 else 0
-        self.retry_delay = retry_delay if retry_delay >= 0 else 0
+    def __init__(self, max_retries=None, retry_delay=None):
+        self.max_retries = max_retries or CONF.orcid.max_retries
+        self.retry_delay = retry_delay or CONF.orcid.retry_delay
         self.api = orcid.PublicAPI(CONF.orcid.key, CONF.orcid.secret,
                                    CONF.orcid.sandbox)
         self.token = self.api.get_search_token_from_orcid()

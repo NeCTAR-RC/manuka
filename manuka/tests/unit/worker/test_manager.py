@@ -106,7 +106,7 @@ class TestManager(base.TestCase):
             db_user = db.session.query(models.User) \
                                 .filter(models.User.id == db_user_id) \
                                 .one()
-            self.assertEqual('testorchid', db_user.orcid)
+            self.assertEqual('testorcid', db_user.orcid)
 
             # Try with a known (to the fake orcid api) email
             db_user, external_id = self.make_db_user(
@@ -137,4 +137,4 @@ class TestManager(base.TestCase):
             db_user = db.session.query(models.User) \
                                 .filter(models.User.id == db_user_id) \
                                 .one()
-            self.assertEqual('testorchid', db_user.orcid)
+            self.assertEqual('testorcid', db_user.orcid)
