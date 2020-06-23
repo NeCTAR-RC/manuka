@@ -11,11 +11,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from unittest import mock
+
 from oslo_config import cfg
 
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
+
+from manuka.tests.unit.common import test_orcid_client
 
 
 CONF = cfg.CONF
@@ -103,6 +107,22 @@ class TestUserApi(base.ApiTestCase):
                                       self.user.id)
         self.assertStatus(response, 405)
 
+    def test_orcid_refresh(self):
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assertStatus(response, 200)
+
+    def test_orcid_refresh_with_orcid(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com')
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assertStatus(response, 200)
+
 
 class TestUserApiUser(TestUserApi):
 
@@ -161,6 +181,24 @@ class TestUserApiUser(TestUserApi):
         data = {'search': 'ab'}
         response = self.client.post('/api/v1/users/search/', data=data)
         self.assert403(response)
+
+    def test_orcid_refresh(self):
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        base.KEYSTONE_USER_ID)
+            self.assertStatus(response, 200)
+
+    def test_orcid_refresh_with_orcid(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com')
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            # This should fail because the user is attempting refresh
+            # a different user's orcid
+            self.assertStatus(response, 404)
 
 
 class PendingTestUserApi(base.ApiTestCase):

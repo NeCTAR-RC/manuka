@@ -16,10 +16,12 @@ import flask_restful
 from flask_restful import reqparse
 from oslo_log import log as logging
 from oslo_policy import policy
+from requests import exceptions
 from sqlalchemy import or_
 
 from manuka.api.v1.resources import base
 from manuka.api.v1.schemas import user as schemas
+from manuka.common import clients
 from manuka.common import policies
 from manuka.extensions import db
 from manuka import models
@@ -137,6 +139,49 @@ class User(base.Resource):
         db.session.commit()
 
         return self.schema.dump(db_user)
+
+
+class RefreshOrcid(base.Resource):
+
+    POLICY_PREFIX = policies.USER_PREFIX
+    schema = schemas.user
+
+    def _get_user(self, id):
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first_or_404()
+
+    def post(self, id):
+        db_user = self._get_user(id)
+        target = {'user_id': db_user.keystone_user_id}
+        try:
+            self.authorize('refresh_orcid', target)
+        except policy.PolicyNotAuthorized:
+            flask_restful.abort(404,
+                                message="User {} doesn't exist".format(id))
+        try:
+            client = clients.get_orcid_client()
+            orcid = client.search_by_email(db_user.email)
+            if orcid and orcid != db_user.orcid:
+                if db_user.orcid:
+                    LOG.info("Changing orcid for %s: %s -> %s",
+                             db_user.id, db_user.orcid, orcid)
+                else:
+                    LOG.info("Adding orcid for %s: %s", db_user.id, orcid)
+                db_user.orcid = orcid
+                db.session.add(db_user)
+                db.session.commit()
+            elif orcid:
+                LOG.info("Orcid has not changed for %s: %s",
+                         db_user.id, orcid)
+            else:
+                LOG.info("No orcid found for %s", db_user.id)
+            return self.schema.dump(db_user)
+        except exceptions.HTTPError as ex:
+            LOG.info("Orcid refresh failed (%s): url = %s",
+                     db_user.keystone_user_id,
+                     ex.response.status_code,
+                     ex.request.url)
+            flask_restful.abort(400, message="Orcid refresh failed")
 
 
 # Transition API used by dashboard user info module
