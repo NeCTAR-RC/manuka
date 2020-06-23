@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9d397e3c_9ab7d7d9",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T00:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17249f81_34a68589",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 27
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfb7eb7f_a409bba0",
         "filename": "manuka/common/orcid_client.py",
         "patchSetId": 11
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "20b173b1_da5fb564",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T00:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dfb7eb7f_a409bba0",
+      "range": {
+        "startLine": 29,
+        "startChar": 3,
+        "endLine": 29,
+        "endChar": 14
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9170d4fb_e6d8e883",
         "filename": "manuka/tests/unit/common/test_orcid_client.py",
         "patchSetId": 11
@@ -62,6 +110,24 @@
       "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7da4e83b_ae0065c1",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T00:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9170d4fb_e6d8e883",
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -85,6 +151,30 @@
       "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c17cdbc1_bb34091d",
+        "filename": "manuka/tests/unit/common/test_orcid_client.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T00:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44d52b97_799cd165",
+      "range": {
+        "startLine": 98,
+        "startChar": 11,
+        "endLine": 98,
+        "endChar": 49
+      },
+      "revId": "9bafb36842afbeee59ba57ed90e74f3e37812f2d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
