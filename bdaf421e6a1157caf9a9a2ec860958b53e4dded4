@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "8877b13f_d7fbe995",
+        "filename": "manuka/common/clients.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-23T06:30:55Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of relative imports either and don\u0027t use them. If you find somewhere I do it would be a mistake",
+      "parentUuid": "21c542e2_fc18da13",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 26
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c469c069_987a7ade",
         "filename": "manuka/common/orcid_client.py",
         "patchSetId": 12
