@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "21c542e2_fc18da13",
+        "filename": "manuka/common/clients.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T06:27:45Z",
+      "side": 1,
+      "message": "Sam does it.  So why can\u0027t I do it?",
+      "parentUuid": "73707d6e_dbb16efd",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 26
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c469c069_987a7ade",
         "filename": "manuka/common/orcid_client.py",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "d25f5a03_a4362f77",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T06:27:45Z",
+      "side": 1,
+      "message": "Your suggestion doesn\u0027t deal with negative retry counts and times.  That\u0027s why I wrote it \u003ethis\u003c way.",
+      "parentUuid": "c469c069_987a7ade",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 65
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0fb7d483_17b092e6",
         "filename": "manuka/common/orcid_client.py",
         "patchSetId": 12
@@ -68,6 +116,30 @@
       "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5789f8ee_bce120b2",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-23T06:27:45Z",
+      "side": 1,
+      "message": "It would be difficult.  The \u0027orcid\u0027 library doesn\u0027t provide a way to pass hooks etc, and there is no `self.session` associated with a `PublicAPI` object that I could reach in and tweak.  (Each request verb seems to create a new `Session`.)  And as it transpires, I am using the _handle_http_error method as a hook for some FakePublicAPI classes with specific failure characteristics for testing.",
+      "parentUuid": "0fb7d483_17b092e6",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 16
+      },
+      "revId": "bdaf421e6a1157caf9a9a2ec860958b53e4dded4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
