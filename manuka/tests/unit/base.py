@@ -55,7 +55,8 @@ class TestCase(flask_testing.TestCase):
 
     def make_db_user(self, state='new', agreed_terms=True,
                      email='test@example.com', id=1324,
-                     displayname='test user', keystone_user_id=0):
+                     displayname='test user', keystone_user_id=0,
+                     orcid='testorcid'):
         # create registered user
         db_user = models.User()
         db_user.id = id
@@ -77,7 +78,7 @@ class TestCase(flask_testing.TestCase):
             db_user.terms_version = None
         db_user.state = state
         db_user.ignore_username_not_email = False
-        db_user.orcid = 'testorchid'
+        db_user.orcid = orcid
 
         external_id = models.ExternalId(db_user, id, self.shib_attrs)
         external_id.idp = fake_shib.IDP
