@@ -25,6 +25,7 @@ ADMIN_OR_OWNER_OR_WRITER = 'admin_or_owner_or_writer'
 ADMIN_OR_OWNER_OR_READER = 'admin_or_owner_or_reader'
 ADMIN_OR_READER = 'admin_or_reader'
 ADMIN_OR_WRITER = 'admin_or_writer'
+ADMIN_OR_OWNER = 'admin_or_owner'
 
 
 base_rules = [
@@ -42,7 +43,7 @@ base_rules = [
         name='owner',
         check_str='user_id:%(user_id)s'),
     policy.RuleDefault(
-        name='admin_or_owner',
+        name=ADMIN_OR_OWNER,
         check_str='rule:admin_required or rule:owner'),
     policy.RuleDefault(
         name=ADMIN_OR_OWNER_OR_READER,
@@ -85,7 +86,7 @@ user_rules = [
                      'method': 'POST'}]),
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % 'update',
-        check_str='rule:%s' % ADMIN_OR_OWNER_OR_WRITER,
+        check_str='rule:%s' % ADMIN_OR_OWNER,
         description='Update a user',
         operations=[{'path': '/v1/users/{user_id}/',
                      'method': 'PATCH'}]),
@@ -109,6 +110,12 @@ user_rules = [
         description='Update restricted user fields',
         operations=[{'path': '/v1/users/{user_id}/',
                      'method': 'PATCH'}]),
+    policy.DocumentedRuleDefault(
+        name=USER_PREFIX % 'refresh_orcid',
+        check_str='rule:%s' % ADMIN_OR_OWNER,
+        description='Refresh a users orcid',
+        operations=[{'path': '/v1/users/{user_id}/refresh-orcid/',
+                     'method': 'POST'}]),
 ]
 
 EXTERNAL_ID_PREFIX = "account:external-id:%s"

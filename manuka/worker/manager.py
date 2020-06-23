@@ -86,21 +86,9 @@ class Manager(object):
         self.app.app_context().push()
 
         db_user = db.session.query(models.User).get(user_id)
-        email = db_user.email
-        LOG.info('%s: Trying to find orcid for %s.', user_id, email)
-
-        orcid_client = clients.get_orcid_client()
         try:
-            orcid = orcid_client.search_by_email(email)
+            utils.refresh_orcid(db_user)
         except exceptions.HTTPError as e:
             LOG.error('%s: ORCID service request failed (%s), url %s',
                      user_id, e.response.status_code, e.request.url)
             LOG.exception(e)
-        else:
-            if orcid:
-                LOG.info('%s: Found orcid %s', user_id, orcid)
-                db_user.orcid = orcid
-                db.session.add(db_user)
-                db.session.commit()
-            else:
-                LOG.info('%s: No orcid found', user_id)

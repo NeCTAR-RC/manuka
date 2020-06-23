@@ -21,6 +21,7 @@ from oslo_config import cfg
 
 from manuka.common import clients
 from manuka.common import email_utils
+from manuka.extensions import db
 
 
 CONF = cfg.CONF
@@ -162,3 +163,22 @@ def send_welcome_email(user, project):
 
     email_utils.send_email(user.email, from_email, subject, body,
                            CONF.smtp.host)
+
+
+def refresh_orcid(db_user):
+    client = clients.get_orcid_client()
+    orcid = client.search_by_email(db_user.email)
+    if orcid and orcid != db_user.orcid:
+        if db_user.orcid:
+            LOG.info("Changing orcid for %s: %s -> %s",
+                     db_user.id, db_user.orcid, orcid)
+        else:
+            LOG.info("Adding orcid for %s: %s", db_user.id, orcid)
+        db_user.orcid = orcid
+        db.session.add(db_user)
+        db.session.commit()
+    elif orcid:
+        LOG.info("Orcid has not changed for %s: %s",
+                 db_user.id, orcid)
+    else:
+        LOG.info("No orcid found for %s", db_user.id)
