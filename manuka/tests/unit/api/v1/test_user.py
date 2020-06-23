@@ -11,23 +11,30 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from unittest import mock
+
 from oslo_config import cfg
 
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
 
+from manuka.tests.unit.common import test_orcid_client
+
 
 CONF = cfg.CONF
 
 
-class TestUserApi(base.ApiTestCase):
+class TestUserApiBase(base.ApiTestCase):
 
     def setUp(self):
         super().setUp()
         user, external_id = self.make_db_user(state='new', agreed_terms=False,
                                               email='test@example.com')
         self.user = user
+
+
+class TestUserApi(TestUserApiBase):
 
     def test_user_list(self):
         response = self.client.get('/api/v1/users/')
@@ -103,6 +110,60 @@ class TestUserApi(base.ApiTestCase):
                                       self.user.id)
         self.assertStatus(response, 405)
 
+    def test_orcid_refresh(self):
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        self.user.keystone_user_id)
+            self.assert200(response)
+
+
+class TestUserApiOrcid(TestUserApiBase):
+    def test_orcid_refresh_with_orcid(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com')
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assert200(response)
+            result = response.get_json()
+            self.assertEqual('0000-0001-0000-0001', result['orcid'])
+
+            # Second time, nothing should change.  This is exercising
+            # a different code path
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assert200(response)
+            result = response.get_json()
+            self.assertEqual('0000-0001-0000-0001', result['orcid'])
+
+    def test_orcid_refresh_with_no_orcid(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com',
+            orcid=None)
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            # With no initial orcid a different path is exercised.
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assert200(response)
+            result = response.get_json()
+            self.assertEqual('0000-0001-0000-0001', result['orcid'])
+
+    def test_orcid_refresh_failing(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com')
+        mock_client = mock.MagicMock()
+        mock_client.search_by_email.side_effect = \
+                test_orcid_client.FakeHTTPError()
+        mock_get_client = mock.MagicMock(return_value=mock_client)
+        with mock.patch('manuka.common.clients.get_orcid_client',
+                        mock_get_client):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assertStatus(response, 500)
+
 
 class TestUserApiUser(TestUserApi):
 
@@ -161,6 +222,22 @@ class TestUserApiUser(TestUserApi):
         data = {'search': 'ab'}
         response = self.client.post('/api/v1/users/search/', data=data)
         self.assert403(response)
+
+    def test_orcid_refresh(self):
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        base.KEYSTONE_USER_ID)
+            self.assertStatus(response, 200)
+
+    def test_orcid_refresh_not_self(self):
+        user1, external_id = self.make_db_user(
+            id=1, displayname='displayname1', email='foo@bar.com')
+        with mock.patch('orcid.PublicAPI',
+                        new=test_orcid_client.FakePublicAPI):
+            response = self.client.post('/api/v1/users/%s/refresh-orcid/' %
+                                        user1.keystone_user_id)
+            self.assertStatus(response, 404)
 
 
 class PendingTestUserApi(base.ApiTestCase):
