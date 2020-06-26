@@ -17,10 +17,12 @@ import string
 from urllib.parse import parse_qs
 from urllib.parse import urljoin
 
+from oslo_config import cfg
 from werkzeug.wrappers import Request
 
 from manuka import models
 
+CONF = cfg.CONF
 
 FAKESHIB_FORM = """
 <html>
@@ -101,6 +103,12 @@ class FakeShibboleth(object):
             for header in shib_headers:
                 if header == 'affiliation':
                     value = random.choice(models.AFFILIATION_VALUES)
+                elif header == 'eduPersonOrcid':
+                    if not CONF.fake_shib_no_shib_orcid:
+                        # realistic looking orcid
+                        value = '0000-0000-0001-%s' \
+                                (''.join(random.choice(string.digits)
+                                         for i in range(4)))
                 else:
                     # include header name in value to make bugs more obvious
                     value = "%s-%s" % \
@@ -108,7 +116,8 @@ class FakeShibboleth(object):
                              ''.join(random.choice(string.ascii_letters
                                                    + string.digits)
                                      for i in range(20)))
-                session["fakeshib"][header] = value
+                if value:
+                    session["fakeshib"][header] = value
             session.save()
 
         # Handle already logged in

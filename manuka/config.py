@@ -36,6 +36,7 @@ default_opts = [
     cfg.StrOpt('default_target'),
     cfg.ListOpt('whitelist'),
     cfg.BoolOpt('fake_shib', default=False),
+    cfg.BoolOpt('fake_shib_no_shib_orcid', default=False),
     cfg.StrOpt('auth_strategy', default='keystone',
                choices=['noauth',
                         'keystone',
