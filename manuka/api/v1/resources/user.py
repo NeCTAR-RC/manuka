@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
+
 from flask import request
 import flask_restful
 from flask_restful import reqparse
@@ -22,9 +24,11 @@ from sqlalchemy import or_
 from manuka.api.v1.resources import base
 from manuka.api.v1.schemas import user as schemas
 from manuka.common import clients
+from manuka.common import keystone
 from manuka.common import policies
 from manuka.extensions import db
 from manuka import models
+from manuka.worker import utils
 
 
 LOG = logging.getLogger(__name__)
@@ -182,6 +186,32 @@ class RefreshOrcid(base.Resource):
                      ex.response.status_code,
                      ex.request.url)
             flask_restful.abort(400, message="Orcid refresh failed")
+
+
+class TenantManagerProjects(base.Resource):
+
+    POLICY_PREFIX = policies.USER_PREFIX
+
+    def _get_user(self, id):
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first_or_404()
+
+    def get(self, id):
+        db_user = self._get_user(id)
+        target = {'user_id': db_user.keystone_user_id}
+        try:
+            self.authorize('tm_projects', target)
+        except policy.PolicyNotAuthorized:
+            flask_restful.abort(404,
+                                message="User {} doesn't exist".format(id))
+
+        k_session = keystone.KeystoneSession()
+        session = k_session.get_session()
+        client = clients.get_admin_keystoneclient(session)
+        tm_role = utils.get_roles(client, ['TenantManager'])[0]
+        ra_list = client.role_assignment_list(user=db_user.keystone_user_id,
+                                              role=tm_role)
+        return json.dumps([ra.scope.project.id for ra in ra_list])
 
 
 # Transition API used by dashboard user info module
