@@ -20,6 +20,8 @@ from sqlalchemy import or_
 
 from manuka.api.v1.resources import base
 from manuka.api.v1.schemas import user as schemas
+from manuka.common import clients
+from manuka.common import keystone
 from manuka.common import policies
 from manuka.extensions import db
 from manuka import models
@@ -162,6 +164,38 @@ class RefreshOrcid(base.Resource):
         else:
             flask_restful.abort(500,
                                 message="Refresh failed - ORCID service error")
+
+
+class ProjectsWithRole(base.Resource):
+
+    POLICY_PREFIX = policies.USER_PREFIX
+
+    def _get_user(self, id):
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first_or_404()
+
+    def get(self, id, role_name):
+        db_user = self._get_user(id)
+        target = {'user_id': db_user.keystone_user_id}
+        try:
+            self.authorize('get', target)
+        except policy.PolicyNotAuthorized:
+            flask_restful.abort(404,
+                                message="User {} doesn't exist".format(id))
+
+        k_session = keystone.KeystoneSession()
+        session = k_session.get_session()
+        client = clients.get_admin_keystoneclient(session)
+        roles = utils.get_roles(client, [role_name])
+        if roles:
+            ra_list = client.role_assignments.list(
+                user=db_user.keystone_user_id,
+                role=roles[0])
+            return [ra.scope['project']['id'] for ra in ra_list]
+        else:
+            flask_restful.abort(
+                400,
+                message="Role {} doesn't exist".format(role_name))
 
 
 # Transition API used by dashboard user info module
