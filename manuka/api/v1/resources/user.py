@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
+
 from flask import request
 import flask_restful
 from flask_restful import reqparse
@@ -21,6 +23,8 @@ from sqlalchemy import or_
 
 from manuka.api.v1.resources import base
 from manuka.api.v1.schemas import user as schemas
+from manuka.common import clients
+from manuka.common import keystone
 from manuka.common import policies
 from manuka.extensions import db
 from manuka import models
@@ -167,6 +171,43 @@ class RefreshOrcid(base.Resource):
                      ex.response.status_code,
                      ex.request.url)
             flask_restful.abort(400, message="Orcid refresh failed")
+
+
+class ProjectsWithRole(base.Resource):
+
+    POLICY_PREFIX = policies.USER_PREFIX
+
+    def _get_user(self, id):
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=id).first_or_404()
+
+    def post(self, id):
+        db_user = self._get_user(id)
+        target = {'user_id': db_user.keystone_user_id}
+        try:
+            self.authorize('projects', target)
+        except policy.PolicyNotAuthorized:
+            flask_restful.abort(404,
+                                message="User {} doesn't exist".format(id))
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('role_name', required=True)
+        args = parser.parse_args()
+        role_name = args.get('role_name')
+
+        k_session = keystone.KeystoneSession()
+        session = k_session.get_session()
+        client = clients.get_admin_keystoneclient(session)
+        roles = utils.get_roles(client, [role_name])
+        if roles:
+            ra_list = client.role_assignments.list(
+                user=db_user.keystone_user_id,
+                role=roles[0])
+            return json.dumps([ra.scope['project']['id'] for ra in ra_list])
+        else:
+            flask_restful.abort(
+                400,
+                message="Role {} doesn't exist".format(role_name))
 
 
 # Transition API used by dashboard user info module
