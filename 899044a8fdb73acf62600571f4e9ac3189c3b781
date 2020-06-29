@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cde0bd76_b20f826a",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-06-29T22:58:07Z",
+      "side": 1,
+      "message": "Is this correct from a PolicyNotAuthorized exception?",
+      "range": {
+        "startLine": 160,
+        "startChar": 41,
+        "endLine": 160,
+        "endChar": 62
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
