@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0951f96_f47081c7",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T01:24:35Z",
+      "side": 1,
+      "message": "we could just accept db_user.id here, would be tidier and then don\u0027t need to do the filter/first thing below.",
+      "range": {
+        "startLine": 85,
+        "startChar": 4,
+        "endLine": 85,
+        "endChar": 39
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7605d29_65f9eb57",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T01:24:35Z",
+      "side": 1,
+      "message": "I think we should log with the manuka user id here as opposed to the keystone ID, it\u0027s a bit safer and more appropriate to use the manuka id in this case I think",
+      "range": {
+        "startLine": 92,
+        "startChar": 53,
+        "endLine": 92,
+        "endChar": 57
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e51cbab_41b3f1ac",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T01:24:35Z",
+      "side": 1,
+      "message": "just wondering if it would be better in this case to just let the real exception be raised as opposed to catching it. Might be more useful to the operator when debugging?\n\nOr at least add a \n\nLOG.exception(e) after the LOG.info line (Which should be a LOG.error too I think)",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 65
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
