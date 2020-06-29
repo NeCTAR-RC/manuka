@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e8e3762_dd9d918b",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T06:34:07Z",
+      "side": 1,
+      "message": "This test is doing a bit more than what a unit test for this method should be doing and so it makes it a little hard to read to confirm it is doing what it is meant to.\n\nIdeally it should be asserting that orcid_client.search_by_email(email) was called and it was called with the test users email address.\n\nIt should also ensure that the response from that call is set as the users orcid.\n\nIn this case I don\u0027t think that it\u0027s useful to replace orcid.PublicAPI with a fake class and instead use a mock.\n\n(also don\u0027t need to mock out utils and keystone_authenticate I think?)\n\nYou could do something like (rough, not valid):\n\n\n@mock.patch(\u0027manuka.common.clients.get_orcid_client\u0027)\ndef test_refresh_orcid(self, mock_get_orcid):\n   fake_orcid \u003d \u0027fake-orcid\u0027\n   client \u003d mock_get_orcid.return_value\n   client.search_by_email.return_value \u003d fake_orcid\n   manager.refresh_orcid(db_user_id)\n   client.search_by_email.assert_called_once_with(db_user.email)\n   db_user \u003d \u003cget-db-user\u003e\n   self.assertEqual(fake_orcid, db_user.orcid)",
+      "revId": "7e40713675ec6f0d7bb6a4f0f8b996215bad499f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56156619_a5beef88",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T06:34:07Z",
+      "side": 1,
+      "message": "This block could be rewritten to use try/except/else which would be a safer way to run this. Ideally you only want to put a try except lock over the thing you\u0027re trying to catch.\n\nhttps://docs.python.org/3/tutorial/errors.html#handling-exceptions\n\ntry:\n   orcid \u003d orcid_client.search_by_email(email)\nexcept....:\n   log stuff\nelse:\n   if orcid:\n       db_user.orcid....\n       ....",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 41
+      },
+      "revId": "7e40713675ec6f0d7bb6a4f0f8b996215bad499f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
