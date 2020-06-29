@@ -263,3 +263,15 @@ class PendingTestUserApi(base.ApiTestCase):
         response = self.client.delete('/api/v1/pending-users/%s/' %
                                       self.user.id)
         self.assertStatus(response, 204)
+
+
+class TestUserApiTmProjects(TestUserApiBase):
+
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    @mock.patch('manuka.models.keystone_authenticate')
+    @mock.patch('manuka.worker.manager.utils')
+    def test_tm_projects(self, mock_utils, mock_ks_auth, mock_ks):
+        response = self.client.get('/api/v1/users/%s/tm-projects/' %
+                                   self.user.keystone_user_id)
+        self.assertStatus(response, 200)
+        

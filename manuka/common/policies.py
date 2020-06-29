@@ -116,6 +116,12 @@ user_rules = [
         description='Refresh a users orcid',
         operations=[{'path': '/v1/users/{user_id}/refresh-orcid/',
                      'method': 'POST'}]),
+    policy.DocumentedRuleDefault(
+        name=USER_PREFIX % 'tm_projects',
+        check_str='rule:%s' % ADMIN_OR_OWNER_OR_READER,
+        description='Get project where the user is tenant manager',
+        operations=[{'path': '/v1/users/{user_id}/tm-projects/',
+                     'method': 'GET'}]),
 ]
 
 EXTERNAL_ID_PREFIX = "account:external-id:%s"
