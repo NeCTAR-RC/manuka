@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fcf43ad6_0232948a",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T07:14:12Z",
+      "side": 1,
+      "message": "I mostly disagree with this comment.  The complexity of this test is needed because there are multiple code paths in refresh_orcid that need to be tested.  (Or do you want to ignore the test coverage?)\n\nGiven that we already have the Fake stuff implemented ... and \u003e\u003eI\u003c\u003c have confidence that it is doing what I think it is doing, I think it is more efficient if I use it rather than rewrite the functionality using mocks.  This is test code.\n\nIf this stuff really offends you, how about we just merge it as is ... so that I can make progress ... and then you come back and rewrite it later.",
+      "parentUuid": "1e8e3762_dd9d918b",
+      "revId": "7e40713675ec6f0d7bb6a4f0f8b996215bad499f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56156619_a5beef88",
         "filename": "manuka/worker/manager.py",
         "patchSetId": 8
@@ -39,6 +57,30 @@
       "revId": "7e40713675ec6f0d7bb6a4f0f8b996215bad499f",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5e3a084_8f93af61",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T07:14:12Z",
+      "side": 1,
+      "message": "In this case it make ZERO difference to safety ... and (IMO) it is less readable ... but I have rewritten it.",
+      "parentUuid": "56156619_a5beef88",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 41
+      },
+      "revId": "7e40713675ec6f0d7bb6a4f0f8b996215bad499f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
