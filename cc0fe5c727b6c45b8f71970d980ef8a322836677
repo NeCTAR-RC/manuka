@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9cd72404_63e8f08b",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T03:38:10Z",
+      "side": 1,
+      "message": "we don\u0027t need this argument as when we have the user we can just do user.email",
+      "range": {
+        "startLine": 85,
+        "startChar": 32,
+        "endLine": 85,
+        "endChar": 37
+      },
+      "revId": "cc0fe5c727b6c45b8f71970d980ef8a322836677",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9287213_0d2b8b98",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-06-29T03:38:10Z",
+      "side": 1,
+      "message": "change to user_id to make it clear what type of ID it is",
+      "range": {
+        "startLine": 85,
+        "startChar": 28,
+        "endLine": 85,
+        "endChar": 30
+      },
+      "revId": "cc0fe5c727b6c45b8f71970d980ef8a322836677",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
