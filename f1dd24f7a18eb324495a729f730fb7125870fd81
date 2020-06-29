@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "507e597a_c521c2a8",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T03:06:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0951f96_f47081c7",
+      "range": {
+        "startLine": 85,
+        "startChar": 4,
+        "endLine": 85,
+        "endChar": 39
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7605d29_65f9eb57",
         "filename": "manuka/worker/manager.py",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "459f3515_3aea4e3e",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T03:06:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7605d29_65f9eb57",
+      "range": {
+        "startLine": 92,
+        "startChar": 53,
+        "endLine": 92,
+        "endChar": 57
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e51cbab_41b3f1ac",
         "filename": "manuka/worker/manager.py",
         "patchSetId": 6
@@ -68,6 +116,30 @@
       "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa664e6c_0db7e3a4",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T03:06:45Z",
+      "side": 1,
+      "message": "OK.  I was thinking that we should treat this as unimportant.  But I see your point.",
+      "parentUuid": "9e51cbab_41b3f1ac",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 65
+      },
+      "revId": "f1dd24f7a18eb324495a729f730fb7125870fd81",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
