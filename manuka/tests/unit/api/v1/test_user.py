@@ -263,3 +263,38 @@ class PendingTestUserApi(base.ApiTestCase):
         response = self.client.delete('/api/v1/pending-users/%s/' %
                                       self.user.id)
         self.assertStatus(response, 204)
+
+
+class ProjectsWithRoleTestUserApi(TestUserApiBase):
+
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    @mock.patch('manuka.models.keystone_authenticate')
+    @mock.patch('manuka.worker.utils.get_roles')
+    def test_user_projects(self, mock_get_roles, mock_ks_auth, mock_get):
+        role = mock.Mock()
+        role.name = 'role1'
+        mock_get_roles.return_value = [role]
+
+        # No projects relevant role assignments
+        response = self.client.get('/api/v1/users/%s/projects/role1/' %
+                                   self.user.keystone_user_id)
+        self.assert200(response)
+        results = response.get_json()
+        self.assertEqual(0, len(results))
+
+        # Two projects with relevant role assignments
+        mock_client = mock.Mock()
+        mock_as_1 = mock.Mock()
+        mock_as_2 = mock.Mock()
+        mock_as_1.scope = {'project': {'id': '1234567890abc'}}
+        mock_as_2.scope = {'project': {'id': '2234567890abc'}}
+        mock_client.role_assignments.list.return_value = [
+            mock_as_1, mock_as_2]
+        mock_get.return_value = mock_client
+        response = self.client.get('/api/v1/users/%s/projects/role1/' %
+                                   self.user.keystone_user_id)
+        self.assert200(response)
+        results = response.get_json()
+        self.assertEqual(2, len(results))
+        self.assertTrue('1234567890abc' in results)
+        self.assertTrue('2234567890abc' in results)
