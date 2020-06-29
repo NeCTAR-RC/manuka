@@ -22,5 +22,7 @@ def initialize_resources(api):
     api.add_resource(user.PendingUser, '/v1/pending-users/<id>/')
     api.add_resource(user.UserSearch, '/v1/users/search/')
     api.add_resource(user.RefreshOrcid, '/v1/users/<id>/refresh-orcid/')
+    api.add_resource(user.ProjectsWithRole,
+                     '/v1/users/<id>/projects/<role_name>/')
     api.add_resource(user.UserByOpenstackUserID, '/v1/users-os/<id>/')
     api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
