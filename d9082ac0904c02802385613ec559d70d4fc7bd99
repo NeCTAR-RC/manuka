@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bcbcd966_ec57b199",
+        "filename": "manuka/shib_faker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-06-29T23:03:37Z",
+      "side": 1,
+      "message": "Would it make testing easier to have a tick box on the form instead?",
+      "range": {
+        "startLine": 107,
+        "startChar": 23,
+        "endLine": 107,
+        "endChar": 51
+      },
+      "revId": "d9082ac0904c02802385613ec559d70d4fc7bd99",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
