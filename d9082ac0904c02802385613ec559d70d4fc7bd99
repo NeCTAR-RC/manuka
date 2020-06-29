@@ -22,6 +22,30 @@
       "revId": "d9082ac0904c02802385613ec559d70d4fc7bd99",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2fa7118_fa95a5c4",
+        "filename": "manuka/shib_faker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-06-29T23:09:42Z",
+      "side": 1,
+      "message": "Possibly.  But changing a config option and restarting works fine for me.",
+      "parentUuid": "bcbcd966_ec57b199",
+      "range": {
+        "startLine": 107,
+        "startChar": 23,
+        "endLine": 107,
+        "endChar": 51
+      },
+      "revId": "d9082ac0904c02802385613ec559d70d4fc7bd99",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
