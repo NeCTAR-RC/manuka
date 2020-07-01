@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "99ce1773_036c7b90",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-01T01:14:43Z",
+      "side": 1,
+      "message": "I don\u0027t think we need another policy for this and can just use update user",
+      "range": {
+        "startLine": 157,
+        "startChar": 28,
+        "endLine": 157,
+        "endChar": 41
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cde0bd76_b20f826a",
         "filename": "manuka/api/v1/resources/user.py",
         "patchSetId": 5
@@ -46,6 +69,69 @@
       "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b4c1527_7e80bf69",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-01T01:14:43Z",
+      "side": 1,
+      "message": "this stuff is just a duplicate of the stuff in the worker, should just make that method a utility method so we don\u0027t have to have 2 copies of this and both can use the same code",
+      "range": {
+        "startLine": 161,
+        "startChar": 7,
+        "endLine": 179,
+        "endChar": 42
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b58303f_ade84fbe",
+        "filename": "manuka/common/policies.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-01T01:14:43Z",
+      "side": 1,
+      "message": "shouldn\u0027t need to change any of this as can just use the update policy rule",
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef9e03a1_06e92f87",
+        "filename": "manuka/tests/unit/base.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-01T01:14:43Z",
+      "side": 1,
+      "message": "testorcid",
+      "range": {
+        "startLine": 59,
+        "startChar": 28,
+        "endLine": 59,
+        "endChar": 38
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
