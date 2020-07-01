@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "302d3ab4_cdb7a4d8",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-01T01:19:36Z",
+      "side": 1,
+      "message": "I think it would be better to make this more generic so you could pass in the name or of the role as opposed to hard coding to TenantManager. We may have needs to find out this info for a different role",
+      "range": {
+        "startLine": 191,
+        "startChar": 1,
+        "endLine": 214,
+        "endChar": 72
+      },
+      "revId": "123027f6bc92b595235b99e8558f635a83fa2ffa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
