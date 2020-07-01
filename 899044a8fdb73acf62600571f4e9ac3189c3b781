@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2db98ddb_deda24c3",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-01T05:38:39Z",
+      "side": 1,
+      "message": "See my other comment on this.",
+      "parentUuid": "99ce1773_036c7b90",
+      "range": {
+        "startLine": 157,
+        "startChar": 28,
+        "endLine": 157,
+        "endChar": 41
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cde0bd76_b20f826a",
         "filename": "manuka/api/v1/resources/user.py",
         "patchSetId": 5
@@ -95,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "07f12f23_1785e1aa",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-01T05:38:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b4c1527_7e80bf69",
+      "range": {
+        "startLine": 161,
+        "startChar": 7,
+        "endLine": 179,
+        "endChar": 42
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b58303f_ade84fbe",
         "filename": "manuka/common/policies.py",
         "patchSetId": 5
@@ -109,6 +157,24 @@
       "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40b3a4cb_f459072b",
+        "filename": "manuka/common/policies.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-01T05:38:39Z",
+      "side": 1,
+      "message": "We have already discussed this.  Writer roles should not be able to refresh the ORCID because they won\u0027t know if it is the correct thing to do.  Only the users themselves really know ... in cases where they have multiple ORCIDs.",
+      "parentUuid": "1b58303f_ade84fbe",
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -132,6 +198,30 @@
       "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "335e162b_08df646b",
+        "filename": "manuka/tests/unit/base.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-01T05:38:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef9e03a1_06e92f87",
+      "range": {
+        "startLine": 59,
+        "startChar": 28,
+        "endLine": 59,
+        "endChar": 38
+      },
+      "revId": "899044a8fdb73acf62600571f4e9ac3189c3b781",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
