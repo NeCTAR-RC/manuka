@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adea2562_258a84f6",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-02T03:12:07Z",
+      "side": 1,
+      "message": "Whatever you say.  I don\u0027t understand what you mean or what your plan is for this, and AFAIK it is not written down anywhere.",
+      "parentUuid": "31abef37_1ac408e8",
+      "range": {
+        "startLine": 157,
+        "startChar": 28,
+        "endLine": 157,
+        "endChar": 41
+      },
+      "revId": "3157d77d0b236edd80eedfb0756a153d81fc9ae3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb486a5e_5278bd83",
         "filename": "manuka/worker/utils.py",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "3157d77d0b236edd80eedfb0756a153d81fc9ae3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a25b555c_218b23c9",
+        "filename": "manuka/worker/utils.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-02T03:12:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb486a5e_5278bd83",
+      "range": {
+        "startLine": 170,
+        "startChar": 4,
+        "endLine": 170,
+        "endChar": 49
+      },
+      "revId": "3157d77d0b236edd80eedfb0756a153d81fc9ae3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
