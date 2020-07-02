@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2ff9da5e_1dbbcfec",
+        "filename": "manuka/tests/unit/api/v1/test_user.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-02T03:43:44Z",
+      "side": 1,
+      "message": "not sure why the 2 requests here? what changed the 1st time?\n\nLooks like all of these tests don\u0027t actually test that the ocrid was refreshed.\n\nIdeally in these tests we would define an orcid value and then ensure that the returned user has this set",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 133,
+        "endChar": 44
+      },
+      "revId": "363278428d68eeff2ff713da5fb1659ade0f798c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "458af7c8_50303b72",
+        "filename": "manuka/tests/unit/api/v1/test_user.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-02T03:43:44Z",
+      "side": 1,
+      "message": "Can use the helper  self.assert200(response)",
+      "revId": "363278428d68eeff2ff713da5fb1659ade0f798c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
