@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94d616f5_368385cc",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-02T01:57:33Z",
+      "side": 1,
+      "message": "To be more \"rest\" like this would be better as a GET and have the role name or id in the url\n\nEg. /v1/users/\u003cid\u003e/projects/\u003crole\u003e/",
+      "range": {
+        "startLine": 184,
+        "startChar": 8,
+        "endLine": 184,
+        "endChar": 12
+      },
+      "revId": "f302221c80ec8858e4fd58f30e7c76592686bd13",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fda2ce68_094bd803",
+        "filename": "manuka/api/v1/resources/user.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-02T01:57:33Z",
+      "side": 1,
+      "message": "I think we could use the `get` policy for this too, I can\u0027t imagine somewhere where these would be different and it makes it a bit simpler",
+      "range": {
+        "startLine": 188,
+        "startChar": 28,
+        "endLine": 188,
+        "endChar": 36
+      },
+      "revId": "f302221c80ec8858e4fd58f30e7c76592686bd13",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
