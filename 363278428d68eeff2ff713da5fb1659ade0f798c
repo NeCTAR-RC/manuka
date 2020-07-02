@@ -39,6 +39,29 @@
       "revId": "363278428d68eeff2ff713da5fb1659ade0f798c",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18b3d6f9_a932799d",
+        "filename": "manuka/tests/unit/api/v1/test_user.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-02T03:45:20Z",
+      "side": 1,
+      "message": "this test is the same as above unless I\u0027m missing something?",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 44
+      },
+      "revId": "363278428d68eeff2ff713da5fb1659ade0f798c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
