@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1cb00e3a_47c4d7f9",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T06:12:53Z",
+      "side": 1,
+      "message": "yeah ok, maybe some other part fixed this so may as well remove it all together, nice find",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 42
+      },
+      "revId": "dc684182a0d3c2880ab79f2ad92dcf1e265026f7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc6e0ede_ca761b88",
+        "filename": "manuka/worker/api.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T06:12:53Z",
+      "side": 1,
+      "message": "this should be set to API_VERSION, we also need to up the version\u003d\u00271.0\u0027 to API_VERSION in the worker/consumer.py file too.",
+      "range": {
+        "startLine": 25,
+        "startChar": 71,
+        "endLine": 25,
+        "endChar": 74
+      },
+      "revId": "dc684182a0d3c2880ab79f2ad92dcf1e265026f7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a180c87_a9af091b",
+        "filename": "manuka/worker/api.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T06:12:53Z",
+      "side": 1,
+      "message": "this would stay at version 1.0",
+      "range": {
+        "startLine": 29,
+        "startChar": 45,
+        "endLine": 29,
+        "endChar": 56
+      },
+      "revId": "dc684182a0d3c2880ab79f2ad92dcf1e265026f7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
