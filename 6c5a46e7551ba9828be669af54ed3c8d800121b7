@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6d7aecb5_ebf7364c",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-03T05:08:57Z",
+      "side": 1,
+      "message": "I don\u0027t see why you can think this is testing \"orcid.PublicAPI\".  It is mocking it with the FakeAPI.\n\n\"        with mock.patch(\u0027orcid.PublicAPI\u0027,\n                        new\u003dtest_orcid_client.FakePublicAPI): \"\n\nI think you are misunderstanding things.",
+      "parentUuid": "3b91b17b_0e39901c",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 26
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "736b5673_6cf44dad",
         "filename": "manuka/tests/unit/worker/test_manager.py",
         "patchSetId": 10
