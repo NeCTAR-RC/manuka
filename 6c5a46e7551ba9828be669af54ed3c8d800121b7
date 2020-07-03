@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b91b17b_0e39901c",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T04:52:30Z",
+      "side": 1,
+      "message": "I\u0027m still struggling to figure out how this actually tests the refresh_orcid method. To me it\u0027s testing the orcid.PublicAPI which doesn\u0027t need to be tested as we already have tests for this.\n\nThe unit tests written in manuka all try to isolate as much as possible so we just test the specific method. The test below is more of an integration test and could live in the functional folder where we call the refresh_orcid rpc api method and assert that an orcid was set on a user when expected.\n\nThis all isn\u0027t a problem now but these things can become problems in the future due to re-factoring or enhancement of this method. The good thing about keeping tests isolated is that if say we need to refacter all these methods we shouldn\u0027t need to learn about how the orcid api works too as that is not used by this method.\n\nI understand you see things differently but this is how manuka is structured and would be good to keep it that way, this structure is copied from how the openstack projects do it so I trust they have good reasons.",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 26
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "736b5673_6cf44dad",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T04:52:30Z",
+      "side": 1,
+      "message": "this should be \n\ndb_user \u003d db.session.query(models.User).get(db_user_id)",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b59cc8a1_678ca21c",
+        "filename": "manuka/views.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T04:52:30Z",
+      "side": 1,
+      "message": "we prob don\u0027t need this part of the comment, in the case we change how we look it up inside the orcid handling code.\n\nMinor nit, not -1 for this",
+      "range": {
+        "startLine": 211,
+        "startChar": 56,
+        "endLine": 212,
+        "endChar": 31
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98221d3f_dcc060af",
+        "filename": "manuka/worker/api.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T04:52:30Z",
+      "side": 1,
+      "message": "up to 1.1, and we also need to up the version\u003d\u00271.0\u0027 to 1.1 in the worker/consumer.py file too.\n\nWe could make this a variable to make it DRY",
+      "range": {
+        "startLine": 22,
+        "startChar": 71,
+        "endLine": 22,
+        "endChar": 74
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9570c7ec_f8e7deff",
+        "filename": "manuka/worker/api.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T04:52:30Z",
+      "side": 1,
+      "message": "we should up this to 1.1, this will make it possible to do a live upgrade",
+      "range": {
+        "startLine": 30,
+        "startChar": 46,
+        "endLine": 30,
+        "endChar": 49
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
