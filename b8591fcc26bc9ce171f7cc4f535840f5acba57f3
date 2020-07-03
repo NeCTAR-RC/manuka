@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f5bcd7b_79b84a9f",
+        "filename": "manuka/tests/unit/api/v1/test_user.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T05:38:54Z",
+      "side": 1,
+      "message": "to keep these consistent with the tests above this should use self.user and it should fail",
+      "range": {
+        "startLine": 226,
+        "startChar": 8,
+        "endLine": 226,
+        "endChar": 26
+      },
+      "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8134ba3_fc600549",
+        "filename": "manuka/tests/unit/api/v1/test_user.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T05:38:54Z",
+      "side": 1,
+      "message": "to keep these consistent with the tests above this should be called test_orcid_refresh_self and use self.user_self",
+      "range": {
+        "startLine": 233,
+        "startChar": 8,
+        "endLine": 233,
+        "endChar": 35
+      },
+      "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40e2a5a3_01fd8043",
+        "filename": "manuka/worker/manager.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T05:38:54Z",
+      "side": 1,
+      "message": "the test for this method should be updated too",
+      "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0147784_f7d5876c",
+        "filename": "manuka/worker/utils.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T05:38:54Z",
+      "side": 1,
+      "message": "method needs a test",
+      "range": {
+        "startLine": 169,
+        "startChar": 4,
+        "endLine": 169,
+        "endChar": 17
+      },
+      "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
