@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "a9392325_7d8e1036",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-03T05:18:45Z",
+      "side": 1,
+      "message": "Yeah that\u0027s exactly my point, you shouldn\u0027t need to mock out PublicAPI as that is never used in the refresh_orcid method. \n\nTo test this method I\u0027d be ensuring the test users email is the same email that is passed into search_by_email, I\u0027d also test to ensure the return value from search_by_email is used as the value that is then assigned to the user. (plus testing the exception etc.)\n\nIf for instance we introduce a bug inside the search_by_email method then this unit test would also fail along with the test for search_by_email. Yes in a small system like this it would be easy to diagnose but if it was big and complex it might not be so easy",
+      "parentUuid": "6d7aecb5_ebf7364c",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 26
+      },
+      "revId": "6c5a46e7551ba9828be669af54ed3c8d800121b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "736b5673_6cf44dad",
         "filename": "manuka/tests/unit/worker/test_manager.py",
         "patchSetId": 10
