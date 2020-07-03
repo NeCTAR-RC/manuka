@@ -198,11 +198,6 @@ class ProjectsWithRole(base.Resource):
                 message="Role {} doesn't exist".format(role_name))
 
 
-# Transition API used by dashboard user info module
-class UserByOpenstackUserID(User):
-    pass
-
-
 class PendingUserList(UserList):
 
     schema = schemas.pending_users
