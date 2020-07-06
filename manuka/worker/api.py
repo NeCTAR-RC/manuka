@@ -15,11 +15,21 @@ import oslo_messaging
 
 from manuka.common import rpc
 
+# Current API version
+API_VERSION = '1.0'
+
 
 class WorkerAPI(object):
+    """Worker api
+
+    Version history:
+
+    1.0 - Add create_user
+    """
 
     def __init__(self):
-        target = oslo_messaging.Target(topic='manuka-worker', version='1.0')
+        target = oslo_messaging.Target(topic='manuka-worker',
+                                       version=API_VERSION)
         self._client = oslo_messaging.RPCClient(rpc.TRANSPORT, target)
 
     def create_user(self, ctxt, attrs):
