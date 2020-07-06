@@ -85,6 +85,30 @@
       "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f24ad98c_7e4f8efe",
+        "filename": "manuka/worker/utils.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-06T06:11:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0147784_f7d5876c",
+      "range": {
+        "startLine": 169,
+        "startChar": 4,
+        "endLine": 169,
+        "endChar": 17
+      },
+      "revId": "b8591fcc26bc9ce171f7cc4f535840f5acba57f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
