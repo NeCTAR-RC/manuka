@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf8289db_f282d375",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-06T03:29:00Z",
+      "side": 1,
+      "message": "you could save a line here by doing\n\nmock_client \u003d mock_get_client.return_value \nmock_client.search_by_email.return_value \u003d None",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 54
+      },
+      "revId": "61663bb10fd06ce840fad5a44bfd6e203389fa43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
