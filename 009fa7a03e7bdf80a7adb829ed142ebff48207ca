@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1dce52c_469f2327",
+        "filename": "manuka/tests/unit/worker/test_manager.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-06T02:41:40Z",
+      "side": 1,
+      "message": "A more python way of doing this would be:\n\nwith mock.patch(\u0027manuka.common.clients.get_orcid_client\u0027) as mock_get_client:\n   mock_client \u003d mock_get_client.return_value\n   mock_client.search_by_email.return_value \u003d None",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 41
+      },
+      "revId": "009fa7a03e7bdf80a7adb829ed142ebff48207ca",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a0adfc0_482617dc",
+        "filename": "manuka/worker/api.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-06T02:41:40Z",
+      "side": 1,
+      "message": "this should be hard coded to 1.1",
+      "range": {
+        "startLine": 34,
+        "startChar": 45,
+        "endLine": 34,
+        "endChar": 56
+      },
+      "revId": "5f426c07dd92d57aa37c31586caa4c3085ee7c14",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
