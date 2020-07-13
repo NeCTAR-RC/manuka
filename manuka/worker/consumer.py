@@ -17,7 +17,6 @@ import oslo_messaging as messaging
 from oslo_messaging.rpc import dispatcher
 
 from manuka.common import rpc
-from manuka.worker import api
 from manuka.worker import endpoints
 
 
@@ -38,7 +37,7 @@ class ConsumerService(cotyledon.Service):
     def run(self):
         LOG.info('Starting consumer...')
         target = messaging.Target(topic=self.topic, server=self.server,
-                                  fanout=False, version=api.API_VERSION)
+                                  fanout=False)
         self.endpoints = [endpoints.Endpoints()]
         self.message_listener = rpc.get_server(
             target, self.endpoints,

@@ -13,8 +13,9 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
+import oslo_messaging as messaging
 
-
+from manuka.worker import api
 from manuka.worker import manager as worker_manager
 
 
@@ -25,8 +26,7 @@ LOG = logging.getLogger(__name__)
 
 class Endpoints(object):
 
-    # API version history:
-    #   1.0 - Initial version.
+    target = messaging.Target(version=api.API_VERSION)
 
     def __init__(self):
         self.manager = worker_manager.Manager()
