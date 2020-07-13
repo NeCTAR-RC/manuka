@@ -108,7 +108,7 @@ class FakeShibboleth(object):
                         value = None
                     else:
                         # realistic looking orcid
-                        value = '0000-0000-0001-%s' \
+                        value = '0000-0000-0001-%s' % \
                                 (''.join(random.choice(string.digits)
                                          for i in range(4)))
                 else:
