@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneclient.v3 import client as ks_client
@@ -67,4 +69,8 @@ def get_swift_client(sesh, project_id):
 
 
 def get_orcid_client():
+    if CONF.http_proxy:
+        os.environ['HTTP_PROXY'] = CONF.http_proxy
+    if CONF.https_proxy:
+        os.environ['HTTPS_PROXY'] = CONF.https_proxy
     return orcid_client.Client()
