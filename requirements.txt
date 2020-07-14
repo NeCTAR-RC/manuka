@@ -19,5 +19,5 @@ marshmallow_sqlalchemy>=0.22.3
 beaker
 cotyledon
 openstacksdk
-orcid
+git+https://github.com/NeCTAR-RC/python-orcid.git@nectar/1.0.3#egg=orcid
 requests
