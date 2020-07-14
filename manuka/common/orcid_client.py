@@ -28,8 +28,14 @@ class Client(object):
     def __init__(self, max_retries=None, retry_delay=None):
         self.max_retries = max_retries or CONF.orcid.max_retries
         self.retry_delay = retry_delay or CONF.orcid.retry_delay
+        self.proxies = {}
+        if CONF.orcid.http_proxy:
+            self.proxies['http'] = CONF.orcid.http_proxy
+        if CONF.orcid.https_proxy:
+            self.proxies['https'] = CONF.orcid.https_proxy
         self.api = orcid.PublicAPI(CONF.orcid.key, CONF.orcid.secret,
-                                   CONF.orcid.sandbox)
+                                   CONF.orcid.sandbox,
+                                   proxies=self.proxies)
         self.token = self.api.get_search_token_from_orcid()
 
     @staticmethod
