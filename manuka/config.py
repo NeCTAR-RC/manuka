@@ -31,6 +31,8 @@ default_opts = [
     cfg.StrOpt('support_url'),
     cfg.StrOpt('host',
                default=socket.gethostname()),
+    cfg.StrOpt('host',
+               default=socket.gethostname()),
     cfg.StrOpt('idp_domain_mapping_dir',
                default='/etc/manuka/idp_domain_mappings'),
     cfg.StrOpt('default_target'),
@@ -90,6 +92,12 @@ orcid_opts = [
                default=5),
     cfg.IntOpt('retry_delay',
                default=5),
+    cfg.IntOpt('timeout',
+               default=30),
+    cfg.StrOpt('http_proxy',
+               default=None),
+    cfg.StrOpt('https_proxy',
+               default=None),
 ]
 
 
