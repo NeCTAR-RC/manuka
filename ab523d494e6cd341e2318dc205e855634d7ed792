@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21cbd6ad_51229b39",
+        "filename": "manuka/common/orcid_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-15T02:46:22Z",
+      "side": 1,
+      "message": "nit: Don\u0027t need to assign this to the object as it\u0027s not used by it, only passed through to the orcid client",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 17
+      },
+      "revId": "ab523d494e6cd341e2318dc205e855634d7ed792",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52811a4b_7c23cf2b",
+        "filename": "manuka/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-07-15T02:46:22Z",
+      "side": 1,
+      "message": "looks like this is a mistake copy/paste (same as above)",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 45
+      },
+      "revId": "ab523d494e6cd341e2318dc205e855634d7ed792",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
