@@ -171,8 +171,8 @@ def refresh_orcid(db_user):
     try:
         orcid = client.search_by_email(db_user.email)
     except exceptions.HTTPError as e:
-        LOG.error("Orcid refresh failed (%s): url = %s",
-                  db_user.keystone_user_id,
+        LOG.error("Orcid refresh failed for user <User %s> (%s): url = %s",
+                  db_user.id,
                   e.response.status_code,
                   e.request.url)
         LOG.exception(e)
@@ -180,16 +180,16 @@ def refresh_orcid(db_user):
 
     if orcid and orcid != db_user.orcid:
         if db_user.orcid:
-            LOG.info("Changing orcid for %s: %s -> %s",
+            LOG.info("Changing orcid for <User %s>: %s -> %s",
                      db_user.id, db_user.orcid, orcid)
         else:
-            LOG.info("Adding orcid for %s: %s", db_user.id, orcid)
+            LOG.info("Adding orcid for <User %s>: %s", db_user.id, orcid)
         db_user.orcid = orcid
         db.session.add(db_user)
         db.session.commit()
     elif orcid:
-        LOG.info("Orcid has not changed for %s: %s",
+        LOG.info("Orcid has not changed for <User %s>: %s",
                  db_user.id, orcid)
     else:
-        LOG.info("No orcid found for %s", db_user.id)
+        LOG.info("No orcid found for <User %s>", db_user.id)
     return True
