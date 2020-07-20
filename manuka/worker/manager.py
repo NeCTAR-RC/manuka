@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
+
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -26,13 +28,21 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
+def app_context(f):
+    @functools.wraps(f)
+    def decorated(self, *args, **kwargs):
+        with self.app.app_context():
+            return f(self, *args, **kwargs)
+    return decorated
+
+
 class Manager(object):
 
     def __init__(self):
         self.app = app.create_app(init_config=False)
 
+    @app_context
     def create_user(self, attrs):
-        self.app.app_context().push()
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
@@ -81,8 +91,7 @@ class Manager(object):
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
         LOG.info('%s: Completed Processing.', user.id)
 
+    @app_context
     def refresh_orcid(self, user_id):
-        self.app.app_context().push()
-
         db_user = db.session.query(models.User).get(user_id)
         utils.refresh_orcid(db_user)
