@@ -33,6 +33,13 @@ class Manager(object):
 
     def create_user(self, attrs):
         self.app.app_context().push()
+
+        try:
+            self._create_user(attrs)
+        finally:
+            db.session.close()
+
+    def _create_user(self, attrs):
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
@@ -84,5 +91,8 @@ class Manager(object):
     def refresh_orcid(self, user_id):
         self.app.app_context().push()
 
-        db_user = db.session.query(models.User).get(user_id)
-        utils.refresh_orcid(db_user)
+        try:
+            db_user = db.session.query(models.User).get(user_id)
+            utils.refresh_orcid(db_user)
+        finally:
+            db.session.close()
