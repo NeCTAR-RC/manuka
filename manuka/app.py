@@ -47,7 +47,7 @@ def create_app(test_config=None, conf_file=None, init_config=True):
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
             SQLALCHEMY_ENGINE_OPTIONS = {
                 "pool_pre_ping": True,
-                "pool_recycle": 60
+                "pool_recycle": CONF.database.pool_recycle,
             }
         )
     else:
