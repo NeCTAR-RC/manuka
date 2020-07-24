@@ -58,7 +58,8 @@ def get_admin_nova_client(sesh):
 def get_swift_client(sesh, project_id):
     os_opts = {}
     if project_id:
-        endpoint = sesh.get_endpoint(service_type='object-store')
+        endpoint = sesh.get_endpoint(service_type='object-store',
+                                     region_name=CONF.swift.region_name)
         auth_project = sesh.get_project_id()
         endpoint = endpoint.replace('AUTH_%s' % auth_project,
                                     'AUTH_%s' % project_id)

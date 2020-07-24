@@ -64,7 +64,8 @@ worker_opts = [
 
 swift_opts = [
     cfg.IntOpt('default_quota_gb',
-               default=None)
+               default=None),
+    cfg.StrOpt('region_name'),
 ]
 
 keystone_opts = [
