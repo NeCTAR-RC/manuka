@@ -64,7 +64,7 @@ def get_swift_client(sesh, project_id):
         endpoint = endpoint.replace('AUTH_%s' % auth_project,
                                     'AUTH_%s' % project_id)
         os_opts['object_storage_url'] = '%s' % endpoint
-    return swift_client.Connection(session=sesh, os_options=os_opts)
+    return swift_client.Connection(session=sesh, os_options=os_opts, timeout=5)
 
 
 def get_orcid_client():
