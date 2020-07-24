@@ -55,6 +55,8 @@ flask_opts = [
 
 database_opts = [
     cfg.StrOpt('connection'),
+    cfg.IntOpt('connection_recycle_time',
+               default=600),
 ]
 
 worker_opts = [
