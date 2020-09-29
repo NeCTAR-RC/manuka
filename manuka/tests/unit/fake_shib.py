@@ -20,11 +20,12 @@ IDP = 'https://test.idp'
 
 class TestShibWrapper(object):
 
-    def __init__(self, app):
+    def __init__(self, app, mail=EMAIL):
         self.app = app
+        self.mail = mail
 
     def __call__(self, environ, start_response):
-        environ['mail'] = EMAIL
+        environ['mail'] = self.mail
         environ['displayName'] = DISPLAYNAME
         environ['persistent-id'] = ID
         environ['Shib-Identity-Provider'] = IDP
