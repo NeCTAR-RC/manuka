@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5127ec07_bcdf4802",
+        "filename": "manuka/views.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-09-29T22:28:15Z",
+      "side": 1,
+      "message": "Maybe this could be something like:\n\nYour provided email \"\u003cusers-supplied-email\u003e\" is not a valid email address. Please contact your institution to fix this issue.",
+      "range": {
+        "startLine": 111,
+        "startChar": 26,
+        "endLine": 111,
+        "endChar": 74
+      },
+      "revId": "363c6ef6c36574b845c16e6613d48187879bcd82",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
