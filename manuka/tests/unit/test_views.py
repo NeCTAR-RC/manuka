@@ -47,28 +47,51 @@ class TestShibbolethAttrMap(base.TestCase):
                          "l")
 
 
+MISSING_ATTR_MSG = "Not enough details have been received from " \
+                   "your institution to allow you to " \
+                   "log on to the cloud. We need your id, your " \
+                   "e-mail and your full name.<br />" \
+                   "Please contact your institution and tell " \
+                   "them that their \"AAF IdP\" is broken!<br />" \
+                   "Copy and paste the details below into your email to " \
+                   "your institution's support desk.<br />" \
+                   "<b>The following required fields are missing " \
+                   "or incorrect from the AAF service:</b>"
+
+
 @mock.patch('manuka.views.worker_api', new=mock.Mock())
 class TestViewsNoShib(base.TestCase):
-    missing_attr_msg = "Not enough details have been received from " \
-                       "your institution to allow you to " \
-                       "log on to the cloud. We need your id, your " \
-                       "e-mail and your full name.<br />" \
-                       "Please contact your institution and tell " \
-                       "them that their \"AAF IdP\" is broken!<br />" \
-                       "Copy and paste the details below into your email to " \
-                       "your institution's support desk.<br />" \
-                       "<b>The following required fields are missing " \
-                       "from the AAF service:</b>"
 
     def test_no_attrs(self):
         response = self.client.get('/login/')
         self.assert200(response)
         self.assertTemplateUsed('error.html')
-        self.assertContext('message', self.missing_attr_msg)
+        self.assertContext('message', MISSING_ATTR_MSG)
         self.assertContext('errors',
                            ["Required field 'displayName' can't be found.",
                             "Required field 'mail' can't be found.",
                             "Required field 'persistent-id' can't be found."])
+
+
+@mock.patch('manuka.views.worker_api', new=mock.Mock())
+class TestViewsBadShib(base.TestCase):
+
+    bad_email = "test@example.com;test2@example.com"
+
+    def setUp(self):
+        super().setUp()
+        self.app.wsgi_app = fake_shib.TestShibWrapper(self.app.wsgi_app,
+                                                      mail=self.bad_email)
+
+    def test_bad_mail_attr(self):
+        response = self.client.get('/login/')
+        self.assert200(response)
+        self.assertTemplateUsed('error.html')
+        self.assertContext('message', MISSING_ATTR_MSG)
+        self.assertContext('errors',
+                           ["The 'mail' field must be one RFC822 "
+                            "<addr-spec>: the value provided is "
+                            "'test@example.com;test2@example.com'"])
 
 
 @mock.patch('manuka.views.worker_api', new=mock.Mock())
