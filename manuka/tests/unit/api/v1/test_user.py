@@ -210,8 +210,12 @@ class PendingTestUserApi(base.ApiTestCase):
             id=2468,
             state='new', agreed_terms=False, email='test2@example.com',
             keystone_user_id=None)
+        user3, external_id3 = self.make_db_user(
+            id=2469,
+            state='created', agreed_terms=True, email='test3@example.com')
         self.user = user
         self.user2 = user2
+        self.user3 = user3
 
     def assertUserEqual(self, user, api_user):
         return super().assertUserEqual(user, api_user, keystone_id_as_id=False)
@@ -237,10 +241,21 @@ class PendingTestUserApi(base.ApiTestCase):
 
         self.assert404(response)
 
+    def test_created_user_get(self):
+        response = self.client.get('/api/v1/pending-users/%s/' %
+                                   self.user3.id)
+
+        self.assert404(response)
+
     def test_user_delete(self):
         response = self.client.delete('/api/v1/pending-users/%s/' %
                                       self.user.id)
         self.assertStatus(response, 204)
+
+    def test_created_user_delete(self):
+        response = self.client.delete('/api/v1/pending-users/%s/' %
+                                      self.user3.id)
+        self.assert404(response)
 
 
 class ProjectsWithRoleTestUserApi(TestUserApiBase):
