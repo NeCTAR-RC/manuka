@@ -204,7 +204,12 @@ class PendingUserList(UserList):
     update_schema = schemas.pending_user_update
 
     def _get_users(self):
-        return db.session.query(models.User).filter_by(keystone_user_id=None)
+        # The filter for 'terms_accepted_at' is to exclude records where
+        # the user has clicked the T&C Decline button.  (These are not
+        # pending users ...)
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=None) \
+                         .filter(models.User.terms_accepted_at.isnot(None))
 
 
 class PendingUser(User):
@@ -212,8 +217,10 @@ class PendingUser(User):
     schema = schemas.pending_user
 
     def _get_user(self, id):
-        return db.session.query(models.User).filter_by(keystone_user_id=None) \
-                                            .filter_by(id=id).first_or_404()
+        return db.session.query(models.User) \
+                         .filter_by(keystone_user_id=None) \
+                         .filter(models.User.terms_accepted_at.isnot(None)) \
+                         .filter_by(id=id).first_or_404()
 
     def delete(self, id):
         try:

@@ -203,9 +203,15 @@ class PendingTestUserApi(base.ApiTestCase):
     def setUp(self):
         super().setUp()
         user, external_id = self.make_db_user(
+            id=2467,
             state='registered', agreed_terms=True, email='test@example.com',
             keystone_user_id=None)
+        user2, external_id2 = self.make_db_user(
+            id=2468,
+            state='new', agreed_terms=False, email='test2@example.com',
+            keystone_user_id=None)
         self.user = user
+        self.user2 = user2
 
     def assertUserEqual(self, user, api_user):
         return super().assertUserEqual(user, api_user, keystone_id_as_id=False)
@@ -224,6 +230,12 @@ class PendingTestUserApi(base.ApiTestCase):
 
         self.assert200(response)
         self.assertUserEqual(self.user, response.get_json())
+
+    def test_declined_user_get(self):
+        response = self.client.get('/api/v1/pending-users/%s/' %
+                                   self.user2.id)
+
+        self.assert404(response)
 
     def test_user_delete(self):
         response = self.client.delete('/api/v1/pending-users/%s/' %
