@@ -289,5 +289,5 @@ class ProjectsWithRoleTestUserApi(TestUserApiBase):
         self.assert200(response)
         results = response.get_json()
         self.assertEqual(2, len(results))
-        self.assertTrue('1234567890abc' in results)
-        self.assertTrue('2234567890abc' in results)
+        self.assertIn('1234567890abc', results)
+        self.assertIn('2234567890abc', results)
