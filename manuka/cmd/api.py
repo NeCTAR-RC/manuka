@@ -19,10 +19,10 @@ from manuka import app
 
 CONF = cfg.CONF
 
+application = app.create_app()
 
 def main():
 
-    application = app.create_app()
     application.run(host=CONF.flask.host, port=CONF.flask.port)
 
 

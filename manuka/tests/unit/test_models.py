@@ -13,6 +13,7 @@
 
 from datetime import datetime
 from unittest import mock
+import werkzeug
 
 from freezegun import freeze_time
 from oslo_config import cfg
@@ -120,6 +121,78 @@ class TestModels(base.TestCase):
 
         token, project_id, user = models.keystone_authenticate(db_user)
 
+        mock_sync_keystone_user.assert_called_once_with(
+            client, db_user, keystone_user, False)
+        client.users.get.assert_called_once_with(db_user.keystone_user_id)
+        client.domains.get.assert_called_once_with(
+            keystone_user.domain_id)
+
+        mock_keystone_password.assert_called_once_with(
+            username=updated_keystone_user.name,
+            password=CONF.keystone.authenticate_password,
+            auth_url=CONF.keystone.auth_url,
+            user_domain_name=keystone_domain.name,
+            project_domain_name='Default'
+        )
+
+        user_client.auth.client.get_token.assert_called_once_with()
+        user_client.projects.list.assert_called_once_with(
+            user=updated_keystone_user.id)
+
+        self.assertEqual(user_client.auth.client.get_token.return_value,
+                         token)
+        self.assertEqual(p1.id, project_id)
+        self.assertEqual(updated_keystone_user, user)
+
+    @mock.patch('keystoneauth1.identity.v3.Password')
+    @mock.patch('manuka.models.keystone_client.Client')
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    @mock.patch('manuka.models.sync_keystone_user')
+    def test_keystone_authenticate_disabled(self, mock_sync_keystone_user,
+                                            mock_get_admin_keystone_client,
+                                            mock_keystone_client,
+                                            mock_keystone_password):
+
+        client = mock_get_admin_keystone_client.return_value
+        keystone_user = mock.Mock(enabled=False)
+        client.users.get.return_value = keystone_user
+        user_client = mock_keystone_client.return_value
+
+        db_user, external_id = self.make_db_user()
+
+        self.assertRaises(werkzeug.exceptions.Unauthorized,
+                          models.keystone_authenticate, db_user)
+
+        mock_sync_keystone_user.assert_not_called()
+        mock_keystone_password.assert_not_called()
+
+        user_client.auth.client.get_token.assert_not_called()
+        user_client.projects.list.assert_not_called()
+
+    @mock.patch('keystoneauth1.identity.v3.Password')
+    @mock.patch('manuka.models.keystone_client.Client')
+    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
+    @mock.patch('manuka.models.sync_keystone_user')
+    def test_keystone_authenticate_inactive(self, mock_sync_keystone_user,
+                                            mock_get_admin_keystone_client,
+                                            mock_keystone_client,
+                                            mock_keystone_password):
+
+        client = mock_get_admin_keystone_client.return_value
+        keystone_user = mock.Mock(enabled=False, inactive='True')
+        client.users.get.return_value = keystone_user
+        keystone_domain = client.domains.get.return_value
+        user_client = mock_keystone_client.return_value
+        updated_keystone_user = mock_sync_keystone_user.return_value
+        p1 = mock.Mock()
+        p2 = mock.Mock()
+        user_client.projects.list.return_value = [p1, p2]
+        db_user, external_id = self.make_db_user()
+
+        token, project_id, user = models.keystone_authenticate(db_user)
+        client.users.update.assert_called_once_with(keystone_user,
+                                                    enabled=True,
+                                                    inactive='False')
         mock_sync_keystone_user.assert_called_once_with(
             client, db_user, keystone_user, False)
         client.users.get.assert_called_once_with(db_user.keystone_user_id)
