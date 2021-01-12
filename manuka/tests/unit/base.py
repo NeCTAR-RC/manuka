@@ -56,10 +56,13 @@ class TestCase(flask_testing.TestCase):
     def make_db_user(self, state='new', agreed_terms=True,
                      email='test@example.com', id=1324,
                      displayname='test user', keystone_user_id=0,
-                     orcid='testorcid'):
+                     orcid='testorcid', expiry_status=None,
+                     expiry_next_step=None):
         # create registered user
         db_user = models.User()
         db_user.id = id
+        db_user.expiry_status = expiry_status
+        db_user.expiry_next_step = expiry_next_step
         if keystone_user_id == 0:
             db_user.keystone_user_id = "ksid-%s" % id
         else:
