@@ -12,6 +12,7 @@
 #    under the License.
 
 import datetime
+import flask
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -53,6 +54,8 @@ class User(db.Model):
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
     external_ids = db.relationship("ExternalId", back_populates="user",
                                    lazy='joined', cascade="all,delete")
+    expiry_status = db.Column(db.String(64))
+    expiry_next_step = db.Column(db.Date())
 
     def __init__(self):
         self.state = "new"
@@ -84,6 +87,12 @@ def keystone_authenticate(db_user, project_id=None,
     client = clients.get_admin_keystoneclient(k_session.get_session())
     user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
+
+    if not user.enabled:
+        if getattr(user, 'inactive', False):
+            client.users.update(user, enabled=True, inactive=False)
+        else:
+            flask.abort(401)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
@@ -239,4 +248,7 @@ def update_db_user(db_user, external_id, shib_attrs):
     date_now = datetime.datetime.now()
     db_user.last_login = date_now
     external_id.last_login = date_now
+    # Reset expiry if set
+    db_user.expiry_status = None
+    db_user.expiry_next_step = None
     db.session.commit()
