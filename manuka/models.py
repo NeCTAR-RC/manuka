@@ -84,6 +84,9 @@ def keystone_authenticate(db_user, project_id=None,
     client = clients.get_admin_keystoneclient(k_session.get_session())
     user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
+    inactive = bool(getattr(user, 'inactive', False))
+    if not user.enabled and inactive:
+        client.users.update(user, inactive='False', enabled=True)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
