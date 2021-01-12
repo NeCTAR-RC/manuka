@@ -12,6 +12,7 @@
 #    under the License.
 
 import datetime
+import flask
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -84,6 +85,16 @@ def keystone_authenticate(db_user, project_id=None,
     client = clients.get_admin_keystoneclient(k_session.get_session())
     user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
+    inactive_str = bool(getattr(user, 'inactive', False))
+    inactive = False
+    if inactive_str.lower() == 'true':
+        inactive = True
+
+    if not user.enabled:
+        if inactive:
+            client.users.update(user, inactive='False', enabled=True)
+        else:
+            flask.abort(401)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
