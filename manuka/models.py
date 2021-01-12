@@ -12,6 +12,7 @@
 #    under the License.
 
 import datetime
+import flask
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -53,9 +54,11 @@ class User(db.Model):
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
     external_ids = db.relationship("ExternalId", back_populates="user",
                                    lazy='joined', cascade="all,delete")
+    active = db.Column(db.Boolean())
 
     def __init__(self):
         self.state = "new"
+        self.active = True
 
     def __repr__(self):
         return "<Shibboleth User '%d', '%s')>" % (self.id, self.displayname)
@@ -84,6 +87,14 @@ def keystone_authenticate(db_user, project_id=None,
     client = clients.get_admin_keystoneclient(k_session.get_session())
     user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
+
+    if not user.enabled:
+        if not db_user.active:
+            db_user.active = True
+            db.session.commit()
+            client.users.update(user, enabled=True)
+        else:
+            flask.abort(401)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
