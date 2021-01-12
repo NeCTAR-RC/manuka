@@ -48,16 +48,21 @@ class UserList(base.Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('registered_at__lt')
+        parser.add_argument('last_login__lt')
         parser.add_argument('state')
         parser.add_argument('limit', type=int)
         args = parser.parse_args()
 
         query = self._get_users()
         registered_at__lt = args.get('registered_at__lt')
+        last_login__lt = args.get('last_login__lt')
 
         if registered_at__lt:
             query = query.filter(
                 models.User.registered_at < registered_at__lt)
+        if last_login__lt:
+            query = query.filter(
+                models.User.last_login < last_login__lt)
         if args.get('state'):
             query = query.filter(
                 models.User.state == args.get('state'))
