@@ -50,6 +50,7 @@ class UserList(base.Resource):
         parser.add_argument('registered_at__lt')
         parser.add_argument('last_login__lt')
         parser.add_argument('state')
+        parser.add_argument('expiry_status')
         parser.add_argument('limit', type=int)
         args = parser.parse_args()
 
@@ -66,6 +67,9 @@ class UserList(base.Resource):
         if args.get('state'):
             query = query.filter(
                 models.User.state == args.get('state'))
+        if args.get('expiry_status'):
+            query = query.filter(
+                models.User.expiry_status == args.get('expiry_status'))
         query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, args)
 
