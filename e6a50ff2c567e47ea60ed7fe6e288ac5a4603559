@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb7c52cb_1414d1ba",
+        "filename": "manuka/models.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-01-14T04:40:17Z",
+      "side": 1,
+      "message": "Not really following the logic here... if user is disabled in keystone but \"active\" in manuka, they get a 401? Where would db_user.active get set to False?",
+      "revId": "e6a50ff2c567e47ea60ed7fe6e288ac5a4603559",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
