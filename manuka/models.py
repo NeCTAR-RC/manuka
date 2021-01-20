@@ -19,6 +19,7 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client as keystone_client
 from oslo_config import cfg
 from oslo_log import log
+from oslo_utils import uuidutils
 
 from manuka.common import clients
 from manuka.common import keystone
@@ -77,6 +78,15 @@ class ExternalId(db.Model):
         self.user = user
         self.persistent_id = persistent_id
         self.attributes = attributes
+
+
+class Terms(db.Model):
+    id = db.Column(db.String(36), primary_key=True)
+    issued = db.Column(db.Date())
+    text = db.Column(db.Text())
+
+    def __init__(self):
+        self.id = uuidutils.generate_uuid()
 
 
 def keystone_authenticate(db_user, project_id=None,
