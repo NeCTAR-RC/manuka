@@ -72,7 +72,8 @@ class SkippingAuthProtocol(auth_token.AuthProtocol):
     def process_request(self, request):
         path = request.path
         if path.startswith(AUTH_PATH):
-            return super().process_request(request)
+            if not path.startswith('/api/v1/terms/'):
+                return super().process_request(request)
 
         LOG.debug('Request path is %s and it does not require keystone '
                   'authentication', path)

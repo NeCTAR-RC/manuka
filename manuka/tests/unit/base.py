@@ -11,7 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from datetime import datetime
+import datetime
 from unittest import mock
 
 import flask_testing
@@ -71,7 +71,7 @@ class TestCase(flask_testing.TestCase):
         db_user.displayname = displayname
 
         if agreed_terms and state != 'new':
-            date_now = datetime.now()
+            date_now = datetime.datetime.now()
             db_user.registered_at = date_now
             db_user.terms_accepted_at = date_now
             db_user.terms_version = 'v1'
@@ -90,6 +90,22 @@ class TestCase(flask_testing.TestCase):
         db.session.commit()
 
         return db_user, external_id
+
+    def create_terms(self, issued=datetime.date.today(), text='terms-text'):
+        terms = models.Terms()
+        terms.issued = issued
+        terms.text = text
+        db.session.add(terms)
+        db.session.commit()
+        return terms
+
+    def assertTermsEqual(self, terms, api_terms):
+        for key, value in api_terms.items():
+            terms_value = getattr(terms, key)
+            if type(getattr(terms, key)) == datetime.date:
+                terms_value = terms_value.strftime('%Y-%m-%d')
+            self.assertEqual(terms_value, value,
+                             msg="%s attribute not equal" % key)
 
     def assertExternalIdsEqual(self, eids, api_eids):
         self.assertEqual(len(eids), len(api_eids))
@@ -113,7 +129,7 @@ class TestCase(flask_testing.TestCase):
                 self.assertExternalIdsEqual(user.external_ids, value)
             else:
                 user_value = user_dict.get(key)
-                if type(user_value) == datetime:
+                if type(user_value) == datetime.datetime:
                     user_value = user_value.strftime('%Y-%m-%dT%H:%M:%S.%f')
 
                 self.assertEqual(user_value, value,

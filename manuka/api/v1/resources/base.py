@@ -33,7 +33,7 @@ class Resource(flask_restful.Resource):
     def oslo_context(self):
         return flask.request.environ.get(keystone.REQUEST_CONTEXT_ENV, None)
 
-    def paginate(self, query, args):
+    def paginate(self, query, args={}):
         limit = args.get('limit')
         if limit is None:
             limit = API_LIMIT
