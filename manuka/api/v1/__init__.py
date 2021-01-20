@@ -12,6 +12,7 @@
 #    under the License.
 
 from manuka.api.v1.resources import external_id
+from manuka.api.v1.resources import terms
 from manuka.api.v1.resources import user
 
 
@@ -25,3 +26,6 @@ def initialize_resources(api):
     api.add_resource(user.ProjectsWithRole,
                      '/v1/users/<id>/projects/<role_name>/')
     api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
+    api.add_resource(terms.TermsList, '/v1/terms/')
+    api.add_resource(terms.CurrentTerms, '/v1/terms/current/')
+    api.add_resource(terms.Terms, '/v1/terms/<id>/')
