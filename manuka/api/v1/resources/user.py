@@ -16,7 +16,6 @@ import flask_restful
 from flask_restful import reqparse
 from oslo_log import log as logging
 from oslo_policy import policy
-from sqlalchemy import or_
 
 from manuka.api.v1.resources import base
 from manuka.api.v1.schemas import user as schemas
@@ -96,7 +95,7 @@ class UserSearch(base.Resource):
 
         query = db.session.query(models.User)
         query = query.filter(models.User.keystone_user_id.isnot(None))
-        query = query.filter(or_(
+        query = query.filter(db.or_(
             models.User.email.ilike("%%%s%%" % search),
             models.User.displayname.ilike("%%%s%%" % search)))
 
