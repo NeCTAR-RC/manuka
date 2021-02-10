@@ -66,9 +66,15 @@ class UserList(base.Resource):
         if args.get('state'):
             query = query.filter(
                 models.User.state == args.get('state'))
-        if args.get('expiry_status'):
-            query = query.filter(
-                models.User.expiry_status == args.get('expiry_status'))
+        expiry_status = args.get('expiry_status')
+        if expiry_status:
+            if expiry_status == 'active':
+                query = query.filter(db.or_(
+                    models.User.expiry_status == 'warning',
+                    models.User.expiry_status == None))
+            else:
+                query = query.filter(
+                    models.User.expiry_status == args.get('expiry_status'))
         query = query.order_by(models.User.keystone_user_id)
         return self.paginate(query, args)
 
