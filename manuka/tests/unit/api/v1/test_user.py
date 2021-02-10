@@ -37,6 +37,17 @@ class TestUserApi(TestUserApiBase):
         self.assertEqual(1, len(results))
         self.assertUserEqual(self.user, results[0])
 
+    def test_user_list_active(self):
+        self.make_db_user(state='new', agreed_terms=False, id=5678,
+                          email='test1@example.com', expiry_status='inactive')
+        self.make_db_user(state='new', agreed_terms=False, id=4566,
+                          email='test1@example.com', expiry_status='warning')
+        response = self.client.get('/api/v1/users/?expiry_status=active')
+
+        self.assert200(response)
+        results = response.get_json().get('results')
+        self.assertEqual(2, len(results))
+
     def test_user_get(self):
         response = self.client.get('/api/v1/users/%s/' %
                                    self.user.keystone_user_id)
@@ -131,6 +142,10 @@ class TestUserApiUser(TestUserApi):
 
     def test_user_list(self):
         response = self.client.get('/api/v1/users/')
+        self.assert403(response)
+
+    def test_user_list_active(self):
+        response = self.client.get('/api/v1/users/?expiry_status=active')
         self.assert403(response)
 
     def test_user_get(self):
