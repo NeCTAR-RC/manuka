@@ -290,6 +290,12 @@ class TestViews(base.TestCase):
         self.assert200(response)
         self.assertTemplateUsed('terms_form.html')
 
+    def test_root_redirect_to_login(self):
+        """Test redirect from / to /login
+        """
+        response = self.client.get('/')
+        self.assertRedirects(response, '/login/')
+
     @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_return_path(self, mock_keystone_authenticate,

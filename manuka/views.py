@@ -17,8 +17,10 @@ import re
 from urllib import parse
 
 import flask
+from flask import redirect
 from flask import request
 from flask import session
+from flask import url_for
 from oslo_config import cfg
 from oslo_context import context
 from oslo_log import log as logging
@@ -258,3 +260,9 @@ def root():
 def terms():
     template = "%s-terms_text.html" % CONF.terms_version
     return flask.render_template(template)
+
+
+@default_bp.route('/')
+def login():
+    # Redirect / to /login
+    return redirect(url_for('login.root'))
