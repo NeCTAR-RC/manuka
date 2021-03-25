@@ -162,4 +162,4 @@ def add_auth_opts():
         if all(option.name != plugin_option.name for option in opt_list):
             opt_list.append(plugin_option)
     opt_list.sort(key=operator.attrgetter('name'))
-    return ('service_list', opt_list)
+    return ('service_auth', opt_list)
