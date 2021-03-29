@@ -21,7 +21,6 @@ _ENFORCER = None
 
 
 def get_enforcer():
-    CONF([], project='manuka')
     global _ENFORCER
     if not _ENFORCER:
         _ENFORCER = policy.Enforcer(CONF)
