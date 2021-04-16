@@ -71,6 +71,7 @@ class UserList(base.Resource):
             if expiry_status == 'active':
                 query = query.filter(db.or_(
                     models.User.expiry_status == 'warning',
+                    models.User.expiry_status == 'active',
                     models.User.expiry_status.is_(None)))
             else:
                 query = query.filter(
