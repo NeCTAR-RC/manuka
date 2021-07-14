@@ -29,8 +29,12 @@ Self Help, help desk support, service announcements and support forums for the
 Research Cloud can be accessed from the Nectar and RDS eHelp portal available
 at http://support.ehelp.edu.au.
 
-If you use the Nectar Cloud to support your project or research, it is
-requested that you acknowledge Nectar in the one of the following ways.
+If you are new to using Nectar, we recommend that you take the Nectar
+"Cloud Starter" Tutorial Series.  These can be found on the Nectar Tutorials
+site at https://tutorials.rc.nectar.org.au.
+
+When you use the Nectar Cloud to support your project or research, we
+request that you acknowledge Nectar in the one of the following ways.
 
 For general acknowledgement of support from the Nectar program we recommend:
 This research/project was supported by Nectar. Nectar is supported by the
