@@ -158,12 +158,13 @@ def send_welcome_email(user, project):
             'project': project,
             'expires': ''}
     body = flask.render_template("welcome_email.txt", **data)
+    html = flask.render_template("welcome_email.html", **data)
     subject = "Welcome to NeCTAR Research Cloud - " \
               "Project Trial Allocation created"
     from_email = CONF.smtp.from_email
 
     email_utils.send_email(user.email, from_email, subject, body,
-                           CONF.smtp.host)
+                           CONF.smtp.host, html)
 
 
 def refresh_orcid(db_user):
