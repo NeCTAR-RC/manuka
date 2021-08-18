@@ -1,10 +1,10 @@
 Hi {{ user.full_name }},
 
+
 Welcome to the Nectar Research Cloud. As a new user, we've created a trial
 project for you called {{ project.name }}. You have been allocated 6 months
-of core hours on the cloud which you can use to launch single or dual core
+of core hours on the cloud which you can use to launch a single core instance or 3 months if you launch dual core
 instances. You have also been allocated 10GB of object store quota.
-
 
 Once you reach 80% of your core hours allocation, we'll send you an email to
 let you know. If you would like to continue to use the Research Cloud you
@@ -14,46 +14,25 @@ have two options:
    - Speak to the project manager for access, you will need to notify them
      of your username {{ user.name }}
 
-2. Request to create your own project
-   - Please see https://support.ehelp.edu.au/support/solutions/articles/6000068044-managing-an-allocation
+2. Request to create your own project [1]
    - You will have the option of converting your project trial into a project
      allocation at this stage.
 
-As per the terms and conditions (https://dashboard.rc.nectar.org.au/terms/)
-of use that you agreed to upon initial log in to the Research Cloud, please
+As per the terms and conditions [2] of use that you agreed to upon initial log in to the Research Cloud, please
 ensure that you use the Research Cloud in a secure manner, following all
-security guidelines and policies described at
-https://support.ehelp.edu.au/support/solutions/folders/6000203455
+security guidelines and policies. [3]
 
 Self Help, help desk support, service announcements and support forums for the
-Research Cloud can be accessed from the Nectar and RDS eHelp portal available
-at http://support.ehelp.edu.au.
+Research Cloud can be accessed from the ARDC Nectar Cloud Support portal [4].
 
-If you are new to using Nectar, we recommend that you take the Nectar
-"Cloud Starter" Tutorial Series.  These can be found on the Nectar Tutorials
-site at https://tutorials.rc.nectar.org.au.
-
-When you use the Nectar Cloud to support your project or research, we
-request that you acknowledge Nectar in the one of the following ways.
-
-For general acknowledgement of support from the Nectar program we recommend:
-This research/project was supported by Nectar. Nectar is supported by the
-Australian Government through the National Collaborative Research
-Infrastructure Strategy.
-
-For use of the Nectar Research Cloud we recommend the following acknowledgement:
-This research was supported by use of the Nectar Research Cloud, a
-collaborative Australian research platform supported by the National
-Collaborative Research Infrastructure Strategy.
-
-For use of the Nectar Research Cloud with arrangement or support from specific
-cloud Nodes, we recommend explicitly acknowledging their support:
-
-This research was supported by use of the Nectar Research Cloud and by
-<Node Operator name here>. The Nectar Research Cloud is a Collaborative
-Australian research platform supported by the National Collaborative Research
-Infrastructure Strategy.
-
+The Nectar Research Cloud also provides online self paced tutorials and regular live virtual training [5]
+for new and existing Nectar Cloud users.
 
 Thanks,
 Nectar Research Cloud Team
+
+[1] https://support.ehelp.edu.au/support/solutions/articles/6000068044-managing-an-allocation
+[2] https://dashboard.rc.nectar.org.au/terms/
+[3] https://support.ehelp.edu.au/support/solutions/folders/6000203455
+[4] http://support.ehelp.edu.au
+[5] https://support.ehelp.edu.au/support/solutions/articles/6000156761-learning-and-training-resources

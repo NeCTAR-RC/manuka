@@ -11,15 +11,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 import smtplib
 
 
-def send_email(to, sender, subject, body, host='localhost'):
-    msg = MIMEText(body)
+def send_email(to, sender, subject, body, host='localhost', html=None):
+    msg = EmailMessage()
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = to
-    s = smtplib.SMTP(host)
-    s.sendmail(sender, [to], msg.as_string())
-    s.quit()
+    msg.set_content(body)
+    if html:
+        msg.add_alternative(html, subtype='html')
+    with smtplib.SMTP(host) as s:
+        s.send_message(msg)
