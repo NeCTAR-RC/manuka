@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c21b8f97_11eb38ca",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2021-08-18T23:25:22Z",
+      "side": 1,
+      "message": "A better way would be to outbound the emails via Freshdesk ... and let \u003eit\u003c create the HTML version.",
+      "revId": "90c497ec503ea7db2afb6dc7864cbc0a7d23a1ea",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
