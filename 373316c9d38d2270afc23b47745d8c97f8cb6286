@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13f5091f_e3475c73",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-08-18T23:07:27Z",
+      "side": 1,
+      "message": "couple of grammar fixes",
+      "revId": "373316c9d38d2270afc23b47745d8c97f8cb6286",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dea89328_b6ed13b2",
+        "filename": "manuka/templates/welcome_email.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-08-18T23:07:27Z",
+      "side": 1,
+      "message": "launch a single (missing a) and\n(or 3 months if you launch a dual core instance)",
+      "revId": "373316c9d38d2270afc23b47745d8c97f8cb6286",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40d2b73d_24c073d5",
+        "filename": "manuka/templates/welcome_email.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-08-18T23:07:27Z",
+      "side": 1,
+      "message": "provides an (missing an)",
+      "revId": "373316c9d38d2270afc23b47745d8c97f8cb6286",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
