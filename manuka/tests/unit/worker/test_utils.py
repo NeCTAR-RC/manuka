@@ -156,7 +156,8 @@ class TestUtils(base.TestCase):
             'Welcome to NeCTAR Research Cloud - '
             'Project Trial Allocation created',
             mock.ANY,
-            CONF.smtp.host)
+            CONF.smtp.host,
+            mock.ANY)
 
     @mock.patch('manuka.common.clients.get_orcid_client')
     def test_refresh_orcid_unknown(self, mock_get_client):

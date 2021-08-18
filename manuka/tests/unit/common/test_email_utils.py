@@ -11,7 +11,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from email.mime.text import MIMEText
 from unittest import mock
 
 from manuka.common import email_utils
@@ -23,20 +22,20 @@ class TestEmailUtils(base.TestCase):
 
     def test_send_email(self, mock_smtp_class):
         mock_smtp = mock.Mock()
-        mock_smtp_class.return_value = mock_smtp
-        to = 'to@example.com'
-        sender = 'from@example.com'
-        subject = 'test subject'
-        body = 'test body'
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = sender
-        msg['To'] = to
+        mock_smtp_class.return_value.__enter__.return_value = mock_smtp
 
-        email_utils.send_email(to, sender, subject, body)
+        with mock.patch(
+                'email.message.EmailMessage',
+                autospec=True) as mock_email_message:
+            msg = mock_email_message.return_value
 
-        mock_smtp_class.asserrt_called_once_with('localhost')
-        mock_smtp.sendmail.assert_called_once_with(sender,
-                                                   [to],
-                                                   msg.as_string())
-        mock_smtp.quit.assert_called_once_with()
+            to = 'to@example.com'
+            sender = 'from@example.com'
+            subject = 'test subject'
+            body = 'test body'
+
+            email_utils.send_email(to, sender, subject, body)
+
+            mock_smtp_class.asserrt_called_once_with('localhost')
+            mock_smtp.send_message.assert_called_once_with(msg)
+            msg.set_content.assert_called_with(body)
