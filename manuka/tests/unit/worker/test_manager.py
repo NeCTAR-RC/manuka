@@ -13,6 +13,7 @@
 
 from unittest import mock
 
+import keystoneauth1
 from oslo_config import cfg
 
 from manuka.extensions import db
@@ -30,8 +31,8 @@ class TestManager(base.TestCase):
 
     @mock.patch('manuka.models.keystone_authenticate')
     @mock.patch('manuka.worker.manager.utils')
-    def test_create_user(self, mock_utils, mock_ks_auth, mock_app,
-                         mock_keystone):
+    def test_create_user(self, mock_utils, mock_ks_auth,
+                         mock_app, mock_keystone):
 
         swift_quota = 10
         CONF.set_override('default_quota_gb', swift_quota, 'swift')
@@ -89,6 +90,62 @@ class TestManager(base.TestCase):
             mock.ANY, project.id)
         mock_utils.set_swift_quota.assert_called_once_with(
             mock.ANY, project.id, swift_quota)
+
+    @mock.patch('manuka.worker.manager.notifier')
+    @mock.patch('manuka.models.keystone_authenticate')
+    @mock.patch('manuka.worker.manager.utils')
+    def test_create_user_duplicate(self, mock_utils, mock_ks_auth,
+                                   mock_notifier, mock_app, mock_keystone):
+
+        swift_quota = 10
+        CONF.set_override('default_quota_gb', swift_quota, 'swift')
+
+        client = mock_keystone.return_value
+
+        project = mock_utils.create_project.return_value
+        project.id = 'ksp-123'
+        user = mock_utils.create_user.side_effect = \
+            keystoneauth1.exceptions.http.Conflict
+        user.id = 'ksu-123'
+        domain = mock_utils.get_domain_for_idp.return_value
+        db_user, external_id = self.make_db_user()
+        db_user_id = db_user.id
+        self.shib_attrs['idp'] = 'fake-idp'
+
+        token = 'token'
+        mock_ks_auth.return_value = (token, project.id, user)
+
+        manager = worker_manager.Manager()
+        with self.assertRaises(keystoneauth1.exceptions.http.Conflict):
+            manager.create_user(self.shib_attrs)
+
+        db_user = db.session.query(models.User).get(db_user_id)
+
+        mock_utils.get_domain_for_idp.assert_called_once_with(
+            self.shib_attrs['idp'])
+
+        mock_utils.create_project.assert_called_once_with(
+            client,
+            "pt-%s" % db_user.id,
+            "%s's project trial." % self.shib_attrs['fullname'],
+            domain)
+
+        mock_utils.create_user.assert_called_once_with(
+            client,
+            self.shib_attrs['mail'],
+            self.shib_attrs['mail'],
+            project,
+            self.shib_attrs['fullname'])
+
+        mock_notifier.send_message.assert_called_once_with(
+            session=mock.ANY,
+            email=self.shib_attrs['mail'],
+            context={'user': self.shib_attrs},
+            template='duplicate_account.tmpl',
+            subject='Nectar Cloud login issue')
+
+        mock_utils.add_user_roles.assert_not_called()
+        self.assertEqual('duplicate', db_user.state)
 
     @mock.patch('manuka.worker.manager.utils')
     def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone):

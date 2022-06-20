@@ -39,7 +39,7 @@ class User(db.Model):
     keystone_user_id = db.Column(db.String(64), unique=True)
     displayname = db.Column(db.String(250))
     email = db.Column(db.String(250))
-    state = db.Column(db.Enum("new", "registered", "created"))
+    state = db.Column(db.Enum("new", "registered", "created", "duplicate"))
     registered_at = db.Column(db.DateTime())
     last_login = db.Column(db.DateTime())
     terms_accepted_at = db.Column(db.DateTime())

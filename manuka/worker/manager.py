@@ -13,6 +13,7 @@
 
 import functools
 
+import keystoneauth1
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -21,6 +22,7 @@ from manuka.common import clients
 from manuka.common import keystone
 from manuka.extensions import db
 from manuka import models
+from manuka.worker import notifier
 from manuka.worker import utils
 
 
@@ -62,10 +64,25 @@ class Manager(object):
                                        domain)
         LOG.info('Created Project %s', project.name)
 
-        user = utils.create_user(client, attrs["mail"],
-                                 attrs["mail"], project,
-                                 attrs['fullname'])
-        LOG.info('Created user %s', user.name)
+        try:
+            user = utils.create_user(client, attrs["mail"],
+                                     attrs["mail"], project,
+                                     attrs['fullname'])
+        except keystoneauth1.exceptions.http.Conflict as e:
+            notifier.send_message(session=session,
+                                  email=attrs.get('mail'),
+                                  context={'user': attrs},
+                                  template='duplicate_account.tmpl',
+                                  subject='Nectar Cloud login issue')
+            client.projects.delete(project.id)
+            LOG.info(f"Deleted project {project.name}")
+            db_user.state = "duplicate"
+            db.session.add(db_user)
+            db.session.commit()
+
+            raise e
+        else:
+            LOG.info('Created user %s', user.name)
 
         utils.add_user_roles(client, project=project, user=user,
                              roles=['Member'])

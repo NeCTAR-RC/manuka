@@ -22,6 +22,10 @@
              if (data.state == "created") {
                  window.location = window.location.href;
              }
+             if (data.state == "duplicate") {
+                 $("#message").empty().html("<p>There was a problem creating your account due to an existing account with a matching email address, but a different ID token, please check your email for instructions.<br /> Alternatively please contact <a href=\"{{support_url}}\">support</a> for further details.</p>");
+                 clearInterval(intervalID);
+             }
              if (count > 10) {
                  $("#message").empty().html("<p>There was a problem creating your account, our system administrators will have been notified of the issue. <br /> Please contact <a href=\"{{support_url}}\">support</a> for further details.</p>");
                  clearInterval(intervalID);
