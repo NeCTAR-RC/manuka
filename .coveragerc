@@ -8,3 +8,5 @@ omit =
    manuka/shib_faker.py
    manuka/common/rpc.py
    manuka/common/clients.py
+   manuka/tests/functional/*
+   manuka/wsgi.py
