@@ -46,11 +46,11 @@ class UserList(base.Resource):
             flask_restful.abort(403, message="Not authorised")
 
         parser = reqparse.RequestParser()
-        parser.add_argument('registered_at__lt')
-        parser.add_argument('last_login__lt')
-        parser.add_argument('state')
-        parser.add_argument('expiry_status')
-        parser.add_argument('limit', type=int)
+        parser.add_argument('registered_at__lt', location='args')
+        parser.add_argument('last_login__lt', location='args')
+        parser.add_argument('state', location='args')
+        parser.add_argument('expiry_status', location='args')
+        parser.add_argument('limit', type=int, location='args')
         args = parser.parse_args()
 
         query = self._get_users()
@@ -92,8 +92,8 @@ class UserSearch(base.Resource):
             flask_restful.abort(403, message="Not authorised")
 
         parser = reqparse.RequestParser()
-        parser.add_argument('search', required=True)
-        parser.add_argument('limit', type=int)
+        parser.add_argument('search', required=True, location='form')
+        parser.add_argument('limit', type=int, location='args')
         args = parser.parse_args()
         search = args.get('search')
         if len(search) < 3:
