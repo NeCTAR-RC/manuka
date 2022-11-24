@@ -1,5 +1,5 @@
 pbr
-SQLAlchemy<1.4.0
+SQLAlchemy
 python-keystoneclient
 python-novaclient
 python-swiftclient

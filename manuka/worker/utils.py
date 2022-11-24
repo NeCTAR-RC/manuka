@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 
 def create_user(client, name, email, project=None, full_name=None):
     """Add a new user"""
-    password = str(base64.encodestring(os.urandom(16))[:20], 'utf-8')
+    password = str(base64.encodebytes(os.urandom(16))[:20], 'utf-8')
     user = client.users.create(name=name,
                                password=password,
                                email=email,
