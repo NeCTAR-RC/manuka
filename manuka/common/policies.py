@@ -16,7 +16,7 @@ from oslo_policy import policy
 
 
 CONF = cfg.CONF
-_POLICY_PATH = '/etc/manuka/manuka.yaml'
+_POLICY_PATH = '/etc/manuka/policy.yaml'
 
 
 enforcer = policy.Enforcer(CONF, policy_file=_POLICY_PATH)
