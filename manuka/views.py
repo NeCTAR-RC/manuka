@@ -172,7 +172,7 @@ def root():
                 "updated_terms": db_user.terms_version}
         return flask.render_template("terms_form.html", **data)
 
-    if db_user.state == "registered":
+    if db_user.state in ("registered", "duplicate"):
         data = {"title": "Creating Account...",
                 "support_url": CONF.support_url}
         return flask.render_template("creating_account.html", **data)
