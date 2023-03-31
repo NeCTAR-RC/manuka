@@ -148,7 +148,7 @@ def root():
         db_user.terms_version = current_terms_version
         models.update_db_user(db_user, external_id, shib_attrs)
         db.session.commit()
-        LOG.info("User %s accepted terms %s", db_user)
+        LOG.info("User %s accepted terms", db_user)
         # after registering present the user with a page indicating
         # there account is being created
         worker = worker_api.WorkerAPI()
