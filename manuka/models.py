@@ -90,8 +90,10 @@ def keystone_authenticate(db_user, project_id=None,
 
     if not user.enabled:
         if getattr(user, 'inactive', False):
+            LOG.info("Activating inactive user %s", db_user.keystone_user_id)
             client.users.update(user, enabled=True, inactive=False)
         else:
+            LOG.error("Denying disabled user %s", db_user.keystone_user_id)
             flask.abort(401)
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)

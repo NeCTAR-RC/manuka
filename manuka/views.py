@@ -148,6 +148,7 @@ def root():
         db_user.terms_version = current_terms_version
         models.update_db_user(db_user, external_id, shib_attrs)
         db.session.commit()
+        LOG.info("User %s accepted terms %s", db_user)
         # after registering present the user with a page indicating
         # there account is being created
         worker = worker_api.WorkerAPI()
@@ -160,19 +161,23 @@ def root():
         db_user.terms_accepted_at = datetime.datetime.now()
         models.update_db_user(db_user, external_id, shib_attrs)
         db.session.commit()
+        LOG.info("User %s accepted new terms", db_user)
 
     if request.form.get("ignore_username"):
         # Ignore different username
         db_user.ignore_username_not_email = True
         db.session.commit()
+        LOG.info("User %s ignoring username not email", db_user)
 
     if db_user.terms_version != current_terms_version:
+        LOG.info("User %s terms version not current", db_user)
         data = {"title": "Terms and Conditions.",
                 "terms_version": current_terms_version,
                 "updated_terms": db_user.terms_version}
         return flask.render_template("terms_form.html", **data)
 
     if db_user.state in ("registered", "duplicate"):
+        LOG.info("User %s in registered or duplicate state", db_user)
         data = {"title": "Creating Account...",
                 "support_url": CONF.support_url}
         return flask.render_template("creating_account.html", **data)
@@ -183,6 +188,7 @@ def root():
         if request.form.get("change_username"):
             # User wants to change their username to match email
             set_username_as_email = True
+            LOG.info("User %s changing username to match email", db_user)
 
         try:
             token, project_id, user = models.keystone_authenticate(
@@ -218,6 +224,7 @@ def root():
     models.update_db_user(db_user, external_id, shib_attrs)
 
     if user.name != user.email and not db_user.ignore_username_not_email:
+        LOG.info("User %s username and email do not match", db_user)
         data = {"user": user}
         return flask.render_template("username_form.html", **data)
 
