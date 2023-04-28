@@ -25,6 +25,7 @@ from manuka.worker import manager as worker_manager
 CONF = cfg.CONF
 
 
+@mock.patch('freshdesk.v2.api.API')
 @mock.patch('manuka.common.clients.get_admin_keystoneclient')
 @mock.patch('manuka.app.create_app')
 class TestManager(base.TestCase):
@@ -32,12 +33,15 @@ class TestManager(base.TestCase):
     @mock.patch('manuka.models.keystone_authenticate')
     @mock.patch('manuka.worker.manager.utils')
     def test_create_user(self, mock_utils, mock_ks_auth,
-                         mock_app, mock_keystone):
+                         mock_app, mock_keystone, mock_fd):
 
         swift_quota = 10
         CONF.set_override('default_quota_gb', swift_quota, 'swift')
 
         client = mock_keystone.return_value
+        mock_fd.return_value.contacts.create_contact.return_value = \
+            mock.Mock(id=123, name=self.shib_attrs['fullname'],
+                      email=self.shib_attrs['mail'])
 
         project = mock_utils.create_project.return_value
         project.id = 'ksp-123'
@@ -72,6 +76,10 @@ class TestManager(base.TestCase):
             project,
             self.shib_attrs['fullname'])
 
+        mock_fd.return_value.contacts.create_contact.assert_called_with(
+            name=self.shib_attrs['fullname'],
+            email=self.shib_attrs['mail'])
+
         mock_utils.add_user_roles.assert_called_once_with(
             client,
             project=project,
@@ -95,7 +103,8 @@ class TestManager(base.TestCase):
     @mock.patch('manuka.models.keystone_authenticate')
     @mock.patch('manuka.worker.manager.utils')
     def test_create_user_duplicate(self, mock_utils, mock_ks_auth,
-                                   mock_notifier, mock_app, mock_keystone):
+                                   mock_notifier, mock_app, mock_keystone,
+                                   mock_fd):
 
         swift_quota = 10
         CONF.set_override('default_quota_gb', swift_quota, 'swift')
@@ -137,6 +146,8 @@ class TestManager(base.TestCase):
             project,
             self.shib_attrs['fullname'])
 
+        mock_fd.return_value.contacts.create_contact.assert_not_called()
+
         mock_notifier.send_message.assert_called_once_with(
             session=mock.ANY,
             email=self.shib_attrs['mail'],
@@ -148,7 +159,7 @@ class TestManager(base.TestCase):
         self.assertEqual('duplicate', db_user.state)
 
     @mock.patch('manuka.worker.manager.utils')
-    def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone):
+    def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone, mock_fd):
         manager = worker_manager.Manager()
         mock_utils.refresh_orcid.return_value = True
         db_user, external_id = self.make_db_user()

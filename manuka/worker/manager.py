@@ -13,6 +13,7 @@
 
 import functools
 
+from freshdesk.v2 import api as fd_api
 import keystoneauth1
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -83,6 +84,18 @@ class Manager(object):
             raise e
         else:
             LOG.info('Created user %s', user.name)
+
+        # Attempt to create a contact in Freshdesk with their proper IdP
+        # provided name and email
+        try:
+            fd = fd_api.API(CONF.freshdesk.domain, CONF.freshdesk.key)
+            contact = fd.contacts.create_contact(
+                name=attrs["fullname"],
+                email=attrs["mail"])
+            LOG.info('Created Freshdesk contact: %s', contact)
+        except Exception as e:
+            # FD contact creation should not be treated as fatal, just log it
+            LOG.warning("Ignoring Freshdesk contact creation error: %s", e)
 
         utils.add_user_roles(client, project=project, user=user,
                              roles=['Member'])

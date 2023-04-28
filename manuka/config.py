@@ -83,6 +83,11 @@ smtp_opts = [
     cfg.StrOpt('from_email',)
 ]
 
+freshdesk_opts = [
+    cfg.StrOpt('domain'),
+    cfg.StrOpt('key', secret=True),
+]
+
 orcid_opts = [
     cfg.StrOpt('key'),
     cfg.StrOpt('secret',
@@ -109,6 +114,7 @@ cfg.CONF.register_opts(swift_opts, group='swift')
 cfg.CONF.register_opts(worker_opts, group='worker')
 cfg.CONF.register_opts(database_opts, group='database')
 cfg.CONF.register_opts(flask_opts, group='flask')
+cfg.CONF.register_opts(freshdesk_opts, group='freshdesk')
 cfg.CONF.register_opts(default_opts)
 
 logging.register_options(cfg.CONF)
@@ -150,6 +156,7 @@ def list_opts():
         ('worker', worker_opts),
         ('database', database_opts),
         ('flask', flask_opts),
+        ('freshdesk', freshdesk_opts),
         add_auth_opts(),
     ]
 
