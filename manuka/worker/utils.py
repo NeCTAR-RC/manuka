@@ -23,6 +23,7 @@ from requests import exceptions
 from manuka.common import clients
 from manuka.common import email_utils
 from manuka.extensions import db
+from manuka import models
 
 
 CONF = cfg.CONF
@@ -70,20 +71,11 @@ def get_roles(client, role_names):
 
 
 def get_domain_for_idp(idp):
-    try:
-        domains = os.listdir(CONF.idp_domain_mapping_dir)
+    mapping = db.session.query(models.DomainIdpMapping).filter_by(
+        idp_entity_id=idp).first()
 
-        for domain in domains:
-            try:
-                with open(os.path.join(
-                        CONF.idp_domain_mapping_dir, domain)) as f:
-                    idps = f.read().split('\n')
-                    if idp in idps:
-                        return domain
-            except IOError:
-                continue
-    except FileNotFoundError:
-        pass
+    if mapping:
+        return mapping.domain_id
     return 'default'
 
 

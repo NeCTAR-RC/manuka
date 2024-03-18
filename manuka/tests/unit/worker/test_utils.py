@@ -97,6 +97,10 @@ class TestUtils(base.TestCase):
         self.assertEqual([role1, role2], roles)
 
     def test_get_domain_for_idp(self):
+        mapping = models.DomainIdpMapping(domain_id='domain123',
+                                          idp_entity_id='https://idp2')
+        db.session.add(mapping)
+        db.session.commit()
         domain = utils.get_domain_for_idp('http://idp1')
         self.assertEqual('default', domain)
         domain = utils.get_domain_for_idp('https://idp2')

@@ -79,6 +79,18 @@ class ExternalId(db.Model):
         self.attributes = attributes
 
 
+class DomainIdpMapping(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    domain_id = db.Column(db.String(36))
+    idp_entity_id = db.Column(db.String(250), unique=True)
+    last_seen = db.Column(db.DateTime())
+
+    def __init__(self, domain_id, idp_entity_id):
+        self.domain_id = domain_id
+        self.idp_entity_id = idp_entity_id
+        self.last_seen = datetime.datetime.now()
+
+
 def keystone_authenticate(db_user, project_id=None,
                           set_username_as_email=False):
     """Authenticate a user as their default project.
