@@ -113,7 +113,7 @@ class TestCase(flask_testing.TestCase):
                 self.assertExternalIdsEqual(user.external_ids, value)
             else:
                 user_value = user_dict.get(key)
-                if type(user_value) == datetime:
+                if isinstance(user_value, datetime):
                     user_value = user_value.strftime('%Y-%m-%dT%H:%M:%S.%f')
 
                 self.assertEqual(user_value, value,
