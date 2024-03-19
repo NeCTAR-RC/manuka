@@ -265,3 +265,8 @@ def root():
 def terms():
     template = "%s-terms_text.html" % CONF.terms_version
     return flask.render_template(template)
+
+
+@default_bp.route('/')
+def default_redirect():
+    return flask.redirect("/login/", code=301)
