@@ -25,3 +25,4 @@ git+https://github.com/NeCTAR-RC/python-orcid.git@nectar/1.0.3#egg=orcid
 requests
 taynacclient
 python-freshdesk
+python-memcached
