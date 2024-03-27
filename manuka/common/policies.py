@@ -140,10 +140,22 @@ external_id_rules = [
 ]
 
 
+KEYSTONE_PREFIX = "account:keystone:%s"
+
+keystone_rules = [
+    policy.DocumentedRuleDefault(
+        name=KEYSTONE_PREFIX % 'get_by_name',
+        check_str='rule:%s or role:tenantmanager' % ADMIN_OR_READER,
+        description='Show keystone user by username',
+        operations=[{'path': '/v1/keystone-ext/user-by-name/{username}/',
+                     'method': 'GET'}]),
+]
+
 enforcer.register_defaults(base_rules)
 enforcer.register_defaults(user_rules)
 enforcer.register_defaults(external_id_rules)
+enforcer.register_defaults(keystone_rules)
 
 
 def list_rules():
-    return base_rules + user_rules + external_id_rules
+    return base_rules + user_rules + external_id_rules + keystone_rules

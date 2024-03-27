@@ -12,6 +12,7 @@
 #    under the License.
 
 from manuka.api.v1.resources import external_id
+from manuka.api.v1.resources import keystone
 from manuka.api.v1.resources import user
 
 
@@ -25,3 +26,5 @@ def initialize_resources(api):
     api.add_resource(user.ProjectsWithRole,
                      '/v1/users/<id>/projects/<role_name>/')
     api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
+    api.add_resource(keystone.UserByName,
+                     '/v1/keystone-ext/user-by-name/<username>/')
