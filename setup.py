@@ -18,7 +18,7 @@ from pbr.packaging import parse_requirements
 
 setuptools.setup(
     name='manuka',
-    version='0.1.0',
+    version='2.0.0',
     description=('User management for the Nectar Research Cloud'),
     author='Sam Morrison',
     author_email='sorrison@gmail.com',
