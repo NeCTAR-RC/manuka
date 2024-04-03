@@ -92,7 +92,7 @@ class UserSearch(base.Resource):
             flask_restful.abort(403, message="Not authorised")
 
         parser = reqparse.RequestParser()
-        parser.add_argument('search', required=True, location='form')
+        parser.add_argument('search', required=True, location=['form', 'json'])
         parser.add_argument('limit', type=int, location='args')
         args = parser.parse_args()
         search = args.get('search')
