@@ -81,10 +81,10 @@ class TestUserApi(TestUserApiBase):
 
     def _test_user_search(self, query, expected_results):
         data = {'search': query}
-        response = self.client.post('/api/v1/users/search/', data=data)
+        response = self.client.post('/api/v1/users/search/', json=data)
+        self.assert200(response)
         results = response.get_json().get('results')
 
-        self.assert200(response)
         self.assertEqual(len(expected_results), len(results))
         if len(expected_results) == 1:
             self.assertUserEqual(expected_results[0], results[0])
