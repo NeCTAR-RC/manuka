@@ -90,7 +90,7 @@ class TestManager(base.TestCase):
         self.assertEqual('created', db_user.state)
 
         mock_utils.send_welcome_email.assert_called_once_with(
-            user, project)
+            mock.ANY, user, project)
 
         mock_utils.add_security_groups.assert_called_once_with(
             user.id, project.id, token)

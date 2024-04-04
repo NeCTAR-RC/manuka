@@ -78,12 +78,6 @@ keystone_opts = [
     cfg.StrOpt('auth_url'),
 ]
 
-smtp_opts = [
-    cfg.StrOpt('host',
-               default='localhost'),
-    cfg.StrOpt('from_email',)
-]
-
 freshdesk_opts = [
     cfg.StrOpt('domain'),
     cfg.StrOpt('key', secret=True),
@@ -109,7 +103,6 @@ orcid_opts = [
 
 
 cfg.CONF.register_opts(orcid_opts, group='orcid')
-cfg.CONF.register_opts(smtp_opts, group='smtp')
 cfg.CONF.register_opts(keystone_opts, group='keystone')
 cfg.CONF.register_opts(swift_opts, group='swift')
 cfg.CONF.register_opts(worker_opts, group='worker')
@@ -151,7 +144,6 @@ def list_opts():
     return [
         ('DEFAULT', default_opts),
         ('orcid', orcid_opts),
-        ('smtp', smtp_opts),
         ('keystone', keystone_opts),
         ('swift', swift_opts),
         ('worker', worker_opts),

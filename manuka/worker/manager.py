@@ -112,7 +112,7 @@ class Manager(object):
         db.session.add(db_user)
         db.session.commit()
 
-        utils.send_welcome_email(user, project)
+        utils.send_welcome_email(session, user, project)
         LOG.info('Send welcome email to %s', user.email)
 
         token, project_id, updated_user = models.keystone_authenticate(

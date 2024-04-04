@@ -16,14 +16,13 @@ import logging
 import os
 import time
 
-import flask
 from oslo_config import cfg
 from requests import exceptions
 
 from manuka.common import clients
-from manuka.common import email_utils
 from manuka.extensions import db
 from manuka import models
+from manuka.worker import notifier
 
 
 CONF = cfg.CONF
@@ -145,18 +144,16 @@ def set_swift_quota(session, project_id, quota_gb):
     LOG.error("Failed to set swift quota for project %s", project_id)
 
 
-def send_welcome_email(user, project):
-    data = {'user': user,
-            'project': project,
-            'expires': ''}
-    body = flask.render_template("welcome_email.txt", **data)
-    html = flask.render_template("welcome_email.html", **data)
-    subject = "Welcome to NeCTAR Research Cloud - " \
+def send_welcome_email(session, user, project):
+    context = {'user': user,
+               'project': project}
+    subject = "Welcome to Nectar Research Cloud - " \
               "Project Trial Allocation created"
-    from_email = CONF.smtp.from_email
-
-    email_utils.send_email(user.email, from_email, subject, body,
-                           CONF.smtp.host, html)
+    notifier.send_message(session=session,
+                          email=user.email,
+                          context=context,
+                          template='welcome_email.html',
+                          subject=subject)
 
 
 def refresh_orcid(db_user):

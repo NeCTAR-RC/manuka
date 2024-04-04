@@ -147,21 +147,22 @@ class TestUtils(base.TestCase):
             headers={'x-account-meta-quota-bytes':
                      quota_gb * 1024 * 1024 * 1024})
 
-    @mock.patch('manuka.common.email_utils.send_email')
-    def test_send_welcome_email(self, mock_send_email):
+    @mock.patch('manuka.worker.utils.notifier')
+    def test_send_welcome_email(self, mock_notifier):
         user = FakeUser()
         project = FakeProject()
+        session = mock.Mock()
 
-        utils.send_welcome_email(user, project)
+        utils.send_welcome_email(session, user, project)
         # TODO(sorrison) Check content of body includes name and project name
-        mock_send_email.assert_called_once_with(
-            'fake@nectartest',
-            CONF.smtp.from_email,
-            'Welcome to NeCTAR Research Cloud - '
+        mock_notifier.send_message.assert_called_once_with(
+            session=session,
+            email='fake@nectartest',
+            context={'user': user, 'project': project},
+            template='welcome_email.html',
+            subject='Welcome to Nectar Research Cloud - '
             'Project Trial Allocation created',
-            mock.ANY,
-            CONF.smtp.host,
-            mock.ANY)
+        )
 
     @mock.patch('manuka.common.clients.get_orcid_client')
     def test_refresh_orcid_unknown(self, mock_get_client):
