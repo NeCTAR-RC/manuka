@@ -17,6 +17,7 @@ from freshdesk.v2 import api as fd_api
 import keystoneauth1
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_utils import uuidutils
 
 from manuka import app
 from manuka.common import clients
@@ -59,7 +60,13 @@ class Manager(object):
         idp = attrs.get('idp')
         domain = utils.get_domain_for_idp(idp)
         LOG.info("Using project domain_id=%s", domain)
-        project = utils.create_project(client, "pt-%s" % db_user.id,
+        if CONF.fake_shib:
+            project_suffix = uuidutils.generate_uuid()
+        else:
+            project_suffix = db_user.id
+
+        project_name = f"{CONF.project_prefix}{project_suffix}"
+        project = utils.create_project(client, project_name,
                                        "%s's project trial." %
                                        attrs["fullname"],
                                        domain)

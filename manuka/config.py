@@ -42,6 +42,7 @@ default_opts = [
                         'keystone',
                         'testing'],
                help="The auth strategy for API requests."),
+    cfg.StrOpt('project_prefix', default='pt-'),
 ]
 
 flask_opts = [
