@@ -106,8 +106,10 @@ class TestUserApi(TestUserApiBase):
 
     def test_user_search_small_query(self):
         data = {'search': 'ab'}
-        response = self.client.post('/api/v1/users/search/', data=data)
+        response = self.client.post('/api/v1/users/search/', json=data)
         self.assert400(response)
+        self.assertEqual({'message': 'Search must be at least 3 characters'},
+                         response.get_json())
 
     def test_user_delete(self):
         response = self.client.delete('/api/v1/users/%s/' %
