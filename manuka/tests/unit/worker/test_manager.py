@@ -84,7 +84,7 @@ class TestManager(base.TestCase):
             client,
             project=project,
             user=user,
-            roles=['Member'])
+            roles=['member'])
 
         self.assertEqual(user.id, db_user.keystone_user_id)
         self.assertEqual('created', db_user.state)

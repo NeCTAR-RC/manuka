@@ -64,7 +64,7 @@ def get_roles(client, role_names):
 
     for role in role_list:
         LOG.debug('Testing role %s in %s', role.name, role_names)
-        if role.name in role_names:
+        if role.name.lower() in role_names:
             roles.append(role)
     return roles
 
