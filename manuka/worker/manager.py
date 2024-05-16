@@ -105,7 +105,7 @@ class Manager(object):
             LOG.warning("Ignoring Freshdesk contact creation error: %s", e)
 
         utils.add_user_roles(client, project=project, user=user,
-                             roles=['Member'])
+                             roles=['member'])
 
         db_user.keystone_user_id = user.id
         db_user.state = "created"
