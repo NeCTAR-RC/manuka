@@ -82,11 +82,11 @@ class TestUtils(base.TestCase):
 
     def test_get_roles(self):
         client = mock.Mock()
-        role_names = ['role1', 'role2']
+        role_names = ['role1', 'Role2']
         role1 = mock.Mock()
         role2 = mock.Mock()
         role3 = mock.Mock()
-        role1.name = 'role1'
+        role1.name = 'Role1'
         role2.name = 'role2'
         role3.name = 'role3'
 
