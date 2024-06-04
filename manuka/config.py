@@ -42,6 +42,9 @@ default_opts = [
                         'keystone',
                         'testing'],
                help="The auth strategy for API requests."),
+    cfg.StrOpt('notifier', default='taynac',
+               choices=['taynac', 'logging'],
+               help="Notifier to use"),
     cfg.StrOpt('project_prefix', default='pt-'),
 ]
 
