@@ -39,6 +39,10 @@ setuptools.setup(
         'oslo.policy.enforcer': [
             'manuka = manuka.policy:get_enforcer',
         ],
+        'manuka.notifier': [
+            'logging = manuka.worker.notifier:LoggingNotifier',
+            'taynac = manuka.worker.notifier:TaynacNotifier',
+        ],
     },
     include_package_data=True,
     setup_requires=['pbr>=3.0.0'],

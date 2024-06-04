@@ -25,7 +25,8 @@ CONF = cfg.CONF
 class TestNotifier(base.TestCase):
 
     def test_render_template(self):
-        template = notifier.render_template(
+        base_notifier = notifier.BaseNotifier()
+        template = base_notifier.render_template(
             'duplicate_account.tmpl',
             {'user': {'email': 'foo', 'fullname': 'Bob Smith'}})
         self.assertIn('Bob Smith', template)

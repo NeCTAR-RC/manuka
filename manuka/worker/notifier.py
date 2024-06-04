@@ -16,6 +16,7 @@ import os
 import jinja2
 from oslo_config import cfg
 from oslo_log import log as logging
+from stevedore import driver as stevedore_driver
 from taynacclient import client as taynac_client
 
 
@@ -23,22 +24,45 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def render_template(tmpl, context={}):
-    template_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                 '../',
-                                                 'templates'))
-    LOG.debug(f"Using template_dir {template_dir}")
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
-    template = env.get_template(tmpl)
-    template = template.render(context)
-    return template
-
-
 def send_message(session, email, context, template, subject):
+    notifier = stevedore_driver.DriverManager(
+                namespace='manuka.notifier',
+                name=CONF.notifier,
+                invoke_on_load=True
+            ).driver
 
-    client = taynac_client.Client('1', session=session)
-    body = render_template(template, context)
+    return notifier.send_message(session, email, context, template, subject)
 
-    message = client.messages.send(recipient=email, subject=subject, body=body)
-    LOG.info(f"Created message {message}, requester={email}")
-    return message
+
+class BaseNotifier(object):
+
+    @staticmethod
+    def render_template(tmpl, context={}):
+        template_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                                     '../',
+                                                     'templates'))
+        LOG.debug(f"Using template_dir {template_dir}")
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+        template = env.get_template(tmpl)
+        template = template.render(context)
+        return template
+
+
+class TaynacNotifier(BaseNotifier):
+
+    def send_message(self, session, email, context, template, subject):
+        client = taynac_client.Client('1', session=session)
+        body = self.render_template(template, context)
+        message = client.messages.send(recipient=email, subject=subject,
+                                       body=body)
+        LOG.info(f"Created message {message}, requester={email}")
+        return message
+
+
+class LoggingNotifier(BaseNotifier):
+
+    def send_message(self, session, email, context, template, subject):
+        body = self.render_template(template, context)
+        LOG.info("Would send email to %s", email)
+        LOG.info("Subject: %s", subject)
+        LOG.info("%s", body)
