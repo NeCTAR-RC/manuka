@@ -60,10 +60,8 @@ def add_user_roles(client, user, project, roles=[]):
 def get_roles(client, role_names):
     roles = []
     role_list = client.roles.list()
-    LOG.debug('Roles %s', role_list)
     role_names_lower = [name.lower() for name in role_names]
     for role in role_list:
-        LOG.debug('Testing role %s in %s', role.name, role_names)
         if role.name.lower() in role_names_lower:
             roles.append(role)
     return roles
