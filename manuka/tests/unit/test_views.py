@@ -89,7 +89,7 @@ class TestViewsBadShib(base.TestCase):
         self.assertTemplateUsed('error.html')
         self.assertContext('message', MISSING_ATTR_MSG)
         self.assertContext('errors',
-                           ["The 'mail' field must be one RFC822 "
+                           ["The 'mail' field must be one RFC 5322 "
                             "<addr-spec>: the value provided is "
                             "'test@example.com;test2@example.com'"])
 

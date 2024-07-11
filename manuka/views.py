@@ -34,8 +34,8 @@ login_bp = flask.Blueprint('login', __name__, url_prefix='/login')
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
-# This regex matches an RFC822 addr-spec with a 2 to 4 char TLD
-EMAIL_RE = re.compile(r"^[\w.!#$%&'*+\-/=?^_`{|}~]+@([\w\-]+\.)+[\w\-]{2,4}$")
+# This regex matches an RFC 5322 addr-spec with a 2 to 4 char TLD
+EMAIL_RE = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 
 class ShibbolethAttrMap(object):
@@ -108,7 +108,7 @@ def root():
     if mail_value and not EMAIL_RE.match(mail_value):
         LOG.error("The AAF IdP is returning a bad 'mail' attribute: '%s'",
                   mail_value)
-        errors['mail'] = ("The '%s' field must be one RFC822 <addr-spec>: "
+        errors['mail'] = ("The '%s' field must be one RFC 5322 <addr-spec>: "
                           "the value provided is '%s'" %
                           (ShibbolethAttrMap.get_attr('mail'), mail_value))
 
