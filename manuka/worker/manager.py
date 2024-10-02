@@ -37,11 +37,11 @@ def app_context(f):
     def decorated(self, *args, **kwargs):
         with self.app.app_context():
             return f(self, *args, **kwargs)
+
     return decorated
 
 
-class Manager(object):
-
+class Manager:
     def __init__(self):
         self.app = app.create_app(init_config=False)
 
@@ -53,11 +53,14 @@ class Manager(object):
 
         # get the user from the database, if this fails then they
         # shouldn't be created
-        external_id = db.session.query(models.ExternalId).filter_by(
-            persistent_id=attrs["id"]).first()
+        external_id = (
+            db.session.query(models.ExternalId)
+            .filter_by(persistent_id=attrs["id"])
+            .first()
+        )
         db_user = external_id.user
 
-        idp = attrs.get('idp')
+        idp = attrs.get("idp")
         domain = utils.get_domain_for_idp(idp)
         LOG.info("Using project domain_id=%s", domain)
         if CONF.fake_shib:
@@ -66,22 +69,30 @@ class Manager(object):
             project_suffix = db_user.id
 
         project_name = f"{CONF.project_prefix}{project_suffix}"
-        project = utils.create_project(client, project_name,
-                                       "%s's project trial." %
-                                       attrs["fullname"],
-                                       domain)
-        LOG.info('Created Project %s', project.name)
+        project = utils.create_project(
+            client,
+            project_name,
+            "{}'s project trial.".format(attrs["fullname"]),
+            domain,
+        )
+        LOG.info("Created Project %s", project.name)
 
         try:
-            user = utils.create_user(client, attrs["mail"],
-                                     attrs["mail"], project,
-                                     attrs['fullname'])
+            user = utils.create_user(
+                client,
+                attrs["mail"],
+                attrs["mail"],
+                project,
+                attrs["fullname"],
+            )
         except keystoneauth1.exceptions.http.Conflict as e:
-            notifier.send_message(session=session,
-                                  email=attrs.get('mail'),
-                                  context={'user': attrs},
-                                  template='duplicate_account.tmpl',
-                                  subject='Nectar Cloud login issue')
+            notifier.send_message(
+                session=session,
+                email=attrs.get("mail"),
+                context={"user": attrs},
+                template="duplicate_account.tmpl",
+                subject="Nectar Cloud login issue",
+            )
             client.projects.delete(project.id)
             LOG.info(f"Deleted project {project.name}")
             db_user.state = "duplicate"
@@ -90,22 +101,23 @@ class Manager(object):
 
             raise e
         else:
-            LOG.info('Created user %s', user.name)
+            LOG.info("Created user %s", user.name)
 
         # Attempt to create a contact in Freshdesk with their proper IdP
         # provided name and email
         try:
             fd = fd_api.API(CONF.freshdesk.domain, CONF.freshdesk.key)
             contact = fd.contacts.create_contact(
-                name=attrs["fullname"],
-                email=attrs["mail"])
-            LOG.info('Created Freshdesk contact: %s', contact)
+                name=attrs["fullname"], email=attrs["mail"]
+            )
+            LOG.info("Created Freshdesk contact: %s", contact)
         except Exception as e:
             # FD contact creation should not be treated as fatal, just log it
             LOG.warning("Ignoring Freshdesk contact creation error: %s", e)
 
-        utils.add_user_roles(client, project=project, user=user,
-                             roles=['member'])
+        utils.add_user_roles(
+            client, project=project, user=user, roles=["member"]
+        )
 
         db_user.keystone_user_id = user.id
         db_user.state = "created"
@@ -113,10 +125,11 @@ class Manager(object):
         db.session.commit()
 
         utils.send_welcome_email(session, user, project)
-        LOG.info('Send welcome email to %s', user.email)
+        LOG.info("Send welcome email to %s", user.email)
 
         token, project_id, updated_user = models.keystone_authenticate(
-            db_user, project_id=project.id)
+            db_user, project_id=project.id
+        )
 
         utils.add_security_groups(user.id, project.id, token)
         LOG.info("%s: Added security groups.", user.id)
@@ -126,7 +139,7 @@ class Manager(object):
         if swift_quota is not None:
             utils.set_swift_quota(session, project.id, swift_quota)
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
-        LOG.info('%s: Completed Processing.', user.id)
+        LOG.info("%s: Completed Processing.", user.id)
 
     @app_context
     def refresh_orcid(self, user_id):

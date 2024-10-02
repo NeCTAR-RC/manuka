@@ -36,60 +36,83 @@ Username: <input type="text" name="username"/>
 </html>
 """
 
-shib_headers = ['cn', 'displayName', 'givenName', 'sn', 'uid', 'eppn',
-                'l', 'employeetype', 'description', 'o', 'affiliation',
-                'unscoped-affiliation', 'assurance', 'Shib-Identity-Provider',
-                'shared-token', 'homeOrganization', 'homeOrganizationType',
-                'telephoneNumber', 'mobileNumber', 'eduPersonOrcid']
+shib_headers = [
+    "cn",
+    "displayName",
+    "givenName",
+    "sn",
+    "uid",
+    "eppn",
+    "l",
+    "employeetype",
+    "description",
+    "o",
+    "affiliation",
+    "unscoped-affiliation",
+    "assurance",
+    "Shib-Identity-Provider",
+    "shared-token",
+    "homeOrganization",
+    "homeOrganizationType",
+    "telephoneNumber",
+    "mobileNumber",
+    "eduPersonOrcid",
+]
 
 
 def fake_shibboleth_filter_factory(global_conf):
     def filter(app):
         return FakeShibboleth(app)
+
     return filter
 
 
-class FakeShibboleth(object):
+class FakeShibboleth:
     def __init__(self, app):
         self.app = app
 
     def _query_parameters(self, qs):
-        """Extract the query parameters.
-        """
+        """Extract the query parameters."""
         if isinstance(qs, bytes):
-            qs = qs.decode('utf8')
+            qs = qs.decode("utf8")
         return parse_qs(qs)
 
     def __call__(self, environ, start_response):
         session = environ["beaker.session"]
         params = {}
         request = Request(environ)
-        if not request.path.startswith('/login'):
+        if not request.path.startswith("/login"):
             return self.app(environ, start_response)
 
         # Handle logout
-        if environ['PATH_INFO'] == '/Shibboleth.sso/Logout':
-            params = self._query_parameters(environ.get('QUERY_STRING', ""))
-            referer = environ.get('HTTP_REFERER', "")
+        if environ["PATH_INFO"] == "/Shibboleth.sso/Logout":
+            params = self._query_parameters(environ.get("QUERY_STRING", ""))
+            referer = environ.get("HTTP_REFERER", "")
             if params.get("return"):
                 ret = params["return"][0]
             else:
                 ret = ""
             url = urljoin(referer, ret)
             session.delete()
-            start_response('303 OK', [('Content-type', 'text/html'),
-                                      ('Content-Length', "0"),
-                                      ('Location', url)])
+            start_response(
+                "303 OK",
+                [
+                    ("Content-type", "text/html"),
+                    ("Content-Length", "0"),
+                    ("Location", url),
+                ],
+            )
             return []
 
         # Handle Login
-        if environ['REQUEST_METHOD'] == 'POST' and not session.get("fakeshib"):
+        if environ["REQUEST_METHOD"] == "POST" and not session.get("fakeshib"):
             body = request.get_data()
-            environ['wsgi.input'] = io.BytesIO(body)
+            environ["wsgi.input"] = io.BytesIO(body)
             params = self._query_parameters(body)
         output = []
-        if (environ['REQUEST_METHOD'] == 'POST'
-            and params.get("fakeshib") == ["Shibboleth"]):
+        if environ["REQUEST_METHOD"] == "POST" and params.get("fakeshib") == [
+            "Shibboleth"
+        ]:
             username = params["username"][0]
             session["fakeshib"] = {}
             session["fakeshib"]["persistent-id"] = username
@@ -101,23 +124,27 @@ class FakeShibboleth(object):
 
             # encode shib headers
             for header in shib_headers:
-                if header == 'affiliation':
+                if header == "affiliation":
                     value = random.choice(models.AFFILIATION_VALUES)
-                elif header == 'eduPersonOrcid':
+                elif header == "eduPersonOrcid":
                     if CONF.fake_shib_no_shib_orcid:
                         value = None
                     else:
                         # realistic looking orcid
-                        value = '0000-0000-0001-%s' % \
-                                (''.join(random.choice(string.digits)
-                                         for i in range(4)))
+                        value = "0000-0000-0001-{}".format(
+                            "".join(
+                                random.choice(string.digits) for i in range(4)
+                            )
+                        )
                 else:
                     # include header name in value to make bugs more obvious
-                    value = "%s-%s" % \
-                            (header,
-                             ''.join(random.choice(string.ascii_letters
-                                                   + string.digits)
-                                     for i in range(20)))
+                    value = "{}-{}".format(
+                        header,
+                        "".join(
+                            random.choice(string.ascii_letters + string.digits)
+                            for i in range(20)
+                        ),
+                    )
                 if value:
                     session["fakeshib"][header] = value
             session.save()
@@ -129,8 +156,13 @@ class FakeShibboleth(object):
 
         # Handle not logged in
         output.append(FAKESHIB_FORM)
-        utf8 = [line.encode('utf8') for line in output]
+        utf8 = [line.encode("utf8") for line in output]
         utf8_len = sum(len(line) for line in utf8)
-        start_response('200 OK', [('Content-type', 'text/html; charset=utf-8'),
-                                  ('Content-Length', str(utf8_len))])
+        start_response(
+            "200 OK",
+            [
+                ("Content-type", "text/html; charset=utf-8"),
+                ("Content-Length", str(utf8_len)),
+            ],
+        )
         return utf8

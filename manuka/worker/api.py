@@ -16,10 +16,10 @@ import oslo_messaging
 from manuka.common import rpc
 
 # Current API version
-API_VERSION = '1.1'
+API_VERSION = "1.1"
 
 
-class WorkerAPI(object):
+class WorkerAPI:
     """Worker api
 
     Version history:
@@ -29,14 +29,15 @@ class WorkerAPI(object):
     """
 
     def __init__(self):
-        target = oslo_messaging.Target(topic='manuka-worker',
-                                       version=API_VERSION)
+        target = oslo_messaging.Target(
+            topic="manuka-worker", version=API_VERSION
+        )
         self._client = oslo_messaging.RPCClient(rpc.TRANSPORT, target)
 
     def create_user(self, ctxt, attrs):
-        cctxt = self._client.prepare(version='1.0')
-        cctxt.cast(ctxt, 'create_user', attrs=attrs)
+        cctxt = self._client.prepare(version="1.0")
+        cctxt.cast(ctxt, "create_user", attrs=attrs)
 
     def refresh_orcid(self, ctxt, user_id):
-        cctxt = self._client.prepare(version='1.1')
-        cctxt.cast(ctxt, 'refresh_orcid', user_id=user_id)
+        cctxt = self._client.prepare(version="1.1")
+        cctxt.cast(ctxt, "refresh_orcid", user_id=user_id)

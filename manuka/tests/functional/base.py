@@ -23,18 +23,20 @@ from manuka.extensions import db
 
 
 class TestCase(flask_testing.TestCase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._buses = {}
 
     def create_app(self):
-        return app.create_app({
-            'SECRET_KEY': 'secret',
-            'TESTING': True,
-            'SQLALCHEMY_DATABASE_URI': "sqlite://",
-            'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-        }, conf_file='manuka/tests/etc/manuka.conf')
+        return app.create_app(
+            {
+                "SECRET_KEY": "secret",
+                "TESTING": True,
+                "SQLALCHEMY_DATABASE_URI": "sqlite://",
+                "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            },
+            conf_file="manuka/tests/etc/manuka.conf",
+        )
 
     def setUp(self):
         super().setUp()

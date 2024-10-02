@@ -27,22 +27,21 @@ LOG = logging.getLogger(__name__)
 
 
 class ExternalId(base.Resource):
-
     POLICY_PREFIX = policies.EXTERNAL_ID_PREFIX
 
     def _get_external_id(self, id):
-        return db.session.query(models.ExternalId).filter_by(
-            id=id).first_or_404()
+        return (
+            db.session.query(models.ExternalId).filter_by(id=id).first_or_404()
+        )
 
     def get(self, id):
         external_id = self._get_external_id(id)
 
-        target = {'user_id': external_id.user.keystone_user_id}
+        target = {"user_id": external_id.user.keystone_user_id}
         try:
-            self.authorize('get', target)
+            self.authorize("get", target)
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(
-                404, message="External ID {} doesn't exist".format(id))
+            flask_restful.abort(404, message=f"External ID {id} doesn't exist")
 
         return schemas.external_id.dump(external_id)
 
@@ -50,19 +49,21 @@ class ExternalId(base.Resource):
         external_id = self._get_external_id(id)
 
         data = request.get_json()
-        user_id = data.get('user_id')
+        user_id = data.get("user_id")
         if not user_id:
             flask_restful.abort(400, message="Must specify user_id")
 
-        user = db.session.query(models.User) \
-                         .filter_by(keystone_user_id=user_id).first_or_404()
+        user = (
+            db.session.query(models.User)
+            .filter_by(keystone_user_id=user_id)
+            .first_or_404()
+        )
 
-        target = {'user_id': user.keystone_user_id}
+        target = {"user_id": user.keystone_user_id}
         try:
-            self.authorize('update', target)
+            self.authorize("update", target)
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(404,
-                                message="User {} dosn't exist".format(id))
+            flask_restful.abort(404, message=f"User {id} dosn't exist")
 
         external_id.user = user
         db.session.add(external_id)
@@ -71,12 +72,11 @@ class ExternalId(base.Resource):
 
     def delete(self, id):
         try:
-            self.authorize('delete')
+            self.authorize("delete")
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(
-                404, message="External ID {} doesn't exist".format(id))
+            flask_restful.abort(404, message=f"External ID {id} doesn't exist")
 
         external_id = self._get_external_id(id)
         db.session.delete(external_id)
         db.session.commit()
-        return '', 204
+        return "", 204

@@ -25,23 +25,20 @@ LOG = logging.getLogger(__name__)
 
 
 class UserByName(base.Resource):
-
     POLICY_PREFIX = policies.KEYSTONE_PREFIX
 
     def get(self, username):
         try:
-            self.authorize('get_by_name')
+            self.authorize("get_by_name")
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(404,
-                                message="User {} doesn't exist".format(id))
+            flask_restful.abort(404, message=f"User {id} doesn't exist")
 
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
         users = client.users.list(name=username)
         if len(users) == 0:
-            flask_restful.abort(404,
-                                message="User {} doesn't exist".format(id))
+            flask_restful.abort(404, message=f"User {id} doesn't exist")
         elif len(users) > 1:
             raise flask_restful.abort(409, message="Multiple users exist")
         else:

@@ -12,21 +12,20 @@
 #    under the License.
 
 
-EMAIL = 'test@example.com'
+EMAIL = "test@example.com"
 DISPLAYNAME = "john smith"
 ID = "1324"
-IDP = 'https://test.idp'
+IDP = "https://test.idp"
 
 
-class TestShibWrapper(object):
-
+class TestShibWrapper:
     def __init__(self, app, mail=EMAIL):
         self.app = app
         self.mail = mail
 
     def __call__(self, environ, start_response):
-        environ['mail'] = self.mail
-        environ['displayName'] = DISPLAYNAME
-        environ['persistent-id'] = ID
-        environ['Shib-Identity-Provider'] = IDP
+        environ["mail"] = self.mail
+        environ["displayName"] = DISPLAYNAME
+        environ["persistent-id"] = ID
+        environ["Shib-Identity-Provider"] = IDP
         return self.app(environ, start_response)

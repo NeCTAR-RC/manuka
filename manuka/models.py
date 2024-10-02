@@ -29,9 +29,16 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-AFFILIATION_VALUES = ["faculty", "student", "staff",
-                      "employee", "member", "affiliate",
-                      "alum", "library-walk-in"]
+AFFILIATION_VALUES = [
+    "faculty",
+    "student",
+    "staff",
+    "employee",
+    "member",
+    "affiliate",
+    "alum",
+    "library-walk-in",
+]
 
 
 class User(db.Model):
@@ -52,8 +59,12 @@ class User(db.Model):
     organisation = db.Column(db.String(250))
     orcid = db.Column(db.String(64))
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
-    external_ids = db.relationship("ExternalId", back_populates="user",
-                                   lazy='joined', cascade="all,delete")
+    external_ids = db.relationship(
+        "ExternalId",
+        back_populates="user",
+        lazy="joined",
+        cascade="all,delete",
+    )
     expiry_status = db.Column(db.String(64))
     expiry_next_step = db.Column(db.Date())
 
@@ -91,17 +102,17 @@ class DomainIdpMapping(db.Model):
         self.last_seen = datetime.datetime.now()
 
 
-def keystone_authenticate(db_user, project_id=None,
-                          set_username_as_email=False):
-    """Authenticate a user as their default project.
-    """
+def keystone_authenticate(
+    db_user, project_id=None, set_username_as_email=False
+):
+    """Authenticate a user as their default project."""
     k_session = keystone.KeystoneSession()
     client = clients.get_admin_keystoneclient(k_session.get_session())
     user = client.users.get(db_user.keystone_user_id)
     domain = client.domains.get(user.domain_id)
 
     if not user.enabled:
-        if getattr(user, 'inactive', False):
+        if getattr(user, "inactive", False):
             LOG.info("Activating inactive user %s", db_user.keystone_user_id)
             client.users.update(user, enabled=True, inactive=False)
         else:
@@ -110,13 +121,15 @@ def keystone_authenticate(db_user, project_id=None,
 
     user = sync_keystone_user(client, db_user, user, set_username_as_email)
 
-    kwargs = {'username': user.name,
-              'password': CONF.keystone.authenticate_password,
-              'auth_url': CONF.keystone.auth_url,
-              'user_domain_name': domain.name,
-              'project_domain_name': 'Default'}
+    kwargs = {
+        "username": user.name,
+        "password": CONF.keystone.authenticate_password,
+        "auth_url": CONF.keystone.auth_url,
+        "user_domain_name": domain.name,
+        "project_domain_name": "Default",
+    }
     if project_id:
-        kwargs['project_id'] = project_id
+        kwargs["project_id"] = project_id
 
     user_auth = v3.Password(**kwargs)
     user_session = session.Session(auth=user_auth)
@@ -128,21 +141,24 @@ def keystone_authenticate(db_user, project_id=None,
     return token, projects[0].id, user
 
 
-def sync_keystone_user(client, db_user, keystone_user,
-                       set_username_as_email=False):
-    """Syncs attributes from manuka user -> keystone user
-        """
+def sync_keystone_user(
+    client, db_user, keystone_user, set_username_as_email=False
+):
+    """Syncs attributes from manuka user -> keystone user"""
     update_attrs = {}
 
     if db_user.email != keystone_user.email:
-        update_attrs['email'] = db_user.email
-    if db_user.displayname != getattr(keystone_user, 'full_name', None):
-        update_attrs['full_name'] = db_user.displayname
+        update_attrs["email"] = db_user.email
+    if db_user.displayname != getattr(keystone_user, "full_name", None):
+        update_attrs["full_name"] = db_user.displayname
     if set_username_as_email:
-        update_attrs['name'] = db_user.email
+        update_attrs["name"] = db_user.email
     if update_attrs:
-        LOG.info("Updating keystone user %s with %s", keystone_user.name,
-                 update_attrs)
+        LOG.info(
+            "Updating keystone user %s with %s",
+            keystone_user.name,
+            update_attrs,
+        )
         keystone_user = client.users.update(keystone_user.id, **update_attrs)
     return keystone_user
 
@@ -156,8 +172,8 @@ def create_db_user(shib_attrs):
     """
     # add db user
     db_user = User()
-    external_id = ExternalId(db_user, shib_attrs['id'], shib_attrs)
-    external_id.idp = shib_attrs.get('idp')
+    external_id = ExternalId(db_user, shib_attrs["id"], shib_attrs)
+    external_id.idp = shib_attrs.get("idp")
     db.session.add(db_user)
     db.session.add(external_id)
     db.session.commit()
@@ -165,13 +181,13 @@ def create_db_user(shib_attrs):
 
 
 def _normalize(value):
-    '''Normalize a string
+    """Normalize a string
 
     Removes leading / trailing whitespace and converts empty
     strings to None.
 
     Return the normalized string.
-    '''
+    """
     if value is None:
         return None
     value = value.strip()
@@ -179,7 +195,7 @@ def _normalize(value):
 
 
 def _merge_info_values(external_id, shib_attrs, name, current):
-    '''Merge non-core user info attributes from 3 sources
+    """Merge non-core user info attributes from 3 sources
 
     The sources are the attributes provided by the IDP this time
     (in shib_attrs), the attributes provided by the IDP last time
@@ -187,7 +203,7 @@ def _merge_info_values(external_id, shib_attrs, name, current):
     database (current), which may or may not be user supplied.
 
     Return the normalized and merged value to go into the database
-    '''
+    """
     shib_current = _normalize(shib_attrs.get(name))
     # (On a new registration, there won't be any previous shib attrs)
     prev_attrs = external_id.attributes or {}
@@ -201,8 +217,13 @@ def _merge_info_values(external_id, shib_attrs, name, current):
         # Attribute was not previously provided by IDP.  Override what
         # the user may have supplied with the new IDP value
         if current and current != shib_current:
-            LOG.info("IDP overrode attribute %s for user %s: '%s' -> '%s'",
-                     name, shib_attrs['fullname'], current, shib_current)
+            LOG.info(
+                "IDP overrode attribute %s for user %s: '%s' -> '%s'",
+                name,
+                shib_attrs["fullname"],
+                current,
+                shib_current,
+            )
         return shib_current
     elif current is None:
         # New attribute which we haven't previously recorded a value for.
@@ -214,8 +235,13 @@ def _merge_info_values(external_id, shib_attrs, name, current):
     else:
         # Existing IDP supplied attribute that has been changed by IDP.
         # Replace user override.
-        LOG.info("IDP changed attribute %s for user %s: '%s' -> '%s'",
-                 name, shib_attrs['fullname'], shib_previous, shib_current)
+        LOG.info(
+            "IDP changed attribute %s for user %s: '%s' -> '%s'",
+            name,
+            shib_attrs["fullname"],
+            shib_previous,
+            shib_current,
+        )
         return shib_current
 
 
@@ -225,37 +251,40 @@ def update_db_user(db_user, external_id, shib_attrs):
     """
     db_user.displayname = shib_attrs["fullname"]
     db_user.email = shib_attrs["mail"]
-    db_user.first_name = _merge_info_values(external_id, shib_attrs,
-                                              'firstname',
-                                              db_user.first_name)
-    db_user.surname = _merge_info_values(external_id, shib_attrs,
-                                           'surname',
-                                           db_user.surname)
-    db_user.phone_number = _merge_info_values(external_id, shib_attrs,
-                                                'telephonenumber',
-                                                db_user.phone_number)
-    db_user.mobile_number = _merge_info_values(external_id, shib_attrs,
-                                                 'mobilenumber',
-                                                 db_user.mobile_number)
-    db_user.organisation = \
-        _merge_info_values(external_id, shib_attrs,
-                           'organisation',
-                           db_user.organisation)
-    db_user.orcid = _merge_info_values(external_id, shib_attrs,
-                                         'orcid',
-                                         db_user.orcid)
+    db_user.first_name = _merge_info_values(
+        external_id, shib_attrs, "firstname", db_user.first_name
+    )
+    db_user.surname = _merge_info_values(
+        external_id, shib_attrs, "surname", db_user.surname
+    )
+    db_user.phone_number = _merge_info_values(
+        external_id, shib_attrs, "telephonenumber", db_user.phone_number
+    )
+    db_user.mobile_number = _merge_info_values(
+        external_id, shib_attrs, "mobilenumber", db_user.mobile_number
+    )
+    db_user.organisation = _merge_info_values(
+        external_id, shib_attrs, "organisation", db_user.organisation
+    )
+    db_user.orcid = _merge_info_values(
+        external_id, shib_attrs, "orcid", db_user.orcid
+    )
     # Question: do we want to deal with affiliation differently?
     # For example, in the case where the IDP says "member" we
     # want the user to be able to say "staff" or "student" or ...
-    db_user.affiliation = _merge_info_values(external_id, shib_attrs,
-                                               'affiliation',
-                                               db_user.affiliation)
+    db_user.affiliation = _merge_info_values(
+        external_id, shib_attrs, "affiliation", db_user.affiliation
+    )
     if db_user.affiliation not in AFFILIATION_VALUES:
         # This could happen if the IDP (real or test) gives us bogus
         # affiliation values.
-        LOG.info("Fixed bad affiliation for user %s: '%s' -> '%s'",
-                 db_user.displayname, db_user.affiliation, 'member')
-        db_user.affiliation = 'member'
+        LOG.info(
+            "Fixed bad affiliation for user %s: '%s' -> '%s'",
+            db_user.displayname,
+            db_user.affiliation,
+            "member",
+        )
+        db_user.affiliation = "member"
 
     external_id.attributes = shib_attrs
 

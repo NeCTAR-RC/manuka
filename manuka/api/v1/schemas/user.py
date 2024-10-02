@@ -16,31 +16,34 @@ from manuka import models
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
-
-    id = ma.auto_field(column_name='keystone_user_id')
+    id = ma.auto_field(column_name="keystone_user_id")
     external_ids = ma.Nested("ExternalIdSchema", many=True)
 
     class Meta:
         model = models.User
         load_instance = True
         include_relationships = True
-        exclude = ('keystone_user_id',)
+        exclude = ("keystone_user_id",)
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
-
-    id = ma.auto_field(column_name='keystone_user_id')
+    id = ma.auto_field(column_name="keystone_user_id")
 
     class Meta:
         model = models.User
         load_instance = True
-        fields = ('orcid', 'affiliation', 'ignore_username_not_email',
-                  'mobile_number', 'phone_number', 'expiry_status',
-                  'expiry_next_step',)
+        fields = (
+            "orcid",
+            "affiliation",
+            "ignore_username_not_email",
+            "mobile_number",
+            "phone_number",
+            "expiry_status",
+            "expiry_next_step",
+        )
 
 
 class PendingUserSchema(ma.SQLAlchemyAutoSchema):
-
     external_ids = ma.Nested("ExternalIdSchema", many=True)
 
     class Meta:
@@ -50,12 +53,16 @@ class PendingUserSchema(ma.SQLAlchemyAutoSchema):
 
 
 class PendingUserUpdateSchema(ma.SQLAlchemyAutoSchema):
-
     class Meta:
         model = models.User
         load_instance = True
-        fields = ('orcid', 'affiliation', 'ignore_username_not_email',
-                  'mobile_number', 'phone_number')
+        fields = (
+            "orcid",
+            "affiliation",
+            "ignore_username_not_email",
+            "mobile_number",
+            "phone_number",
+        )
 
 
 user = UserSchema()

@@ -27,24 +27,27 @@ from manuka.tests.unit import fake_shib
 
 
 class TestCase(flask_testing.TestCase):
-
     def create_app(self):
-        return app.create_app({
-            'SECRET_KEY': 'secret',
-            'TESTING': True,
-            'SQLALCHEMY_DATABASE_URI': "sqlite://",
-            'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-        }, conf_file='manuka/tests/etc/manuka.conf')
+        return app.create_app(
+            {
+                "SECRET_KEY": "secret",
+                "TESTING": True,
+                "SQLALCHEMY_DATABASE_URI": "sqlite://",
+                "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            },
+            conf_file="manuka/tests/etc/manuka.conf",
+        )
 
     def setUp(self):
         super().setUp()
         self.addCleanup(mock.patch.stopall)
         db.create_all()
         self.shib_attrs = {
-            'mail': fake_shib.EMAIL,
-            'fullname': fake_shib.DISPLAYNAME,
-            'idp': fake_shib.IDP,
-            'id': fake_shib.ID}
+            "mail": fake_shib.EMAIL,
+            "fullname": fake_shib.DISPLAYNAME,
+            "idp": fake_shib.IDP,
+            "id": fake_shib.ID,
+        }
 
     def tearDown(self):
         super().tearDown()
@@ -53,28 +56,35 @@ class TestCase(flask_testing.TestCase):
         cfg.CONF.reset()
         extensions.api.resources = []
 
-    def make_db_user(self, state='new', agreed_terms=True,
-                     email='test@example.com', id=1324,
-                     displayname='test user', keystone_user_id=0,
-                     orcid='testorcid', expiry_status=None,
-                     expiry_next_step=None):
+    def make_db_user(
+        self,
+        state="new",
+        agreed_terms=True,
+        email="test@example.com",
+        id=1324,
+        displayname="test user",
+        keystone_user_id=0,
+        orcid="testorcid",
+        expiry_status=None,
+        expiry_next_step=None,
+    ):
         # create registered user
         db_user = models.User()
         db_user.id = id
         db_user.expiry_status = expiry_status
         db_user.expiry_next_step = expiry_next_step
         if keystone_user_id == 0:
-            db_user.keystone_user_id = "ksid-%s" % id
+            db_user.keystone_user_id = f"ksid-{id}"
         else:
             db_user.keystone_user_id = keystone_user_id
         db_user.email = email
         db_user.displayname = displayname
 
-        if agreed_terms and state != 'new':
+        if agreed_terms and state != "new":
             date_now = datetime.now()
             db_user.registered_at = date_now
             db_user.terms_accepted_at = date_now
-            db_user.terms_version = 'v1'
+            db_user.terms_version = "v1"
         else:
             db_user.registered_at = None
             db_user.terms_accepted_at = None
@@ -98,7 +108,7 @@ class TestCase(flask_testing.TestCase):
         else:
             self.assertEqual(len(eids), len(api_eids))
             db_idps = [e.idp for e in eids]
-            api_idps = [e['idp'] for e in api_eids]
+            api_idps = [e["idp"] for e in api_eids]
             self.assertEqual(db_idps, api_idps)
 
     def assertUserEqual(self, user, api_user, keystone_id_as_id=True):
@@ -107,17 +117,18 @@ class TestCase(flask_testing.TestCase):
         else:
             user_dict = user.__dict__
             if keystone_id_as_id:
-                user_dict['id'] = user_dict.pop('keystone_user_id')
+                user_dict["id"] = user_dict.pop("keystone_user_id")
         for key, value in api_user.items():
-            if key == 'external_ids':
+            if key == "external_ids":
                 self.assertExternalIdsEqual(user.external_ids, value)
             else:
                 user_value = user_dict.get(key)
                 if isinstance(user_value, datetime):
-                    user_value = user_value.strftime('%Y-%m-%dT%H:%M:%S.%f')
+                    user_value = user_value.strftime("%Y-%m-%dT%H:%M:%S.%f")
 
-                self.assertEqual(user_value, value,
-                                 msg="%s attribute not equal" % key)
+                self.assertEqual(
+                    user_value, value, msg=f"{key} attribute not equal"
+                )
 
     def assertExternalIdEqual(self, external_id, api_external_id):
         if external_id is None:
@@ -125,31 +136,33 @@ class TestCase(flask_testing.TestCase):
         else:
             external_id_dict = external_id.__dict__
         for key, value in api_external_id.items():
-            self.assertEqual(external_id_dict.get(key), value,
-                             msg="%s attribute not equal" % key)
+            self.assertEqual(
+                external_id_dict.get(key),
+                value,
+                msg=f"{key} attribute not equal",
+            )
 
 
 USER_ID = 999
-KEYSTONE_USER_ID = 'ksid-999'
+KEYSTONE_USER_ID = "ksid-999"
 
 
-class TestKeystoneWrapper(object):
-
+class TestKeystoneWrapper:
     def __init__(self, app, roles):
         self.app = app
         self.roles = roles
 
     def __call__(self, environ, start_response):
-        cntx = context.RequestContext(roles=self.roles,
-                                      user_id=KEYSTONE_USER_ID)
+        cntx = context.RequestContext(
+            roles=self.roles, user_id=KEYSTONE_USER_ID
+        )
         environ[keystone.REQUEST_CONTEXT_ENV] = cntx
 
         return self.app(environ, start_response)
 
 
 class ApiTestCase(TestCase):
-
-    ROLES = ['admin']
+    ROLES = ["admin"]
 
     def setUp(self):
         super().setUp()

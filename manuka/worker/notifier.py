@@ -26,21 +26,18 @@ LOG = logging.getLogger(__name__)
 
 def send_message(session, email, context, template, subject):
     notifier = stevedore_driver.DriverManager(
-                namespace='manuka.notifier',
-                name=CONF.notifier,
-                invoke_on_load=True
-            ).driver
+        namespace="manuka.notifier", name=CONF.notifier, invoke_on_load=True
+    ).driver
 
     return notifier.send_message(session, email, context, template, subject)
 
 
-class BaseNotifier(object):
-
+class BaseNotifier:
     @staticmethod
     def render_template(tmpl, context={}):
-        template_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                     '../',
-                                                     'templates'))
+        template_dir = os.path.realpath(
+            os.path.join(os.path.dirname(__file__), "../", "templates")
+        )
         LOG.debug(f"Using template_dir {template_dir}")
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
         template = env.get_template(tmpl)
@@ -49,18 +46,17 @@ class BaseNotifier(object):
 
 
 class TaynacNotifier(BaseNotifier):
-
     def send_message(self, session, email, context, template, subject):
-        client = taynac_client.Client('1', session=session)
+        client = taynac_client.Client("1", session=session)
         body = self.render_template(template, context)
-        message = client.messages.send(recipient=email, subject=subject,
-                                       body=body)
+        message = client.messages.send(
+            recipient=email, subject=subject, body=body
+        )
         LOG.info(f"Created message {message}, requester={email}")
         return message
 
 
 class LoggingNotifier(BaseNotifier):
-
     def send_message(self, session, email, context, template, subject):
         body = self.render_template(template, context)
         LOG.info("Would send email to %s", email)

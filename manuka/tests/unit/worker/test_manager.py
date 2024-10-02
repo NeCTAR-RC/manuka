@@ -25,34 +25,35 @@ from manuka.worker import manager as worker_manager
 CONF = cfg.CONF
 
 
-@mock.patch('freshdesk.v2.api.API')
-@mock.patch('manuka.common.clients.get_admin_keystoneclient')
-@mock.patch('manuka.app.create_app')
+@mock.patch("freshdesk.v2.api.API")
+@mock.patch("manuka.common.clients.get_admin_keystoneclient")
+@mock.patch("manuka.app.create_app")
 class TestManager(base.TestCase):
-
-    @mock.patch('manuka.models.keystone_authenticate')
-    @mock.patch('manuka.worker.manager.utils')
-    def test_create_user(self, mock_utils, mock_ks_auth,
-                         mock_app, mock_keystone, mock_fd):
-
+    @mock.patch("manuka.models.keystone_authenticate")
+    @mock.patch("manuka.worker.manager.utils")
+    def test_create_user(
+        self, mock_utils, mock_ks_auth, mock_app, mock_keystone, mock_fd
+    ):
         swift_quota = 10
-        CONF.set_override('default_quota_gb', swift_quota, 'swift')
+        CONF.set_override("default_quota_gb", swift_quota, "swift")
 
         client = mock_keystone.return_value
-        mock_fd.return_value.contacts.create_contact.return_value = \
-            mock.Mock(id=123, name=self.shib_attrs['fullname'],
-                      email=self.shib_attrs['mail'])
+        mock_fd.return_value.contacts.create_contact.return_value = mock.Mock(
+            id=123,
+            name=self.shib_attrs["fullname"],
+            email=self.shib_attrs["mail"],
+        )
 
         project = mock_utils.create_project.return_value
-        project.id = 'ksp-123'
+        project.id = "ksp-123"
         user = mock_utils.create_user.return_value
-        user.id = 'ksu-123'
+        user.id = "ksu-123"
         domain = mock_utils.get_domain_for_idp.return_value
         db_user, external_id = self.make_db_user()
         db_user_id = db_user.id
-        self.shib_attrs['idp'] = 'fake-idp'
+        self.shib_attrs["idp"] = "fake-idp"
 
-        token = 'token'
+        token = "token"
         mock_ks_auth.return_value = (token, project.id, user)
 
         manager = worker_manager.Manager()
@@ -61,67 +62,76 @@ class TestManager(base.TestCase):
         db_user = db.session.query(models.User).get(db_user_id)
 
         mock_utils.get_domain_for_idp.assert_called_once_with(
-            self.shib_attrs['idp'])
+            self.shib_attrs["idp"]
+        )
 
         mock_utils.create_project.assert_called_once_with(
             client,
-            "pt-%s" % db_user.id,
-            "%s's project trial." % self.shib_attrs['fullname'],
-            domain)
+            f"pt-{db_user.id}",
+            "{}'s project trial.".format(self.shib_attrs["fullname"]),
+            domain,
+        )
 
         mock_utils.create_user.assert_called_once_with(
             client,
-            self.shib_attrs['mail'],
-            self.shib_attrs['mail'],
+            self.shib_attrs["mail"],
+            self.shib_attrs["mail"],
             project,
-            self.shib_attrs['fullname'])
+            self.shib_attrs["fullname"],
+        )
 
         mock_fd.return_value.contacts.create_contact.assert_called_with(
-            name=self.shib_attrs['fullname'],
-            email=self.shib_attrs['mail'])
+            name=self.shib_attrs["fullname"], email=self.shib_attrs["mail"]
+        )
 
         mock_utils.add_user_roles.assert_called_once_with(
-            client,
-            project=project,
-            user=user,
-            roles=['member'])
+            client, project=project, user=user, roles=["member"]
+        )
 
         self.assertEqual(user.id, db_user.keystone_user_id)
-        self.assertEqual('created', db_user.state)
+        self.assertEqual("created", db_user.state)
 
         mock_utils.send_welcome_email.assert_called_once_with(
-            mock.ANY, user, project)
+            mock.ANY, user, project
+        )
 
         mock_utils.add_security_groups.assert_called_once_with(
-            user.id, project.id, token)
-        mock_utils.set_nova_quota.assert_called_once_with(
-            mock.ANY, project.id)
+            user.id, project.id, token
+        )
+        mock_utils.set_nova_quota.assert_called_once_with(mock.ANY, project.id)
         mock_utils.set_swift_quota.assert_called_once_with(
-            mock.ANY, project.id, swift_quota)
+            mock.ANY, project.id, swift_quota
+        )
 
-    @mock.patch('manuka.worker.manager.notifier')
-    @mock.patch('manuka.models.keystone_authenticate')
-    @mock.patch('manuka.worker.manager.utils')
-    def test_create_user_duplicate(self, mock_utils, mock_ks_auth,
-                                   mock_notifier, mock_app, mock_keystone,
-                                   mock_fd):
-
+    @mock.patch("manuka.worker.manager.notifier")
+    @mock.patch("manuka.models.keystone_authenticate")
+    @mock.patch("manuka.worker.manager.utils")
+    def test_create_user_duplicate(
+        self,
+        mock_utils,
+        mock_ks_auth,
+        mock_notifier,
+        mock_app,
+        mock_keystone,
+        mock_fd,
+    ):
         swift_quota = 10
-        CONF.set_override('default_quota_gb', swift_quota, 'swift')
+        CONF.set_override("default_quota_gb", swift_quota, "swift")
 
         client = mock_keystone.return_value
 
         project = mock_utils.create_project.return_value
-        project.id = 'ksp-123'
-        user = mock_utils.create_user.side_effect = \
+        project.id = "ksp-123"
+        user = mock_utils.create_user.side_effect = (
             keystoneauth1.exceptions.http.Conflict
-        user.id = 'ksu-123'
+        )
+        user.id = "ksu-123"
         domain = mock_utils.get_domain_for_idp.return_value
         db_user, external_id = self.make_db_user()
         db_user_id = db_user.id
-        self.shib_attrs['idp'] = 'fake-idp'
+        self.shib_attrs["idp"] = "fake-idp"
 
-        token = 'token'
+        token = "token"
         mock_ks_auth.return_value = (token, project.id, user)
 
         manager = worker_manager.Manager()
@@ -131,38 +141,41 @@ class TestManager(base.TestCase):
         db_user = db.session.query(models.User).get(db_user_id)
 
         mock_utils.get_domain_for_idp.assert_called_once_with(
-            self.shib_attrs['idp'])
+            self.shib_attrs["idp"]
+        )
 
         mock_utils.create_project.assert_called_once_with(
             client,
-            "pt-%s" % db_user.id,
-            "%s's project trial." % self.shib_attrs['fullname'],
-            domain)
+            f"pt-{db_user.id}",
+            "{}'s project trial.".format(self.shib_attrs["fullname"]),
+            domain,
+        )
 
         mock_utils.create_user.assert_called_once_with(
             client,
-            self.shib_attrs['mail'],
-            self.shib_attrs['mail'],
+            self.shib_attrs["mail"],
+            self.shib_attrs["mail"],
             project,
-            self.shib_attrs['fullname'])
+            self.shib_attrs["fullname"],
+        )
 
         mock_fd.return_value.contacts.create_contact.assert_not_called()
 
         mock_notifier.send_message.assert_called_once_with(
             session=mock.ANY,
-            email=self.shib_attrs['mail'],
-            context={'user': self.shib_attrs},
-            template='duplicate_account.tmpl',
-            subject='Nectar Cloud login issue')
+            email=self.shib_attrs["mail"],
+            context={"user": self.shib_attrs},
+            template="duplicate_account.tmpl",
+            subject="Nectar Cloud login issue",
+        )
 
         mock_utils.add_user_roles.assert_not_called()
-        self.assertEqual('duplicate', db_user.state)
+        self.assertEqual("duplicate", db_user.state)
 
-    @mock.patch('manuka.worker.manager.utils')
+    @mock.patch("manuka.worker.manager.utils")
     def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone, mock_fd):
         manager = worker_manager.Manager()
         mock_utils.refresh_orcid.return_value = True
         db_user, external_id = self.make_db_user()
         manager.refresh_orcid(db_user.id)
-        mock_utils.refresh_orcid.assert_called_once_with(
-            db_user)
+        mock_utils.refresh_orcid.assert_called_once_with(db_user)

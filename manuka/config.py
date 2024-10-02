@@ -26,107 +26,92 @@ LOG = logging.getLogger(__name__)
 
 
 default_opts = [
-    cfg.StrOpt('terms_version',
-               default='v1'),
-    cfg.StrOpt('support_url'),
-    cfg.StrOpt('host',
-               default=socket.gethostname()),
-    cfg.StrOpt('idp_domain_mapping_dir',
-               default='/etc/manuka/idp_domain_mappings'),
-    cfg.StrOpt('default_target'),
-    cfg.ListOpt('whitelist'),
-    cfg.BoolOpt('fake_shib', default=False),
-    cfg.BoolOpt('fake_shib_no_shib_orcid', default=False),
-    cfg.StrOpt('auth_strategy', default='keystone',
-               choices=['noauth',
-                        'keystone',
-                        'testing'],
-               help="The auth strategy for API requests."),
-    cfg.StrOpt('notifier', default='taynac',
-               choices=['taynac', 'logging'],
-               help="Notifier to use"),
-    cfg.StrOpt('project_prefix', default='pt-'),
+    cfg.StrOpt("terms_version", default="v1"),
+    cfg.StrOpt("support_url"),
+    cfg.StrOpt("host", default=socket.gethostname()),
+    cfg.StrOpt(
+        "idp_domain_mapping_dir", default="/etc/manuka/idp_domain_mappings"
+    ),
+    cfg.StrOpt("default_target"),
+    cfg.ListOpt("whitelist"),
+    cfg.BoolOpt("fake_shib", default=False),
+    cfg.BoolOpt("fake_shib_no_shib_orcid", default=False),
+    cfg.StrOpt(
+        "auth_strategy",
+        default="keystone",
+        choices=["noauth", "keystone", "testing"],
+        help="The auth strategy for API requests.",
+    ),
+    cfg.StrOpt(
+        "notifier",
+        default="taynac",
+        choices=["taynac", "logging"],
+        help="Notifier to use",
+    ),
+    cfg.StrOpt("project_prefix", default="pt-"),
 ]
 
 flask_opts = [
-    cfg.StrOpt('secret_key',
-               secret=True),
-    cfg.StrOpt('host',
-               default='0.0.0.0'),
-    cfg.IntOpt('port',
-               default=5000),
+    cfg.StrOpt("secret_key", secret=True),
+    cfg.StrOpt("host", default="0.0.0.0"),
+    cfg.IntOpt("port", default=5000),
 ]
 
 database_opts = [
-    cfg.StrOpt('connection'),
-    cfg.IntOpt('connection_recycle_time',
-               default=600),
+    cfg.StrOpt("connection"),
+    cfg.IntOpt("connection_recycle_time", default=600),
 ]
 
 worker_opts = [
-    cfg.IntOpt('workers',
-               default=1),
+    cfg.IntOpt("workers", default=1),
 ]
 
 swift_opts = [
-    cfg.IntOpt('default_quota_gb',
-               default=None),
-    cfg.StrOpt('region_name'),
+    cfg.IntOpt("default_quota_gb", default=None),
+    cfg.StrOpt("region_name"),
 ]
 
 keystone_opts = [
-    cfg.StrOpt('authenticate_password',
-               secret=True,
-               default=None),
-    cfg.StrOpt('auth_url'),
+    cfg.StrOpt("authenticate_password", secret=True, default=None),
+    cfg.StrOpt("auth_url"),
 ]
 
 freshdesk_opts = [
-    cfg.StrOpt('domain'),
-    cfg.StrOpt('key', secret=True),
+    cfg.StrOpt("domain"),
+    cfg.StrOpt("key", secret=True),
 ]
 
 orcid_opts = [
-    cfg.StrOpt('key'),
-    cfg.StrOpt('secret',
-               secret=True),
-    cfg.BoolOpt('sandbox',
-                default=False),
-    cfg.IntOpt('max_retries',
-               default=5),
-    cfg.IntOpt('retry_delay',
-               default=5),
-    cfg.IntOpt('timeout',
-               default=30),
-    cfg.StrOpt('http_proxy',
-               default=None),
-    cfg.StrOpt('https_proxy',
-               default=None),
+    cfg.StrOpt("key"),
+    cfg.StrOpt("secret", secret=True),
+    cfg.BoolOpt("sandbox", default=False),
+    cfg.IntOpt("max_retries", default=5),
+    cfg.IntOpt("retry_delay", default=5),
+    cfg.IntOpt("timeout", default=30),
+    cfg.StrOpt("http_proxy", default=None),
+    cfg.StrOpt("https_proxy", default=None),
 ]
 
 
-cfg.CONF.register_opts(orcid_opts, group='orcid')
-cfg.CONF.register_opts(keystone_opts, group='keystone')
-cfg.CONF.register_opts(swift_opts, group='swift')
-cfg.CONF.register_opts(worker_opts, group='worker')
-cfg.CONF.register_opts(database_opts, group='database')
-cfg.CONF.register_opts(flask_opts, group='flask')
-cfg.CONF.register_opts(freshdesk_opts, group='freshdesk')
+cfg.CONF.register_opts(orcid_opts, group="orcid")
+cfg.CONF.register_opts(keystone_opts, group="keystone")
+cfg.CONF.register_opts(swift_opts, group="swift")
+cfg.CONF.register_opts(worker_opts, group="worker")
+cfg.CONF.register_opts(database_opts, group="database")
+cfg.CONF.register_opts(flask_opts, group="flask")
+cfg.CONF.register_opts(freshdesk_opts, group="freshdesk")
 cfg.CONF.register_opts(default_opts)
 
 logging.register_options(cfg.CONF)
 
-oslo_messaging.set_transport_defaults(control_exchange='manuka')
+oslo_messaging.set_transport_defaults(control_exchange="manuka")
 
-ks_loading.register_auth_conf_options(cfg.CONF, 'service_auth')
-ks_loading.register_session_conf_options(cfg.CONF, 'service_auth')
+ks_loading.register_auth_conf_options(cfg.CONF, "service_auth")
+ks_loading.register_session_conf_options(cfg.CONF, "service_auth")
 
 
-def init(args=[], conf_file='/etc/manuka/manuka.conf'):
-    cfg.CONF(
-        args,
-        project='manuka',
-        default_config_files=[conf_file])
+def init(args=[], conf_file="/etc/manuka/manuka.conf"):
+    cfg.CONF(args, project="manuka", default_config_files=[conf_file])
 
 
 def setup_logging(conf):
@@ -145,24 +130,24 @@ def setup_logging(conf):
 # https://docs.openstack.org/oslo.config/latest/cli/generator.html
 def list_opts():
     return [
-        ('DEFAULT', default_opts),
-        ('orcid', orcid_opts),
-        ('keystone', keystone_opts),
-        ('swift', swift_opts),
-        ('worker', worker_opts),
-        ('database', database_opts),
-        ('flask', flask_opts),
-        ('freshdesk', freshdesk_opts),
+        ("DEFAULT", default_opts),
+        ("orcid", orcid_opts),
+        ("keystone", keystone_opts),
+        ("swift", swift_opts),
+        ("worker", worker_opts),
+        ("database", database_opts),
+        ("flask", flask_opts),
+        ("freshdesk", freshdesk_opts),
         add_auth_opts(),
     ]
 
 
 def add_auth_opts():
-    opts = ks_loading.register_session_conf_options(cfg.CONF, 'service_auth')
+    opts = ks_loading.register_session_conf_options(cfg.CONF, "service_auth")
     opt_list = copy.deepcopy(opts)
     opt_list.insert(0, ks_loading.get_auth_common_conf_options()[0])
-    for plugin_option in ks_loading.get_auth_plugin_conf_options('password'):
+    for plugin_option in ks_loading.get_auth_plugin_conf_options("password"):
         if all(option.name != plugin_option.name for option in opt_list):
             opt_list.append(plugin_option)
-    opt_list.sort(key=operator.attrgetter('name'))
-    return ('service_auth', opt_list)
+    opt_list.sort(key=operator.attrgetter("name"))
+    return ("service_auth", opt_list)

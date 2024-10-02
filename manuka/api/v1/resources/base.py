@@ -23,7 +23,6 @@ API_LIMIT = 1000
 
 
 class Resource(flask_restful.Resource):
-
     def authorize(self, rule, target={}, do_raise=True):
         rule = self.POLICY_PREFIX % rule
         enforcer = policy.get_enforcer()
@@ -34,15 +33,16 @@ class Resource(flask_restful.Resource):
         return flask.request.environ.get(keystone.REQUEST_CONTEXT_ENV, None)
 
     def paginate(self, query, args):
-        limit = args.get('limit')
+        limit = args.get("limit")
         if limit is None:
             limit = API_LIMIT
 
         items = query.paginate(per_page=limit)
-        response = {'results': self.schema.dump(items.items),
-                    'total': items.total}
+        response = {
+            "results": self.schema.dump(items.items),
+            "total": items.total,
+        }
 
         if items.has_next:
-            response['next'] = "%s?page=%s" % (request.base_url,
-                                               items.next_num)
+            response["next"] = f"{request.base_url}?page={items.next_num}"
         return response

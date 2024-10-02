@@ -26,14 +26,16 @@ from manuka.common import orcid_client
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
-NOVA_VERSION = '2.60'
+NOVA_VERSION = "2.60"
 
 
 def get_session(token, project_id):
-    auth = v3.Token(token=token,
-                    auth_url=CONF.keystone.auth_url,
-                    project_id=project_id,
-                    project_domain_id='default')
+    auth = v3.Token(
+        token=token,
+        auth_url=CONF.keystone.auth_url,
+        project_id=project_id,
+        project_domain_id="default",
+    )
     return session.Session(auth=auth)
 
 
@@ -58,12 +60,14 @@ def get_admin_nova_client(sesh):
 def get_swift_client(sesh, project_id):
     os_opts = {}
     if project_id:
-        endpoint = sesh.get_endpoint(service_type='object-store',
-                                     region_name=CONF.swift.region_name)
+        endpoint = sesh.get_endpoint(
+            service_type="object-store", region_name=CONF.swift.region_name
+        )
         auth_project = sesh.get_project_id()
-        endpoint = endpoint.replace('AUTH_%s' % auth_project,
-                                    'AUTH_%s' % project_id)
-        os_opts['object_storage_url'] = '%s' % endpoint
+        endpoint = endpoint.replace(
+            f"AUTH_{auth_project}", f"AUTH_{project_id}"
+        )
+        os_opts["object_storage_url"] = f"{endpoint}"
     return swift_client.Connection(session=sesh, os_options=os_opts, timeout=5)
 
 

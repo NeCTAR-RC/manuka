@@ -19,15 +19,13 @@ from manuka.common import orcid_client
 from manuka.tests.unit import base
 
 SEARCH_RESULTS = {
-    'text:Foo': ['0000-0001-0000-0001',
-                 '0000-0001-0000-0002'],
-    'email:foo@bar.com': ['0000-0001-0000-0001'],
-    'family-name:Spriggs+AND+given-names:Jim': ['0000-0001-0000-0003'],
+    "text:Foo": ["0000-0001-0000-0001", "0000-0001-0000-0002"],
+    "email:foo@bar.com": ["0000-0001-0000-0001"],
+    "family-name:Spriggs+AND+given-names:Jim": ["0000-0001-0000-0003"],
 }
 
 
-class FakePublicAPI(object):
-
+class FakePublicAPI:
     def __init__(self, *args, **kwargs):
         pass
 
@@ -37,8 +35,7 @@ class FakePublicAPI(object):
     def search(self, query, **kwargs):
         orcids = SEARCH_RESULTS.get(query, [])
         result = [self._orcid_to_result(o) for o in orcids]
-        return {'result': result,
-                'num-found': len(orcids)}
+        return {"result": result, "num-found": len(orcids)}
 
     def search_generator(self, query, **kwargs):
         orcids = SEARCH_RESULTS.get(query, [])
@@ -47,29 +44,29 @@ class FakePublicAPI(object):
 
     def _orcid_to_result(self, orcid):
         return {
-            'orcid-identifier':
-            {
-                'uri': 'https://sandbox.orcid.org/' + orcid,
-                'path': orcid,
-                'host': 'sandbox.orcid.org'
+            "orcid-identifier": {
+                "uri": "https://sandbox.orcid.org/" + orcid,
+                "path": orcid,
+                "host": "sandbox.orcid.org",
             }
         }
 
 
-class FakeRequest(object):
+class FakeRequest:
     def __init__(self, url="https://testing", **kwargs):
         self.url = url
 
 
-class FakeResponse(object):
+class FakeResponse:
     def __init__(self, status_code=500, **kwargs):
         self.status_code = status_code
 
 
 class FakeHTTPError(exceptions.HTTPError):
     def __init__(self, **kwargs):
-        super().__init__(request=FakeRequest(**kwargs),
-                         response=FakeResponse(**kwargs))
+        super().__init__(
+            request=FakeRequest(**kwargs), response=FakeResponse(**kwargs)
+        )
 
 
 class UnreliableFakePublicAPI(FakePublicAPI):
@@ -93,20 +90,19 @@ class UnreliableFakePublicAPI(FakePublicAPI):
 
 
 class FailingFakePublicAPI(UnreliableFakePublicAPI):
-
     def _do_fail(self, query):
         # Always fail
         raise FakeHTTPError()
 
 
 class OrcidClientTest(base.TestCase):
-
-    @patch('orcid.PublicAPI', new=FakePublicAPI)
+    @patch("orcid.PublicAPI", new=FakePublicAPI)
     def test_orcid_searches(self):
         client = orcid_client.Client()
-        self.assertEqual('0000-0001-0000-0001',
-                         client.search_by_email('foo@bar.com'))
-        self.assertIsNone(client.search_by_email('baz@bar.com'))
+        self.assertEqual(
+            "0000-0001-0000-0001", client.search_by_email("foo@bar.com")
+        )
+        self.assertIsNone(client.search_by_email("baz@bar.com"))
 
         orcids = client.search_by_text("Foo")
         self.assertEqual(2, len(orcids))
@@ -114,12 +110,13 @@ class OrcidClientTest(base.TestCase):
         orcids = client.search_by_names("Spriggs", "Jim")
         self.assertEqual(1, len(orcids))
 
-    @patch('orcid.PublicAPI', new=UnreliableFakePublicAPI)
+    @patch("orcid.PublicAPI", new=UnreliableFakePublicAPI)
     def test_orcid_searches_unreliable(self):
         client = orcid_client.Client(retry_delay=0)
-        self.assertEqual('0000-0001-0000-0001',
-                         client.search_by_email('foo@bar.com'))
-        self.assertIsNone(client.search_by_email('baz@bar.com'))
+        self.assertEqual(
+            "0000-0001-0000-0001", client.search_by_email("foo@bar.com")
+        )
+        self.assertIsNone(client.search_by_email("baz@bar.com"))
 
         orcids = client.search_by_text("Foo")
         self.assertEqual(2, len(orcids))
@@ -127,11 +124,11 @@ class OrcidClientTest(base.TestCase):
         orcids = client.search_by_names("Spriggs", "Jim")
         self.assertEqual(1, len(orcids))
 
-    @patch('orcid.PublicAPI', new=FailingFakePublicAPI)
+    @patch("orcid.PublicAPI", new=FailingFakePublicAPI)
     def test_orcid_searches_failing(self):
         client = orcid_client.Client(retry_delay=0)
         with self.assertRaises(exceptions.HTTPError):
-            client.search_by_email('foo@bar.com')
+            client.search_by_email("foo@bar.com")
         with self.assertRaises(exceptions.HTTPError):
             client.search_by_text("Foo")
         with self.assertRaises(exceptions.HTTPError):

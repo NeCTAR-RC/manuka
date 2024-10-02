@@ -23,38 +23,41 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class Client(object):
-
+class Client:
     def __init__(self, max_retries=None, retry_delay=None):
         self.max_retries = max_retries or CONF.orcid.max_retries
         self.retry_delay = retry_delay or CONF.orcid.retry_delay
         proxies = {}
         if CONF.orcid.http_proxy:
-            proxies['http'] = CONF.orcid.http_proxy
+            proxies["http"] = CONF.orcid.http_proxy
         if CONF.orcid.https_proxy:
-            proxies['https'] = CONF.orcid.https_proxy
-        self.api = orcid.PublicAPI(CONF.orcid.key, CONF.orcid.secret,
-                                   CONF.orcid.sandbox,
-                                   timeout=CONF.orcid.timeout,
-                                   proxies=proxies)
+            proxies["https"] = CONF.orcid.https_proxy
+        self.api = orcid.PublicAPI(
+            CONF.orcid.key,
+            CONF.orcid.secret,
+            CONF.orcid.sandbox,
+            timeout=CONF.orcid.timeout,
+            proxies=proxies,
+        )
         self.token = self.api.get_search_token_from_orcid()
 
     @staticmethod
     def _get_orcid(result):
-        return result['orcid-identifier']['path']
+        return result["orcid-identifier"]["path"]
 
     def search_by_text(self, text):
-        return self._search('text:%s' % text)
+        return self._search(f"text:{text}")
 
     def search_by_names(self, surname, first_name):
-        query = 'family-name:%s+AND+given-names:%s' % (surname, first_name)
+        query = f"family-name:{surname}+AND+given-names:{first_name}"
         return self._search(query)
 
     def _handle_http_error(self, ex):
         if ex.response and ex.response.status_code in [500, 503]:
             if self.tries < self.max_retries:
-                LOG.info("Sleeping and retrying request: url %s",
-                         ex.request.url)
+                LOG.info(
+                    "Sleeping and retrying request: url %s", ex.request.url
+                )
                 self.tries += 1
                 time.sleep(self.retry_delay)
                 return
@@ -64,9 +67,9 @@ class Client(object):
         self.tries = 0
         while True:
             try:
-                results = self.api.search_generator(query,
-                                                    pagination=100,
-                                                    access_token=self.token)
+                results = self.api.search_generator(
+                    query, pagination=100, access_token=self.token
+                )
                 # Sometimes the result JSON includes a 'null' ...
                 return [self._get_orcid(r) for r in results if r]
             except exceptions.HTTPError as ex:
@@ -76,13 +79,13 @@ class Client(object):
         self.tries = 0
         while True:
             try:
-                results = self.api.search('email:%s' % email,
-                                          rows=2,
-                                          access_token=self.token)
-                if results['num-found'] == 0:
+                results = self.api.search(
+                    f"email:{email}", rows=2, access_token=self.token
+                )
+                if results["num-found"] == 0:
                     return None
-                elif results['num-found'] == 1:
-                    return self._get_orcid(results['result'][0])
+                elif results["num-found"] == 1:
+                    return self._get_orcid(results["result"][0])
                 else:
                     # This indicates something is fundamentally wrong
                     # in the service.  This relation is one to one (or

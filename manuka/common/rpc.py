@@ -37,30 +37,39 @@ def get_transport_url(url_str=None):
     return messaging.TransportURL.parse(cfg.CONF, url_str)
 
 
-def get_client(target, version_cap=None, serializer=None,
-               call_monitor_timeout=None):
+def get_client(
+    target, version_cap=None, serializer=None, call_monitor_timeout=None
+):
     if TRANSPORT is None:
         init()
 
-    return messaging.RPCClient(TRANSPORT,
-                               target,
-                               version_cap=version_cap,
-                               serializer=serializer,
-                               call_monitor_timeout=call_monitor_timeout)
+    return messaging.RPCClient(
+        TRANSPORT,
+        target,
+        version_cap=version_cap,
+        serializer=serializer,
+        call_monitor_timeout=call_monitor_timeout,
+    )
 
 
-def get_server(target, endpoints, executor='threading',
-               access_policy=dispatcher.DefaultRPCAccessPolicy,
-               serializer=None):
+def get_server(
+    target,
+    endpoints,
+    executor="threading",
+    access_policy=dispatcher.DefaultRPCAccessPolicy,
+    serializer=None,
+):
     if TRANSPORT is None:
         init()
 
-    return messaging.get_rpc_server(TRANSPORT,
-                                    target,
-                                    endpoints,
-                                    executor=executor,
-                                    serializer=serializer,
-                                    access_policy=access_policy)
+    return messaging.get_rpc_server(
+        TRANSPORT,
+        target,
+        endpoints,
+        executor=executor,
+        serializer=serializer,
+        access_policy=access_policy,
+    )
 
 
 def create_transport(url):

@@ -45,16 +45,16 @@ def create_app(test_config=None, conf_file=None, init_config=True):
             SECRET_KEY=CONF.flask.secret_key,
             SQLALCHEMY_DATABASE_URI=CONF.database.connection,
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
-            SQLALCHEMY_ENGINE_OPTIONS = {
+            SQLALCHEMY_ENGINE_OPTIONS={
                 "pool_pre_ping": True,
                 "pool_recycle": CONF.database.connection_recycle_time,
-            }
+            },
         )
     else:
         app.config.update(test_config)
 
     config.setup_logging(CONF)
-    api_bp = flask.Blueprint('api', __name__, url_prefix='/api')
+    api_bp = flask.Blueprint("api", __name__, url_prefix="/api")
     register_extensions(app, api_bp)
     register_resources(extensions.api)
     register_blueprints(app)
@@ -71,7 +71,7 @@ def create_app(test_config=None, conf_file=None, init_config=True):
 
     app.wsgi_app = healthcheck.Healthcheck(app.wsgi_app)
 
-    if CONF.auth_strategy == 'keystone':
+    if CONF.auth_strategy == "keystone":
         app.wsgi_app = keystone.KeystoneContext(app.wsgi_app)
         app.wsgi_app = keystone.SkippingAuthProtocol(app.wsgi_app, {})
     rpc.init()
@@ -84,8 +84,8 @@ def register_extensions(app, api_bp):
     extensions.api.init_app(api_bp)
     extensions.db.init_app(app)
     extensions.migrate.init_app(
-        app, extensions.db,
-        directory=os.path.join(app.root_path, 'migrations'))
+        app, extensions.db, directory=os.path.join(app.root_path, "migrations")
+    )
     extensions.ma.init_app(app)
 
 

@@ -16,11 +16,10 @@ from manuka import models
 
 
 class ExternalIdSchema(ma.SQLAlchemyAutoSchema):
-
     class Meta:
         model = models.ExternalId
         load_instance = True
-        exclude = ('persistent_id', 'attributes')
+        exclude = ("persistent_id", "attributes")
 
 
 external_id = ExternalIdSchema()

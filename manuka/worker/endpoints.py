@@ -24,8 +24,7 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class Endpoints(object):
-
+class Endpoints:
     target = messaging.Target(version=api.API_VERSION)
 
     def __init__(self):

@@ -29,8 +29,7 @@ def main():
     service.prepare_service(sys.argv)
 
     sm = cotyledon.ServiceManager()
-    sm.add(consumer.ConsumerService, workers=CONF.worker.workers,
-           args=(CONF,))
+    sm.add(consumer.ConsumerService, workers=CONF.worker.workers, args=(CONF,))
     oslo_config_glue.setup(sm, CONF, reload_method="mutate")
     sm.run()
 

@@ -25,19 +25,21 @@ def cli():
     """Management script for the Manuka application."""
 
 
-@cli.command('add-domain-mapping')
+@cli.command("add-domain-mapping")
 @click.argument("domain")
 @click.argument("idp")
 def add_domain_mapping(domain, idp):
     """Adds a mapping for a domain and IdP"""
 
-    mapping = db.session.query(models.DomainIdpMapping).filter_by(
-        idp_entity_id=idp).first()
+    mapping = (
+        db.session.query(models.DomainIdpMapping)
+        .filter_by(idp_entity_id=idp)
+        .first()
+    )
     if mapping:
         mapping.domain_id = domain
         mapping.last_seen = datetime.datetime.now()
     else:
-        mapping = models.DomainIdpMapping(domain_id=domain,
-                                          idp_entity_id=idp)
+        mapping = models.DomainIdpMapping(domain_id=domain, idp_entity_id=idp)
     db.session.add(mapping)
     db.session.commit()

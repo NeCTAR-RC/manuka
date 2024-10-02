@@ -17,14 +17,16 @@ from manuka.api.v1.resources import user
 
 
 def initialize_resources(api):
-    api.add_resource(user.UserList, '/v1/users/')
-    api.add_resource(user.User, '/v1/users/<id>/')
-    api.add_resource(user.PendingUserList, '/v1/pending-users/')
-    api.add_resource(user.PendingUser, '/v1/pending-users/<id>/')
-    api.add_resource(user.UserSearch, '/v1/users/search/')
-    api.add_resource(user.RefreshOrcid, '/v1/users/<id>/refresh-orcid/')
-    api.add_resource(user.ProjectsWithRole,
-                     '/v1/users/<id>/projects/<role_name>/')
-    api.add_resource(external_id.ExternalId, '/v1/external-ids/<id>/')
-    api.add_resource(keystone.UserByName,
-                     '/v1/keystone-ext/user-by-name/<username>/')
+    api.add_resource(user.UserList, "/v1/users/")
+    api.add_resource(user.User, "/v1/users/<id>/")
+    api.add_resource(user.PendingUserList, "/v1/pending-users/")
+    api.add_resource(user.PendingUser, "/v1/pending-users/<id>/")
+    api.add_resource(user.UserSearch, "/v1/users/search/")
+    api.add_resource(user.RefreshOrcid, "/v1/users/<id>/refresh-orcid/")
+    api.add_resource(
+        user.ProjectsWithRole, "/v1/users/<id>/projects/<role_name>/"
+    )
+    api.add_resource(external_id.ExternalId, "/v1/external-ids/<id>/")
+    api.add_resource(
+        keystone.UserByName, "/v1/keystone-ext/user-by-name/<username>/"
+    )

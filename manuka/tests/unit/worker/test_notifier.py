@@ -23,29 +23,30 @@ CONF = cfg.CONF
 
 
 class TestNotifier(base.TestCase):
-
     def test_render_template(self):
         base_notifier = notifier.BaseNotifier()
         template = base_notifier.render_template(
-            'duplicate_account.tmpl',
-            {'user': {'email': 'foo', 'fullname': 'Bob Smith'}})
-        self.assertIn('Bob Smith', template)
+            "duplicate_account.tmpl",
+            {"user": {"email": "foo", "fullname": "Bob Smith"}},
+        )
+        self.assertIn("Bob Smith", template)
 
-    @mock.patch('taynacclient.client.Client')
+    @mock.patch("taynacclient.client.Client")
     def test_send_message(self, mock_taynac):
         client = mock_taynac.return_value
-        client.messages.send.return_value = {'backend_id': 123}
+        client.messages.send.return_value = {"backend_id": 123}
 
         message = notifier.send_message(
-            session = mock.Mock(),
-            email='owner@fake.org',
-            context={'user': {'email': 'foo', 'fullname': 'Bob Smith'}},
-            template='duplicate_account.tmpl',
-            subject="Test subject")
+            session=mock.Mock(),
+            email="owner@fake.org",
+            context={"user": {"email": "foo", "fullname": "Bob Smith"}},
+            template="duplicate_account.tmpl",
+            subject="Test subject",
+        )
 
         client.messages.send.assert_called_with(
             subject="Test subject",
             body=mock.ANY,
-            recipient='owner@fake.org',
+            recipient="owner@fake.org",
         )
-        self.assertEqual(123, message.get('backend_id'))
+        self.assertEqual(123, message.get("backend_id"))

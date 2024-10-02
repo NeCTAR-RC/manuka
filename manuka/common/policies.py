@@ -16,127 +16,137 @@ from oslo_policy import policy
 
 
 CONF = cfg.CONF
-_POLICY_PATH = '/etc/manuka/policy.yaml'
+_POLICY_PATH = "/etc/manuka/policy.yaml"
 
 
 enforcer = policy.Enforcer(CONF, policy_file=_POLICY_PATH)
 
-ADMIN_OR_OWNER_OR_WRITER = 'admin_or_owner_or_writer'
-ADMIN_OR_OWNER_OR_READER = 'admin_or_owner_or_reader'
-ADMIN_OR_READER = 'admin_or_reader'
-ADMIN_OR_WRITER = 'admin_or_writer'
-ADMIN_OR_OWNER = 'admin_or_owner'
+ADMIN_OR_OWNER_OR_WRITER = "admin_or_owner_or_writer"
+ADMIN_OR_OWNER_OR_READER = "admin_or_owner_or_reader"
+ADMIN_OR_READER = "admin_or_reader"
+ADMIN_OR_WRITER = "admin_or_writer"
+ADMIN_OR_OWNER = "admin_or_owner"
 
 
 base_rules = [
     policy.RuleDefault(
-        name='admin_required',
-        check_str='role:admin or is_admin:1'),
+        name="admin_required", check_str="role:admin or is_admin:1"
+    ),
     policy.RuleDefault(
-        name='reader',
-        check_str='role:reader or role:read_only '
-                  'or role:cloud_admin or role:helpdesk'),
+        name="reader",
+        check_str="role:reader or role:read_only "
+        "or role:cloud_admin or role:helpdesk",
+    ),
     policy.RuleDefault(
-        name='writer',
-        check_str='role:cloud_admin or role:helpdesk'),
+        name="writer", check_str="role:cloud_admin or role:helpdesk"
+    ),
+    policy.RuleDefault(name="owner", check_str="user_id:%(user_id)s"),
     policy.RuleDefault(
-        name='owner',
-        check_str='user_id:%(user_id)s'),
-    policy.RuleDefault(
-        name=ADMIN_OR_OWNER,
-        check_str='rule:admin_required or rule:owner'),
+        name=ADMIN_OR_OWNER, check_str="rule:admin_required or rule:owner"
+    ),
     policy.RuleDefault(
         name=ADMIN_OR_OWNER_OR_READER,
-        check_str='rule:admin_or_owner or rule:reader'),
+        check_str="rule:admin_or_owner or rule:reader",
+    ),
     policy.RuleDefault(
         name=ADMIN_OR_OWNER_OR_WRITER,
-        check_str='rule:admin_or_owner or rule:writer'),
+        check_str="rule:admin_or_owner or rule:writer",
+    ),
     policy.RuleDefault(
-        name=ADMIN_OR_READER,
-        check_str='rule:admin_required or rule:reader'),
+        name=ADMIN_OR_READER, check_str="rule:admin_required or rule:reader"
+    ),
     policy.RuleDefault(
-        name=ADMIN_OR_WRITER,
-        check_str='rule:admin_required or rule:writer'),
+        name=ADMIN_OR_WRITER, check_str="rule:admin_required or rule:writer"
+    ),
 ]
 
 USER_PREFIX = "account:user:%s"
 
 user_rules = [
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'get',
-        check_str='rule:%s' % ADMIN_OR_OWNER_OR_READER,
-        description='Show user details.',
-        operations=[{'path': '/v1/users/{user_id}/',
-                     'method': 'GET'},
-                    {'path': '/v1/users/{user_id}/',
-                     'method': 'HEAD'}]),
+        name=USER_PREFIX % "get",
+        check_str=f"rule:{ADMIN_OR_OWNER_OR_READER}",
+        description="Show user details.",
+        operations=[
+            {"path": "/v1/users/{user_id}/", "method": "GET"},
+            {"path": "/v1/users/{user_id}/", "method": "HEAD"},
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'list',
-        check_str='rule:admin_required',
-        description='List users.',
-        operations=[{'path': '/v1/users/',
-                     'method': 'GET'},
-                    {'path': '/v1/users/',
-                     'method': 'HEAD'}]),
+        name=USER_PREFIX % "list",
+        check_str="rule:admin_required",
+        description="List users.",
+        operations=[
+            {"path": "/v1/users/", "method": "GET"},
+            {"path": "/v1/users/", "method": "HEAD"},
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'search',
-        check_str='rule:%s' % ADMIN_OR_READER,
-        description='Search users.',
-        operations=[{'path': '/v1/users/search/',
-                     'method': 'POST'}]),
+        name=USER_PREFIX % "search",
+        check_str=f"rule:{ADMIN_OR_READER}",
+        description="Search users.",
+        operations=[{"path": "/v1/users/search/", "method": "POST"}],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'update',
-        check_str='rule:%s' % ADMIN_OR_OWNER,
-        description='Update a user',
-        operations=[{'path': '/v1/users/{user_id}/',
-                     'method': 'PATCH'},
-                    {'path': '/v1/users/{user_id}/refresh-orcid/',
-                     'method': 'POST'}]),
+        name=USER_PREFIX % "update",
+        check_str=f"rule:{ADMIN_OR_OWNER}",
+        description="Update a user",
+        operations=[
+            {"path": "/v1/users/{user_id}/", "method": "PATCH"},
+            {"path": "/v1/users/{user_id}/refresh-orcid/", "method": "POST"},
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'delete',
-        check_str='rule:%s' % ADMIN_OR_WRITER,
-        description='Delete user.',
-        operations=[{'path': '/v1/users/{user_id}/',
-                     'method': 'DELETE'}]),
+        name=USER_PREFIX % "delete",
+        check_str=f"rule:{ADMIN_OR_WRITER}",
+        description="Delete user.",
+        operations=[{"path": "/v1/users/{user_id}/", "method": "DELETE"}],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'get_restricted_fields',
-        check_str='rule:%s' % ADMIN_OR_READER,
-        description='View restricted user fields',
-        operations=[{'path': '/v1/users/{user_id}/',
-                     'method': 'GET'},
-                    {'path': '/v1/users/',
-                     'method': 'GET'}]),
+        name=USER_PREFIX % "get_restricted_fields",
+        check_str=f"rule:{ADMIN_OR_READER}",
+        description="View restricted user fields",
+        operations=[
+            {"path": "/v1/users/{user_id}/", "method": "GET"},
+            {"path": "/v1/users/", "method": "GET"},
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=USER_PREFIX % 'update_restricted_fields',
-        check_str='rule:%s' % ADMIN_OR_WRITER,
-        description='Update restricted user fields',
-        operations=[{'path': '/v1/users/{user_id}/',
-                     'method': 'PATCH'}]),
+        name=USER_PREFIX % "update_restricted_fields",
+        check_str=f"rule:{ADMIN_OR_WRITER}",
+        description="Update restricted user fields",
+        operations=[{"path": "/v1/users/{user_id}/", "method": "PATCH"}],
+    ),
 ]
 
 EXTERNAL_ID_PREFIX = "account:external-id:%s"
 
 external_id_rules = [
     policy.DocumentedRuleDefault(
-        name=EXTERNAL_ID_PREFIX % 'get',
-        check_str='rule:%s' % ADMIN_OR_READER,
-        description='Show external id details.',
-        operations=[{'path': '/v1/external-ids/{external_id}/',
-                     'method': 'GET'},
-                    {'path': '/v1/external-ids/{external_id}/',
-                     'method': 'HEAD'}]),
+        name=EXTERNAL_ID_PREFIX % "get",
+        check_str=f"rule:{ADMIN_OR_READER}",
+        description="Show external id details.",
+        operations=[
+            {"path": "/v1/external-ids/{external_id}/", "method": "GET"},
+            {"path": "/v1/external-ids/{external_id}/", "method": "HEAD"},
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=EXTERNAL_ID_PREFIX % 'update',
-        check_str='rule:%s' % ADMIN_OR_WRITER,
-        description='Update a external_id',
-        operations=[{'path': '/v1/external-ids/{external_id}/',
-                     'method': 'PATCH'}]),
+        name=EXTERNAL_ID_PREFIX % "update",
+        check_str=f"rule:{ADMIN_OR_WRITER}",
+        description="Update a external_id",
+        operations=[
+            {"path": "/v1/external-ids/{external_id}/", "method": "PATCH"}
+        ],
+    ),
     policy.DocumentedRuleDefault(
-        name=EXTERNAL_ID_PREFIX % 'delete',
-        check_str='rule:%s' % ADMIN_OR_WRITER,
-        description='Delete external_id.',
-        operations=[{'path': '/v1/external-ids/{external_id}/',
-                     'method': 'DELETE'}]),
+        name=EXTERNAL_ID_PREFIX % "delete",
+        check_str=f"rule:{ADMIN_OR_WRITER}",
+        description="Delete external_id.",
+        operations=[
+            {"path": "/v1/external-ids/{external_id}/", "method": "DELETE"}
+        ],
+    ),
 ]
 
 
@@ -144,11 +154,16 @@ KEYSTONE_PREFIX = "account:keystone:%s"
 
 keystone_rules = [
     policy.DocumentedRuleDefault(
-        name=KEYSTONE_PREFIX % 'get_by_name',
-        check_str='rule:%s or role:tenantmanager' % ADMIN_OR_READER,
-        description='Show keystone user by username',
-        operations=[{'path': '/v1/keystone-ext/user-by-name/{username}/',
-                     'method': 'GET'}]),
+        name=KEYSTONE_PREFIX % "get_by_name",
+        check_str=f"rule:{ADMIN_OR_READER} or role:tenantmanager",
+        description="Show keystone user by username",
+        operations=[
+            {
+                "path": "/v1/keystone-ext/user-by-name/{username}/",
+                "method": "GET",
+            }
+        ],
+    ),
 ]
 
 enforcer.register_defaults(base_rules)

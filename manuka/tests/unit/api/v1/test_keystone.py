@@ -19,22 +19,21 @@ from manuka.tests.unit import base
 
 
 class TestKeystoneApi(base.ApiTestCase):
-
-    @mock.patch('manuka.common.clients.get_admin_keystoneclient')
-    @mock.patch('manuka.models.keystone_authenticate')
+    @mock.patch("manuka.common.clients.get_admin_keystoneclient")
+    @mock.patch("manuka.models.keystone_authenticate")
     def test_user_by_name(self, mock_ks_auth, mock_get_keystone):
         client = mock_get_keystone.return_value
-        user_info = {'username': 'bob',
-                     'description': 'bob user',
-                     'domain_id': '123',
-                     'email': 'bob@bob.com',
-                     'enabled': True,
-                     }
+        user_info = {
+            "username": "bob",
+            "description": "bob user",
+            "domain_id": "123",
+            "email": "bob@bob.com",
+            "enabled": True,
+        }
         keystone_user = users.User(manager=None, info=user_info)
 
         client.users.list.return_value = [keystone_user]
 
-        response = self.client.get(
-            '/api/v1/keystone-ext/user-by-name/bob/')
+        response = self.client.get("/api/v1/keystone-ext/user-by-name/bob/")
         self.assert200(response)
         self.assertEqual(user_info, response.get_json())

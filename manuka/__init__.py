@@ -12,7 +12,7 @@
 
 import pbr.version
 
-version_info = pbr.version.VersionInfo('manuka')
+version_info = pbr.version.VersionInfo("manuka")
 
 __version__ = version_info.release_string()
 __license__ = "Apache License, Version 2.0"

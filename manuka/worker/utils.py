@@ -31,29 +31,34 @@ LOG = logging.getLogger(__name__)
 
 def create_user(client, name, email, project=None, full_name=None):
     """Add a new user"""
-    password = str(base64.encodebytes(os.urandom(16))[:20], 'utf-8')
-    user = client.users.create(name=name,
-                               password=password,
-                               email=email,
-                               domain='default',
-                               default_project=project)
+    password = str(base64.encodebytes(os.urandom(16))[:20], "utf-8")
+    user = client.users.create(
+        name=name,
+        password=password,
+        email=email,
+        domain="default",
+        default_project=project,
+    )
     return client.users.update(user.id, full_name=full_name)
 
 
-def create_project(client, name, description, domain='default'):
+def create_project(client, name, description, domain="default"):
     """Add a new project"""
-    return client.projects.create(name=name,
-                                  domain=domain,
-                                  description=description)
+    return client.projects.create(
+        name=name, domain=domain, description=description
+    )
 
 
 def add_user_roles(client, user, project, roles=[]):
-    """Add a roles for a particular user and project.
-    """
+    """Add a roles for a particular user and project."""
     # add default role to user.
     for role in get_roles(client, roles):
-        LOG.info('Adding role %s to user %s project %s',
-                 role.name, user.name, project.name)
+        LOG.info(
+            "Adding role %s to user %s project %s",
+            role.name,
+            user.name,
+            project.name,
+        )
         client.roles.grant(user=user, role=role, project=project)
 
 
@@ -68,12 +73,15 @@ def get_roles(client, role_names):
 
 
 def get_domain_for_idp(idp):
-    mapping = db.session.query(models.DomainIdpMapping).filter_by(
-        idp_entity_id=idp).first()
+    mapping = (
+        db.session.query(models.DomainIdpMapping)
+        .filter_by(idp_entity_id=idp)
+        .first()
+    )
 
     if mapping:
         return mapping.domain_id
-    return 'default'
+    return "default"
 
 
 def add_security_groups(user_id, project_id, token):
@@ -87,43 +95,58 @@ def add_security_groups(user_id, project_id, token):
     c = clients.get_openstack_client(project_id, token)
 
     group = c.network.create_security_group(
-        name="icmp", description="Allow ICMP (eg. ping)")
+        name="icmp", description="Allow ICMP (eg. ping)"
+    )
     c.network.create_security_group_rule(
-        security_group_id=group.id, protocol="icmp",
-        direction='ingress', remote_ip_prefix="0.0.0.0/0")
-    LOG.info('%s: Added Security Group ICMP.', user_id)
+        security_group_id=group.id,
+        protocol="icmp",
+        direction="ingress",
+        remote_ip_prefix="0.0.0.0/0",
+    )
+    LOG.info("%s: Added Security Group ICMP.", user_id)
 
     group = c.network.create_security_group(
-        name="ssh", description="Allow SSH")
+        name="ssh", description="Allow SSH"
+    )
     c.network.create_security_group_rule(
-        security_group_id=group.id, protocol="tcp",
-        port_range_min=22, port_range_max=22,
-        direction='ingress', remote_ip_prefix="0.0.0.0/0")
-    LOG.info('%s: Added Security Group SSH.', user_id)
+        security_group_id=group.id,
+        protocol="tcp",
+        port_range_min=22,
+        port_range_max=22,
+        direction="ingress",
+        remote_ip_prefix="0.0.0.0/0",
+    )
+    LOG.info("%s: Added Security Group SSH.", user_id)
 
     group = c.network.create_security_group(
-        name="http", description="Allow HTTP/S")
+        name="http", description="Allow HTTP/S"
+    )
     c.network.create_security_group_rule(
-        security_group_id=group.id, protocol="tcp",
-        port_range_min=80, port_range_max=80,
-        direction='ingress', remote_ip_prefix="0.0.0.0/0")
+        security_group_id=group.id,
+        protocol="tcp",
+        port_range_min=80,
+        port_range_max=80,
+        direction="ingress",
+        remote_ip_prefix="0.0.0.0/0",
+    )
     c.network.create_security_group_rule(
-        security_group_id=group.id, protocol="tcp",
-        port_range_min=443, port_range_max=443,
-        direction='ingress', remote_ip_prefix="0.0.0.0/0")
-    LOG.info('%s: Added Security Group HTTP.', user_id)
+        security_group_id=group.id,
+        protocol="tcp",
+        port_range_min=443,
+        port_range_max=443,
+        direction="ingress",
+        remote_ip_prefix="0.0.0.0/0",
+    )
+    LOG.info("%s: Added Security Group HTTP.", user_id)
 
 
 def set_nova_quota(session, project_id):
     nclient = clients.get_admin_nova_client(session)
-    nclient.quotas.update(tenant_id=project_id,
-                          cores=2,
-                          instances=2,
-                          ram=8192)
+    nclient.quotas.update(tenant_id=project_id, cores=2, instances=2, ram=8192)
 
 
 def set_swift_quota(session, project_id, quota_gb):
-    SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
+    SWIFT_QUOTA_KEY = "x-account-meta-quota-bytes"
     sclient = clients.get_swift_client(session, project_id=project_id)
     quota_bytes = quota_gb * 1024 * 1024 * 1024
 
@@ -133,8 +156,9 @@ def set_swift_quota(session, project_id, quota_gb):
         try:
             sclient.post_account(headers={SWIFT_QUOTA_KEY: quota_bytes})
         except Exception:
-            LOG.warn("Failed to set swift quota,"
-                     + " retying, attempt %s", attempt)
+            LOG.warn(
+                "Failed to set swift quota," + " retying, attempt %s", attempt
+            )
             time.sleep(attempt * 2)
             attempt += 1
             continue
@@ -143,15 +167,18 @@ def set_swift_quota(session, project_id, quota_gb):
 
 
 def send_welcome_email(session, user, project):
-    context = {'user': user,
-               'project': project}
-    subject = "Welcome to Nectar Research Cloud - " \
-              "Project Trial Allocation created"
-    notifier.send_message(session=session,
-                          email=user.email,
-                          context=context,
-                          template='welcome_email.html',
-                          subject=subject)
+    context = {"user": user, "project": project}
+    subject = (
+        "Welcome to Nectar Research Cloud - "
+        "Project Trial Allocation created"
+    )
+    notifier.send_message(
+        session=session,
+        email=user.email,
+        context=context,
+        template="welcome_email.html",
+        subject=subject,
+    )
 
 
 def refresh_orcid(db_user):
@@ -159,25 +186,30 @@ def refresh_orcid(db_user):
     try:
         orcid = client.search_by_email(db_user.email)
     except exceptions.HTTPError as e:
-        LOG.error("Orcid refresh failed for user <User %s> (%s): url = %s",
-                  db_user.id,
-                  e.response.status_code,
-                  e.request.url)
+        LOG.error(
+            "Orcid refresh failed for user <User %s> (%s): url = %s",
+            db_user.id,
+            e.response.status_code,
+            e.request.url,
+        )
         LOG.exception(e)
         return False
 
     if orcid and orcid != db_user.orcid:
         if db_user.orcid:
-            LOG.info("Changing orcid for <User %s>: %s -> %s",
-                     db_user.id, db_user.orcid, orcid)
+            LOG.info(
+                "Changing orcid for <User %s>: %s -> %s",
+                db_user.id,
+                db_user.orcid,
+                orcid,
+            )
         else:
             LOG.info("Adding orcid for <User %s>: %s", db_user.id, orcid)
         db_user.orcid = orcid
         db.session.add(db_user)
         db.session.commit()
     elif orcid:
-        LOG.info("Orcid has not changed for <User %s>: %s",
-                 db_user.id, orcid)
+        LOG.info("Orcid has not changed for <User %s>: %s", db_user.id, orcid)
     else:
         LOG.info("No orcid found for <User %s>", db_user.id)
     return True

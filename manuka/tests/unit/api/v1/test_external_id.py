@@ -22,31 +22,33 @@ CONF = cfg.CONF
 
 
 class TestExternalIdApi(base.ApiTestCase):
-
     def setUp(self):
         super().setUp()
-        user, external_id = self.make_db_user(state='created',
-                                              email='test@example.com')
+        user, external_id = self.make_db_user(
+            state="created", email="test@example.com"
+        )
         self.user = user
         self.external_id = external_id
 
     def test_external_id_get(self):
-        response = self.client.get('/api/v1/external-ids/%s/' %
-                                   self.external_id.id)
+        response = self.client.get(
+            f"/api/v1/external-ids/{self.external_id.id}/"
+        )
 
         self.assert200(response)
         self.assertExternalIdEqual(self.external_id, response.get_json())
 
     def test_external_id_update(self):
         new_user, new_external_id = self.make_db_user(
-            id=345, state='created', email='test2@example.com')
+            id=345, state="created", email="test2@example.com"
+        )
 
         self.assertEqual(1, len(new_user.external_ids))
         self.assertEqual(1, len(self.user.external_ids))
-        data = {'user_id': new_user.keystone_user_id}
-        response = self.client.patch('/api/v1/external-ids/%s/' %
-                                     self.external_id.id,
-                                     json=data)
+        data = {"user_id": new_user.keystone_user_id}
+        response = self.client.patch(
+            f"/api/v1/external-ids/{self.external_id.id}/", json=data
+        )
 
         self.assert200(response)
         new_user = db.session.query(models.User).get(new_user.id)
@@ -55,11 +57,13 @@ class TestExternalIdApi(base.ApiTestCase):
         self.assertEqual(0, len(old_user.external_ids))
 
         external_id = db.session.query(models.ExternalId).get(
-            self.external_id.id)
+            self.external_id.id
+        )
 
         self.assertExternalIdEqual(external_id, response.get_json())
 
     def test_external_id_delete(self):
-        response = self.client.delete('/api/v1/external-ids/%s/' %
-                                      self.external_id.id)
+        response = self.client.delete(
+            f"/api/v1/external-ids/{self.external_id.id}/"
+        )
         self.assertStatus(response, 204)
