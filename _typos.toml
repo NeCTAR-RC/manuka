@@ -1,0 +1,2 @@
+[files]
+extend-exclude = ["manuka/static/*", "manuka/migrations/versions/*"]
