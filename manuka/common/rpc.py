@@ -19,18 +19,24 @@ from oslo_messaging.rpc import dispatcher
 LOG = logging.getLogger(__name__)
 
 TRANSPORT = None
+NOTIFICATION_TRANSPORT = None
+NOTIFIER = None
 
 
 def init():
-    global TRANSPORT
+    global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     TRANSPORT = create_transport(get_transport_url())
+    NOTIFICATION_TRANSPORT = messaging.get_notification_transport(cfg.CONF)
+    NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT)
 
 
 def cleanup():
-    global TRANSPORT
+    global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     if TRANSPORT is not None:
         TRANSPORT.cleanup()
-        TRANSPORT = None
+    if NOTIFICATION_TRANSPORT is not None:
+        NOTIFICATION_TRANSPORT.cleanup()
+    TRANSPORT = NOTIFICATION_TRANSPORT = NOTIFIER = None
 
 
 def get_transport_url(url_str=None):
@@ -40,10 +46,9 @@ def get_transport_url(url_str=None):
 def get_client(
     target, version_cap=None, serializer=None, call_monitor_timeout=None
 ):
-    if TRANSPORT is None:
-        init()
+    assert TRANSPORT is not None, "'TRANSPORT' must not be None"
 
-    return messaging.RPCClient(
+    return messaging.get_rpc_client(
         TRANSPORT,
         target,
         version_cap=version_cap,
@@ -55,12 +60,11 @@ def get_client(
 def get_server(
     target,
     endpoints,
-    executor="threading",
+    executor='threading',
     access_policy=dispatcher.DefaultRPCAccessPolicy,
     serializer=None,
 ):
-    if TRANSPORT is None:
-        init()
+    assert TRANSPORT is not None, "'TRANSPORT' must not be None"
 
     return messaging.get_rpc_server(
         TRANSPORT,
@@ -70,6 +74,12 @@ def get_server(
         serializer=serializer,
         access_policy=access_policy,
     )
+
+
+def get_notifier(service=None, host=None, publisher_id=None):
+    assert NOTIFIER is not None, "'NOTIFIER' must not be None"
+
+    return NOTIFIER.prepare()
 
 
 def create_transport(url):

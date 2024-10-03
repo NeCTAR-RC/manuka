@@ -32,7 +32,7 @@ class WorkerAPI:
         target = oslo_messaging.Target(
             topic="manuka-worker", version=API_VERSION
         )
-        self._client = oslo_messaging.RPCClient(rpc.TRANSPORT, target)
+        self._client = rpc.get_client(target)
 
     def create_user(self, ctxt, attrs):
         cctxt = self._client.prepare(version="1.0")
