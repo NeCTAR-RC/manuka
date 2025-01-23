@@ -88,8 +88,6 @@ orcid_opts = [
     cfg.IntOpt("max_retries", default=5),
     cfg.IntOpt("retry_delay", default=5),
     cfg.IntOpt("timeout", default=30),
-    cfg.StrOpt("http_proxy", default=None),
-    cfg.StrOpt("https_proxy", default=None),
 ]
 
 
