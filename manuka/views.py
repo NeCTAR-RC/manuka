@@ -61,6 +61,8 @@ class ShibbolethAttrMap:
         "telephoneNumber": "telephonenumber",
         "mobileNumber": "mobilenumber",
         "eduPersonOrcid": "orcid",
+        "subject-id": "subject-id",
+        "pairwise-id": "pairwise-id",
     }
 
     @classmethod
