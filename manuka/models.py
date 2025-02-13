@@ -72,7 +72,7 @@ class User(db.Model):
         self.state = "new"
 
     def __repr__(self):
-        return "<Shibboleth User '%d', '%s')>" % (self.id, self.displayname)
+        return "<User '%d', '%s')>" % (self.id, self.displayname)
 
 
 class ExternalId(db.Model):
@@ -163,17 +163,17 @@ def sync_keystone_user(
     return keystone_user
 
 
-def create_db_user(shib_attrs):
-    """Create a new user from the Shibboleth attributes
+def create_db_user(attrs):
+    """Create a new user from the external attributes
 
-    Required Shibboleth attributes are `id`, `fullname` and `mail`
+    Required attributes are `id`, `fullname` and `mail`
 
     Return a newly created user.
     """
     # add db user
     db_user = User()
-    external_id = ExternalId(db_user, shib_attrs["id"], shib_attrs)
-    external_id.idp = shib_attrs.get("idp")
+    external_id = ExternalId(db_user, attrs["id"], attrs)
+    external_id.idp = attrs.get("idp")
     db.session.add(db_user)
     db.session.add(external_id)
     db.session.commit()
@@ -194,41 +194,42 @@ def _normalize(value):
     return value if len(value) > 0 else None
 
 
-def _merge_info_values(external_id, shib_attrs, name, current):
+def _merge_info_values(external_id, external_attrs, name, current):
     """Merge non-core user info attributes from 3 sources
 
-    The sources are the attributes provided by the IDP this time
-    (in shib_attrs), the attributes provided by the IDP last time
-    (in db_user.shibboleth_attributes) and the value from the
-    database (current), which may or may not be user supplied.
+    external_id - Existing ExternalID holding attributes from
+                  previous login
+    external_attrs - Attributes provided by the IDP this session
+    name -
+    current - value from the DB, which may or may not be user supplied
 
     Return the normalized and merged value to go into the database
     """
-    shib_current = _normalize(shib_attrs.get(name))
-    # (On a new registration, there won't be any previous shib attrs)
+    external_current = _normalize(external_attrs.get(name))
+    # (On a new registration, there won't be any previous external attrs)
     prev_attrs = external_id.attributes or {}
-    shib_previous = _normalize(prev_attrs.get(name))
+    external_previous = _normalize(prev_attrs.get(name))
     current = _normalize(current)
-    if shib_current is None:
+    if external_current is None:
         # Attribute not (or no longer) provided by IDP.  Keep what
         # we had before ... which may be a user-supplied value
         return current
-    elif shib_previous is None:
+    elif external_previous is None:
         # Attribute was not previously provided by IDP.  Override what
         # the user may have supplied with the new IDP value
-        if current and current != shib_current:
+        if current and current != external_current:
             LOG.info(
                 "IDP overrode attribute %s for user %s: '%s' -> '%s'",
                 name,
-                shib_attrs["fullname"],
+                external_attrs["fullname"],
                 current,
-                shib_current,
+                external_current,
             )
-        return shib_current
+        return external_current
     elif current is None:
         # New attribute which we haven't previously recorded a value for.
-        return shib_current
-    elif shib_current == shib_previous:
+        return external_current
+    elif external_current == external_previous:
         # Existing IDP supplied attribute that has not changed.  If there
         # is a user override, keep it.
         return current
@@ -238,42 +239,42 @@ def _merge_info_values(external_id, shib_attrs, name, current):
         LOG.info(
             "IDP changed attribute %s for user %s: '%s' -> '%s'",
             name,
-            shib_attrs["fullname"],
-            shib_previous,
-            shib_current,
+            external_attrs["fullname"],
+            external_previous,
+            external_current,
         )
-        return shib_current
+        return external_current
 
 
-def update_db_user(db_user, external_id, shib_attrs):
+def update_db_user(db_user, external_id, attrs):
     """Update a DB User with new details passed from
-    Shibboleth.
+    external auth.
     """
-    db_user.displayname = shib_attrs["fullname"]
-    db_user.email = shib_attrs["mail"]
+    db_user.displayname = attrs["fullname"]
+    db_user.email = attrs["mail"]
     db_user.first_name = _merge_info_values(
-        external_id, shib_attrs, "firstname", db_user.first_name
+        external_id, attrs, "firstname", db_user.first_name
     )
     db_user.surname = _merge_info_values(
-        external_id, shib_attrs, "surname", db_user.surname
+        external_id, attrs, "surname", db_user.surname
     )
     db_user.phone_number = _merge_info_values(
-        external_id, shib_attrs, "telephonenumber", db_user.phone_number
+        external_id, attrs, "telephonenumber", db_user.phone_number
     )
     db_user.mobile_number = _merge_info_values(
-        external_id, shib_attrs, "mobilenumber", db_user.mobile_number
+        external_id, attrs, "mobilenumber", db_user.mobile_number
     )
     db_user.organisation = _merge_info_values(
-        external_id, shib_attrs, "organisation", db_user.organisation
+        external_id, attrs, "organisation", db_user.organisation
     )
     db_user.orcid = _merge_info_values(
-        external_id, shib_attrs, "orcid", db_user.orcid
+        external_id, attrs, "orcid", db_user.orcid
     )
     # Question: do we want to deal with affiliation differently?
     # For example, in the case where the IDP says "member" we
     # want the user to be able to say "staff" or "student" or ...
     db_user.affiliation = _merge_info_values(
-        external_id, shib_attrs, "affiliation", db_user.affiliation
+        external_id, attrs, "affiliation", db_user.affiliation
     )
     if db_user.affiliation not in AFFILIATION_VALUES:
         # This could happen if the IDP (real or test) gives us bogus
@@ -286,7 +287,7 @@ def update_db_user(db_user, external_id, shib_attrs):
         )
         db_user.affiliation = "member"
 
-    external_id.attributes = shib_attrs
+    external_id.attributes = attrs
 
     date_now = datetime.datetime.now()
     db_user.last_login = date_now
