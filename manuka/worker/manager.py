@@ -140,8 +140,3 @@ class Manager:
             utils.set_swift_quota(session, project.id, swift_quota)
             LOG.info("%s: Set swift quota to %sGB.", user.id, swift_quota)
         LOG.info("%s: Completed Processing.", user.id)
-
-    @app_context
-    def refresh_orcid(self, user_id):
-        db_user = db.session.query(models.User).get(user_id)
-        utils.refresh_orcid(db_user)

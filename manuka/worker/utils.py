@@ -17,7 +17,6 @@ import os
 import time
 
 from oslo_config import cfg
-from requests import exceptions
 
 from manuka.common import clients
 from manuka.extensions import db
@@ -179,37 +178,3 @@ def send_welcome_email(session, user, project):
         template="welcome_email.html",
         subject=subject,
     )
-
-
-def refresh_orcid(db_user):
-    client = clients.get_orcid_client()
-    try:
-        orcid = client.search_by_email(db_user.email)
-    except exceptions.HTTPError as e:
-        LOG.error(
-            "Orcid refresh failed for user <User %s> (%s): url = %s",
-            db_user.id,
-            e.response.status_code,
-            e.request.url,
-        )
-        LOG.exception(e)
-        return False
-
-    if orcid and orcid != db_user.orcid:
-        if db_user.orcid:
-            LOG.info(
-                "Changing orcid for <User %s>: %s -> %s",
-                db_user.id,
-                db_user.orcid,
-                orcid,
-            )
-        else:
-            LOG.info("Adding orcid for <User %s>: %s", db_user.id, orcid)
-        db_user.orcid = orcid
-        db.session.add(db_user)
-        db.session.commit()
-    elif orcid:
-        LOG.info("Orcid has not changed for <User %s>: %s", db_user.id, orcid)
-    else:
-        LOG.info("No orcid found for <User %s>", db_user.id)
-    return True

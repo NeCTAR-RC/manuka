@@ -16,11 +16,10 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client as ks_client
 from novaclient import client as nova_client
 from openstack import connection
+import orcid
 from oslo_config import cfg
 from oslo_log import log as logging
 from swiftclient import client as swift_client
-
-from manuka.common import orcid_client
 
 
 LOG = logging.getLogger(__name__)
@@ -72,4 +71,6 @@ def get_swift_client(sesh, project_id):
 
 
 def get_orcid_client():
-    return orcid_client.Client()
+    return orcid.MemberAPI(
+        CONF.orcid.key, CONF.orcid.secret, sandbox=CONF.orcid.sandbox
+    )

@@ -66,8 +66,8 @@ class TestUserApi(TestUserApiBase):
         self.assertUserEqual(self.user, response.get_json())
 
     def test_user_update(self):
-        new_orcid = "new-orcid"
-        data = {"orcid": new_orcid}
+        new_phone_number = "new-12345"
+        data = {"phone_number": new_phone_number}
         response = self.client.patch(
             f"/api/v1/users/{self.user.keystone_user_id}/", json=data
         )
@@ -130,22 +130,6 @@ class TestUserApi(TestUserApiBase):
         response = self.client.delete(f"/api/v1/users/{self.user.id}/")
         self.assert405(response)
 
-    def test_orcid_refresh(self):
-        with mock.patch("manuka.worker.utils.refresh_orcid") as mock_refresh:
-            mock_refresh.return_value = True
-            response = self.client.post(
-                f"/api/v1/users/{self.user.keystone_user_id}/refresh-orcid/"
-            )
-            self.assert200(response)
-
-    def test_orcid_refresh_failed(self):
-        with mock.patch("manuka.worker.utils.refresh_orcid") as mock_refresh:
-            mock_refresh.return_value = False
-            response = self.client.post(
-                f"/api/v1/users/{self.user.keystone_user_id}/refresh-orcid/"
-            )
-            self.assert500(response)
-
 
 class TestUserApiUser(TestUserApi):
     ROLES = ["member"]
@@ -175,8 +159,8 @@ class TestUserApiUser(TestUserApi):
         self.assert404(response)
 
     def test_user_update(self):
-        new_orcid = "new-orcid"
-        data = {"orcid": new_orcid}
+        new_phone_number = "new-45657"
+        data = {"phone_number": new_phone_number}
         response = self.client.patch(
             f"/api/v1/users/{self.user.keystone_user_id}/", json=data
         )
@@ -189,8 +173,8 @@ class TestUserApiUser(TestUserApi):
         self.assertUserEqual(self.user_self, response.get_json())
 
     def test_user_update_self(self):
-        new_orcid = "new-orcid"
-        data = {"orcid": new_orcid}
+        new_phone_number = "new-57655"
+        data = {"phone_number": new_phone_number}
         response = self.client.patch(
             f"/api/v1/users/{base.KEYSTONE_USER_ID}/", json=data
         )
@@ -211,30 +195,6 @@ class TestUserApiUser(TestUserApi):
         data = {"search": "ab"}
         response = self.client.post("/api/v1/users/search/", data=data)
         self.assert403(response)
-
-    def test_orcid_refresh(self):
-        with mock.patch("manuka.worker.utils.refresh_orcid") as mock_refresh:
-            mock_refresh.return_value = True
-            response = self.client.post(
-                f"/api/v1/users/{self.user.keystone_user_id}/refresh-orcid/"
-            )
-            self.assert404(response)
-
-    def test_orcid_refresh_failed(self):
-        with mock.patch("manuka.worker.utils.refresh_orcid") as mock_refresh:
-            mock_refresh.return_value = False
-            response = self.client.post(
-                f"/api/v1/users/{self.user.keystone_user_id}/refresh-orcid/"
-            )
-            self.assert404(response)
-
-    def test_orcid_refresh_self(self):
-        with mock.patch("manuka.worker.utils.refresh_orcid") as mock_refresh:
-            mock_refresh.return_value = True
-            response = self.client.post(
-                f"/api/v1/users/{self.user_self.keystone_user_id}/refresh-orcid/"  # noqa
-            )
-            self.assert200(response)
 
 
 class PendingTestUserApi(base.ApiTestCase):

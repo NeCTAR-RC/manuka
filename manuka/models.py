@@ -267,9 +267,6 @@ def update_db_user(db_user, external_id, attrs):
     db_user.organisation = _merge_info_values(
         external_id, attrs, "organisation", db_user.organisation
     )
-    db_user.orcid = _merge_info_values(
-        external_id, attrs, "orcid", db_user.orcid
-    )
     # Question: do we want to deal with affiliation differently?
     # For example, in the case where the IDP says "member" we
     # want the user to be able to say "staff" or "student" or ...

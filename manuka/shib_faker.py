@@ -56,7 +56,6 @@ shib_headers = [
     "homeOrganizationType",
     "telephoneNumber",
     "mobileNumber",
-    "eduPersonOrcid",
 ]
 
 
@@ -126,16 +125,6 @@ class FakeShibboleth:
             for header in shib_headers:
                 if header == "affiliation":
                     value = random.choice(models.AFFILIATION_VALUES)
-                elif header == "eduPersonOrcid":
-                    if CONF.fake_shib_no_shib_orcid:
-                        value = None
-                    else:
-                        # realistic looking orcid
-                        value = "0000-0000-0001-{}".format(
-                            "".join(
-                                random.choice(string.digits) for i in range(4)
-                            )
-                        )
                 else:
                     # include header name in value to make bugs more obvious
                     value = "{}-{}".format(

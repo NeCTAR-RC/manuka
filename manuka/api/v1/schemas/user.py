@@ -33,7 +33,6 @@ class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
         model = models.User
         load_instance = True
         fields = (
-            "orcid",
             "affiliation",
             "ignore_username_not_email",
             "mobile_number",
@@ -57,7 +56,6 @@ class PendingUserUpdateSchema(ma.SQLAlchemyAutoSchema):
         model = models.User
         load_instance = True
         fields = (
-            "orcid",
             "affiliation",
             "ignore_username_not_email",
             "mobile_number",

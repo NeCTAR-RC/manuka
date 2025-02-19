@@ -161,32 +161,6 @@ class User(base.Resource):
         return self.schema.dump(db_user)
 
 
-class RefreshOrcid(base.Resource):
-    POLICY_PREFIX = policies.USER_PREFIX
-    schema = schemas.user
-
-    def _get_user(self, id):
-        return (
-            db.session.query(models.User)
-            .filter_by(keystone_user_id=id)
-            .first_or_404()
-        )
-
-    def post(self, id):
-        db_user = self._get_user(id)
-        target = {"user_id": db_user.keystone_user_id}
-        try:
-            self.authorize("update", target)
-        except policy.PolicyNotAuthorized:
-            flask_restful.abort(404, message=f"User {id} doesn't exist")
-        if utils.refresh_orcid(db_user):
-            return self.schema.dump(db_user)
-        else:
-            flask_restful.abort(
-                500, message="Refresh failed - ORCID service error"
-            )
-
-
 class ProjectsWithRole(base.Resource):
     POLICY_PREFIX = policies.USER_PREFIX
 

@@ -52,7 +52,6 @@ class TestViews(base.TestCase):
         self.assertTemplateUsed("terms_form.html")
 
     @mock.patch("manuka.models.keystone_authenticate")
-    @mock.patch("manuka.worker.utils.refresh_orcid")
     @mock.patch("manuka.worker.utils.send_welcome_email")
     @mock.patch("manuka.common.clients.get_swift_client")
     @mock.patch("manuka.common.clients.get_admin_nova_client")
@@ -65,7 +64,6 @@ class TestViews(base.TestCase):
         mock_nova,
         mock_swift,
         mock_send_email,
-        mock_refresh_orcid,
         mock_keystone_authenticate,
     ):
         """Given a known user who has not registered
@@ -114,5 +112,4 @@ class TestViews(base.TestCase):
             time.sleep(0.1)
 
             mock_send_email.assert_called_once()
-            mock_refresh_orcid.assert_called_once()
             worker.terminate()

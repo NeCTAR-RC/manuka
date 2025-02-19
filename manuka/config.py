@@ -35,7 +35,6 @@ default_opts = [
     cfg.StrOpt("default_target"),
     cfg.ListOpt("whitelist"),
     cfg.BoolOpt("fake_shib", default=False),
-    cfg.BoolOpt("fake_shib_no_shib_orcid", default=False),
     cfg.StrOpt(
         "auth_strategy",
         default="keystone",
@@ -85,9 +84,6 @@ orcid_opts = [
     cfg.StrOpt("key"),
     cfg.StrOpt("secret", secret=True),
     cfg.BoolOpt("sandbox", default=False),
-    cfg.IntOpt("max_retries", default=5),
-    cfg.IntOpt("retry_delay", default=5),
-    cfg.IntOpt("timeout", default=30),
 ]
 
 

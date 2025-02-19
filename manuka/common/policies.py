@@ -93,7 +93,6 @@ user_rules = [
         description="Update a user",
         operations=[
             {"path": "/v1/users/{user_id}/", "method": "PATCH"},
-            {"path": "/v1/users/{user_id}/refresh-orcid/", "method": "POST"},
         ],
     ),
     policy.DocumentedRuleDefault(

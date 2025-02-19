@@ -171,11 +171,3 @@ class TestManager(base.TestCase):
 
         mock_utils.add_user_roles.assert_not_called()
         self.assertEqual("duplicate", db_user.state)
-
-    @mock.patch("manuka.worker.manager.utils")
-    def test_refresh_orcid(self, mock_utils, mock_app, mock_keystone, mock_fd):
-        manager = worker_manager.Manager()
-        mock_utils.refresh_orcid.return_value = True
-        db_user, external_id = self.make_db_user()
-        manager.refresh_orcid(db_user.id)
-        mock_utils.refresh_orcid.assert_called_once_with(db_user)
