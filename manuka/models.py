@@ -72,7 +72,7 @@ class User(db.Model):
         self.state = "new"
 
     def __repr__(self):
-        return "<User '%d', '%s')>" % (self.id, self.displayname)
+        return f"<User '{self.id}', '{self.displayname}')>"
 
 
 class ExternalId(db.Model):

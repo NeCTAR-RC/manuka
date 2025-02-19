@@ -168,8 +168,7 @@ def set_swift_quota(session, project_id, quota_gb):
 def send_welcome_email(session, user, project):
     context = {"user": user, "project": project}
     subject = (
-        "Welcome to Nectar Research Cloud - "
-        "Project Trial Allocation created"
+        "Welcome to Nectar Research Cloud - Project Trial Allocation created"
     )
     notifier.send_message(
         session=session,

@@ -144,7 +144,7 @@ class TestViews(base.TestCase):
 
         # mock token
         token_string = (
-            '{"access": {"serviceCatalog": ' '[], "token": {"id": "aaaaaa"}}}'
+            '{"access": {"serviceCatalog": [], "token": {"id": "aaaaaa"}}}'
         )
         token = mock.Mock()
         token.to_json.return_value = token_string
