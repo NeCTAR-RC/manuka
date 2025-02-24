@@ -18,14 +18,10 @@ import flask
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_middleware import healthcheck
+from werkzeug.middleware import proxy_fix
 
-from manuka.api import v1 as api_v1
-from manuka.common import keystone
-from manuka.common import rpc
 from manuka import config
 from manuka import extensions
-from manuka import shib_faker
-from manuka import views
 
 
 CONF = cfg.CONF
@@ -66,14 +62,21 @@ def create_app(test_config=None, conf_file=None, init_config=True):
         pass
 
     if CONF.fake_shib:
+        from manuka import shib_faker
+
         app.wsgi_app = shib_faker.FakeShibboleth(app.wsgi_app)
         app.wsgi_app = beaker.SessionMiddleware(app.wsgi_app)
 
     app.wsgi_app = healthcheck.Healthcheck(app.wsgi_app)
+    app.wsgi_app = proxy_fix.ProxyFix(app.wsgi_app)
 
     if CONF.auth_strategy == "keystone":
+        from manuka.common import keystone
+
         app.wsgi_app = keystone.KeystoneContext(app.wsgi_app)
         app.wsgi_app = keystone.SkippingAuthProtocol(app.wsgi_app, {})
+    from manuka.common import rpc
+
     rpc.init()
 
     return app
@@ -90,9 +93,13 @@ def register_extensions(app, api_bp):
 
 
 def register_blueprints(app):
+    from manuka import views
+
     app.register_blueprint(views.default_bp)
     app.register_blueprint(views.login_bp)
 
 
 def register_resources(api):
+    from manuka.api import v1 as api_v1
+
     api_v1.initialize_resources(api)

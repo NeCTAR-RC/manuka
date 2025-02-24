@@ -27,3 +27,4 @@ requests
 taynacclient
 python-freshdesk
 python-memcached
+werkzeug
