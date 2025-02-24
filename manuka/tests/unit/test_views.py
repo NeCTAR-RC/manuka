@@ -367,3 +367,89 @@ class TestViews(base.TestCase):
         response = self.client.get("/login/account_status")
         self.assert200(response)
         self.assertEqual(b'{"state": "registered"}', response.get_data())
+
+    @mock.patch("manuka.common.clients.get_orcid_client")
+    def test_orcid_link_no_code(self, mock_get_orcid_client):
+        response = self.client.get("/orcid/link/")
+        self.assertTemplateUsed("error.html")
+        self.assertEqual(response.status_code, 400)
+        self.assertContext("title", "Error")
+        self.assertContext("message", "Invalid Request")
+
+    @mock.patch("manuka.common.clients.get_orcid_client")
+    def test_orcid_link_with_code(self, mock_get_orcid_client):
+        mock_orcid_client = mock.Mock()
+        mock_get_orcid_client.return_value = mock_orcid_client
+        mock_orcid_client.get_token_from_authorization_code.return_value = {
+            "orcid": "0000-0001-2345-6789",
+            "access_token": "mock_access_token",
+        }
+
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["shib_user_id"] = external_id.persistent_id
+
+        response = self.client.get(
+            "/orcid/link/?code=mock_code&next=http://example.org/next_page"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location, "http://example.org/next_page")
+
+        self.assertEqual(user.orcid, "0000-0001-2345-6789")
+        self.assertEqual(user.orcid_token, "mock_access_token")
+
+    def test_orcid_unlink(self):
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["shib_user_id"] = external_id.persistent_id
+
+        response = self.client.post(
+            "/orcid/unlink/", data={"next": "http://example.org/next_page"}
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location, "http://example.org/next_page")
+
+        self.assertIsNone(user.orcid)
+        self.assertIsNone(user.orcid_token)
+
+    def test_orcid_unlink_no_user(self):
+        response = self.client.post(
+            "/orcid/unlink/", data={"next": "http://example.org/next_page"}
+        )
+        self.assert404(response)
+
+    def test_orcid_link_no_user(self):
+        response = self.client.get("/orcid/link/?code=mock_code")
+        self.assert404(response)
+
+    @mock.patch("manuka.common.clients.get_orcid_client")
+    def test_orcid_link_error(self, mock_get_orcid_client):
+        mock_orcid_client = mock.Mock()
+        mock_get_orcid_client.return_value = mock_orcid_client
+        mock_orcid_client.get_token_from_authorization_code.side_effect = (
+            Exception("ORCID Error")
+        )
+
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["shib_user_id"] = external_id.persistent_id
+
+        response = self.client.get(
+            "/orcid/link/?code=mock_code&next=http://example.org/next_page"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location, "http://example.org/next_page")
+
+        self.assertEqual("testorcid", user.orcid)
+        self.assertIsNone(user.orcid_token)
+
+    def test_orcid_unlink_no_next(self):
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["shib_user_id"] = external_id.persistent_id
+
+        response = self.client.post("/orcid/unlink/")
+        self.assertEqual(response.status_code, 400)
+
+        self.assertIsNotNone(user.orcid)

@@ -23,6 +23,7 @@ from oslo_config import cfg
 from oslo_context import context
 from oslo_log import log as logging
 
+from manuka.common import clients
 from manuka.extensions import db
 from manuka import models
 from manuka.worker import api as worker_api
@@ -292,3 +293,60 @@ def terms():
 @default_bp.route("/")
 def default_redirect():
     return flask.redirect("/login/", code=301)
+
+
+@default_bp.route("/orcid/link/")
+def orcid_link():
+    code = request.args.get("code")
+    redirect_url = request.args.get("next")
+    if not code:
+        data = {
+            "title": "Error",
+            "message": "Invalid Request",
+        }
+        return flask.render_template("error.html", **data), 400
+    external_id = (
+        db.session.query(models.ExternalId)
+        .filter_by(persistent_id=session.get("shib_user_id"))
+        .first_or_404()
+    )
+    orcid_client = clients.get_orcid_client()
+    try:
+        oauth_redirect_url = f'{request.base_url}?next={redirect_url}'
+        data = orcid_client.get_token_from_authorization_code(
+            code, oauth_redirect_url
+        )
+    except Exception as e:
+        LOG.error("Failed to get orcid token")
+        LOG.exception(e)
+    else:
+        user = external_id.user
+        user.orcid = data.get('orcid')
+        user.orcid_token = data.get('access_token')
+        db.session.add(user)
+        db.session.commit()
+
+    return flask.redirect(redirect_url)
+
+
+@default_bp.route("/orcid/unlink/", methods=["POST"])
+def orcid_unlink():
+    redirect_url = request.form.get("next")
+    if not redirect_url:
+        data = {
+            "title": "Error",
+            "message": "Invalid Request",
+        }
+        return flask.render_template("error.html", **data), 400
+    external_id = (
+        db.session.query(models.ExternalId)
+        .filter_by(persistent_id=session.get("shib_user_id"))
+        .first_or_404()
+    )
+    user = external_id.user
+    user.orcid = None
+    user.orcid_token = None
+    db.session.add(user)
+    db.session.commit()
+
+    return flask.redirect(redirect_url)

@@ -23,7 +23,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = models.User
         load_instance = True
         include_relationships = True
-        exclude = ("keystone_user_id",)
+        exclude = ("keystone_user_id", "orcid_token")
 
 
 class UserUpdateSchema(ma.SQLAlchemyAutoSchema):
@@ -49,6 +49,7 @@ class PendingUserSchema(ma.SQLAlchemyAutoSchema):
         model = models.User
         load_instance = True
         include_relationships = True
+        exclude = ("orcid_token",)
 
 
 class PendingUserUpdateSchema(ma.SQLAlchemyAutoSchema):

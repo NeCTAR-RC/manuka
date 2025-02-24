@@ -10,3 +10,4 @@ omit =
    manuka/common/clients.py
    manuka/tests/functional/*
    manuka/wsgi.py
+   manuka/version.py

@@ -19,6 +19,7 @@ flask_restful>=0.3.6
 flask_sqlalchemy>=2.4.1
 flask_marshmallow>=0.11.0
 marshmallow_sqlalchemy>=0.22.3
+sqlalchemy-utils
 beaker
 cotyledon
 openstacksdk

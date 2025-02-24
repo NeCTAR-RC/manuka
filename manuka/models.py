@@ -19,6 +19,8 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client as keystone_client
 from oslo_config import cfg
 from oslo_log import log
+import sqlalchemy_utils
+from sqlalchemy_utils.types.encrypted import encrypted_type
 
 from manuka.common import clients
 from manuka.common import keystone
@@ -41,6 +43,12 @@ AFFILIATION_VALUES = [
 ]
 
 
+def get_key():
+    # We need this as a method as key needs to be accessed
+    # once config has been initialised
+    return CONF.flask.secret_key
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     keystone_user_id = db.Column(db.String(64), unique=True)
@@ -58,6 +66,15 @@ class User(db.Model):
     mobile_number = db.Column(db.String(64))
     organisation = db.Column(db.String(250))
     orcid = db.Column(db.String(64))
+    orcid_token = db.Column(
+        sqlalchemy_utils.StringEncryptedType(
+            db.String,
+            get_key,
+            encrypted_type.AesEngine,
+            'pkcs5',
+            length=255,
+        )
+    )
     affiliation = db.Column(db.Enum(*AFFILIATION_VALUES))
     external_ids = db.relationship(
         "ExternalId",
