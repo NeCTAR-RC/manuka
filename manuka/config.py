@@ -84,6 +84,7 @@ orcid_opts = [
     cfg.StrOpt("key"),
     cfg.StrOpt("secret", secret=True),
     cfg.BoolOpt("sandbox", default=False),
+    cfg.StrOpt("default_redirect_url", default=None),
 ]
 
 

@@ -298,7 +298,8 @@ def default_redirect():
 @default_bp.route("/orcid/link/")
 def orcid_link():
     code = request.args.get("code")
-    redirect_url = request.args.get("next")
+    redirect_url = request.args.get("next", None)
+
     if not code:
         data = {
             "title": "Error",
@@ -312,7 +313,13 @@ def orcid_link():
     )
     orcid_client = clients.get_orcid_client()
     try:
-        oauth_redirect_url = f'{request.base_url}?next={redirect_url}'
+        oauth_redirect_url = request.base_url
+        # This is a workaround for orcid dropping the value of our next arg from redirect url
+        # https://host/?next=https://anotherhost -> https://host/?next&code=XYZ
+        if redirect_url is not None:
+            oauth_redirect_url += '?next'
+            if redirect_url:
+                oauth_redirect_url += f'={redirect_url}'
         data = orcid_client.get_token_from_authorization_code(
             code, oauth_redirect_url
         )
@@ -326,6 +333,8 @@ def orcid_link():
         db.session.add(user)
         db.session.commit()
 
+    if not redirect_url:
+        redirect_url = CONF.orcid.default_redirect_url
     return flask.redirect(redirect_url)
 
 
