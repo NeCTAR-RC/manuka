@@ -12,12 +12,12 @@ COPY requirements.txt .
 
 RUN apt update && apt install -y gcc git curl apache2 libapache2-mod-wsgi-py3 libapache2-mod-shib python3-pip && apt clean
 
-RUN pip install -c https://releases.openstack.org/constraints/upper/2024.1 -r requirements.txt --break-system-packages
+RUN pip install -c https://releases.openstack.org/constraints/upper/2026.1 -r requirements.txt --break-system-packages
 
 WORKDIR /app
 COPY . /app
 
-RUN pip install -c https://releases.openstack.org/constraints/upper/2024.1 -e /app --break-system-packages
+RUN pip install -c https://releases.openstack.org/constraints/upper/2026.1 -e /app --break-system-packages
 
 EXPOSE 80
 CMD ["/app/docker/docker-run.sh"]
