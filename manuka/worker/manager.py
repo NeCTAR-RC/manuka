@@ -22,6 +22,7 @@ from oslo_utils import uuidutils
 from manuka import app
 from manuka.common import clients
 from manuka.common import keystone
+from manuka.common import rpc
 from manuka.extensions import db
 from manuka import models
 from manuka.worker import notifier
@@ -126,6 +127,22 @@ class Manager:
 
         utils.send_welcome_email(session, user, project)
         LOG.info("Send welcome email to %s", user.email)
+
+        rpc.get_notifier().info(
+            {},
+            "account.project_trial.create.end",
+            {
+                "project_id": project.id,
+                "project_name": project.name,
+                "user_id": user.id,
+                "email": user.email,
+                "domain_id": domain,
+            },
+        )
+        LOG.info(
+            "Emitted account.project_trial.create.end for project %s",
+            project.id,
+        )
 
         token, project_id, updated_user = models.keystone_authenticate(
             db_user, project_id=project.id

@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    The worker now emits an oslo.messaging notification with the event type
+    ``account.project_trial.create.end`` whenever a new project trial is
+    successfully provisioned for a user. The payload contains ``project_id``,
+    ``project_name``, ``user_id`` (the Keystone user id), ``email`` and
+    ``domain_id``. To receive these events, configure a notification driver in
+    the ``[oslo_messaging_notifications]`` section (for example
+    ``driver = messagingv2``); the default driver is ``noop``, which silently
+    drops notifications.

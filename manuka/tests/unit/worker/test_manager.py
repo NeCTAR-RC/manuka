@@ -29,10 +29,17 @@ CONF = cfg.CONF
 @mock.patch("manuka.common.clients.get_admin_keystoneclient")
 @mock.patch("manuka.app.create_app")
 class TestManager(base.TestCase):
+    @mock.patch("manuka.worker.manager.rpc")
     @mock.patch("manuka.models.keystone_authenticate")
     @mock.patch("manuka.worker.manager.utils")
     def test_create_user(
-        self, mock_utils, mock_ks_auth, mock_app, mock_keystone, mock_fd
+        self,
+        mock_utils,
+        mock_ks_auth,
+        mock_rpc,
+        mock_app,
+        mock_keystone,
+        mock_fd,
     ):
         swift_quota = 10
         CONF.set_override("default_quota_gb", swift_quota, "swift")
@@ -95,6 +102,18 @@ class TestManager(base.TestCase):
             mock.ANY, user, project
         )
 
+        mock_rpc.get_notifier.return_value.info.assert_called_once_with(
+            {},
+            "account.project_trial.create.end",
+            {
+                "project_id": project.id,
+                "project_name": project.name,
+                "user_id": user.id,
+                "email": user.email,
+                "domain_id": domain,
+            },
+        )
+
         mock_utils.add_security_groups.assert_called_once_with(
             user.id, project.id, token
         )
@@ -103,6 +122,7 @@ class TestManager(base.TestCase):
             mock.ANY, project.id, swift_quota
         )
 
+    @mock.patch("manuka.worker.manager.rpc")
     @mock.patch("manuka.worker.manager.notifier")
     @mock.patch("manuka.models.keystone_authenticate")
     @mock.patch("manuka.worker.manager.utils")
@@ -111,6 +131,7 @@ class TestManager(base.TestCase):
         mock_utils,
         mock_ks_auth,
         mock_notifier,
+        mock_rpc,
         mock_app,
         mock_keystone,
         mock_fd,
@@ -170,4 +191,5 @@ class TestManager(base.TestCase):
         )
 
         mock_utils.add_user_roles.assert_not_called()
+        mock_rpc.get_notifier.return_value.info.assert_not_called()
         self.assertEqual("duplicate", db_user.state)

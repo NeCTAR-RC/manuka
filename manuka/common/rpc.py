@@ -27,7 +27,9 @@ def init():
     global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     TRANSPORT = create_transport(get_transport_url())
     NOTIFICATION_TRANSPORT = messaging.get_notification_transport(cfg.CONF)
-    NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT)
+    NOTIFIER = messaging.Notifier(
+        NOTIFICATION_TRANSPORT, publisher_id=f"manuka.{cfg.CONF.host}"
+    )
 
 
 def cleanup():
