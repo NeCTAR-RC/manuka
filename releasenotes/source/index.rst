@@ -2,7 +2,4 @@
  Manuka Release Notes
 =====================
 
-.. toctree::
-   :maxdepth: 1
-
-   unreleased
+.. release-notes::
