@@ -141,7 +141,9 @@ def add_security_groups(user_id, project_id, token):
 
 def set_nova_quota(session, project_id):
     nclient = clients.get_admin_nova_client(session)
-    nclient.quotas.update(tenant_id=project_id, cores=2, instances=2, ram=8192)
+    nclient.quotas.update(
+        tenant_id=project_id, cores=4, instances=2, ram=16384
+    )
 
 
 def set_swift_quota(session, project_id, quota_gb):

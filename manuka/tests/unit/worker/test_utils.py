@@ -136,7 +136,7 @@ class TestUtils(base.TestCase):
         utils.set_nova_quota(session, project_id)
         mock_get_nova.assert_called_once_with(session)
         client.quotas.update.assert_called_once_with(
-            tenant_id=project_id, cores=2, instances=2, ram=8192
+            tenant_id=project_id, cores=4, instances=2, ram=16384
         )
 
     @mock.patch("manuka.common.clients.get_swift_client")
