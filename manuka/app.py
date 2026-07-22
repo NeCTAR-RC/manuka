@@ -21,6 +21,7 @@ from oslo_middleware import healthcheck
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware import proxy_fix
 
+from manuka.common import sentry
 from manuka import config
 from manuka import extensions
 
@@ -51,6 +52,8 @@ def create_app(test_config=None, conf_file=None, init_config=True):
         app.config.update(test_config)
 
     config.setup_logging(CONF)
+    if init_config:
+        sentry.setup()
     api_bp = flask.Blueprint("api", __name__, url_prefix="/api")
     register_extensions(app, api_bp)
     register_resources(extensions.api)

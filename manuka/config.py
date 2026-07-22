@@ -87,7 +87,22 @@ orcid_opts = [
     cfg.StrOpt("default_redirect_url", default=None),
 ]
 
+sentry_opts = [
+    cfg.StrOpt(
+        "dsn",
+        secret=True,
+        help="GlitchTip/Sentry compatible DSN. When set, unhandled "
+        "exceptions and ERROR level log messages are reported.",
+    ),
+    cfg.StrOpt(
+        "environment",
+        help="Environment name reported with each event, "
+        "e.g. production or testing.",
+    ),
+]
 
+
+cfg.CONF.register_opts(sentry_opts, group="sentry")
 cfg.CONF.register_opts(orcid_opts, group="orcid")
 cfg.CONF.register_opts(keystone_opts, group="keystone")
 cfg.CONF.register_opts(swift_opts, group="swift")
@@ -133,6 +148,7 @@ def list_opts():
         ("database", database_opts),
         ("flask", flask_opts),
         ("freshdesk", freshdesk_opts),
+        ("sentry", sentry_opts),
         add_auth_opts(),
     ]
 

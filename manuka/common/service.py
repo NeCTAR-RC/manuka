@@ -14,6 +14,7 @@
 from oslo_config import cfg
 
 from manuka.common import rpc
+from manuka.common import sentry
 from manuka import config
 
 
@@ -22,4 +23,5 @@ def prepare_service(argv=None):
     argv = argv or []
     config.init(argv[1:])
     config.setup_logging(cfg.CONF)
+    sentry.setup()
     rpc.init()

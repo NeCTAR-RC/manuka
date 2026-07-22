@@ -28,4 +28,5 @@ requests
 taynacclient
 python-freshdesk
 python-memcached
+sentry-sdk
 werkzeug
