@@ -31,15 +31,15 @@ class UserByName(base.Resource):
         try:
             self.authorize("get_by_name")
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(404, message=f"User {id} doesn't exist")
+            flask_restful.abort(404, message=f"User {username} doesn't exist")
 
         k_session = keystone.KeystoneSession()
         session = k_session.get_session()
         client = clients.get_admin_keystoneclient(session)
         users = client.users.list(name=username)
         if len(users) == 0:
-            flask_restful.abort(404, message=f"User {id} doesn't exist")
+            flask_restful.abort(404, message=f"User {username} doesn't exist")
         elif len(users) > 1:
-            raise flask_restful.abort(409, message="Multiple users exist")
+            flask_restful.abort(409, message="Multiple users exist")
         else:
             return users[0].to_dict()
