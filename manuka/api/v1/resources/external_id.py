@@ -63,7 +63,7 @@ class ExternalId(base.Resource):
         try:
             self.authorize("update", target)
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(404, message=f"User {id} dosn't exist")
+            flask_restful.abort(404, message=f"User {id} doesn't exist")
 
         external_id.user = user
         db.session.add(external_id)

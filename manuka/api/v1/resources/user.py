@@ -149,7 +149,7 @@ class User(base.Resource):
         try:
             self.authorize("update", target)
         except policy.PolicyNotAuthorized:
-            flask_restful.abort(404, message=f"User {id} dosn't exist")
+            flask_restful.abort(404, message=f"User {id} doesn't exist")
 
         errors = self.update_schema.validate(data)
         if errors:
