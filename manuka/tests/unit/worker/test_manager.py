@@ -156,8 +156,7 @@ class TestManager(base.TestCase):
         mock_ks_auth.return_value = (token, project.id, user)
 
         manager = worker_manager.Manager()
-        with self.assertRaises(keystoneauth1.exceptions.http.Conflict):
-            manager.create_user(self.shib_attrs)
+        manager.create_user(self.shib_attrs)
 
         db_user = db.session.query(models.User).get(db_user_id)
 

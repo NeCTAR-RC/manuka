@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    The worker no longer re-raises the Keystone ``Conflict`` exception after
+    handling a duplicate account during user creation. The duplicate case is
+    fully handled (the user is emailed, the trial project is deleted and the
+    user is marked as ``duplicate``), so the worker now logs a warning and
+    returns instead. This stops every handled duplicate registration from
+    being reported as an unhandled error by oslo.messaging and error
+    reporting tools such as Sentry/GlitchTip.

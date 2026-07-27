@@ -86,7 +86,7 @@ class Manager:
                 project,
                 attrs["fullname"],
             )
-        except keystoneauth1.exceptions.http.Conflict as e:
+        except keystoneauth1.exceptions.http.Conflict:
             notifier.send_message(
                 session=session,
                 email=attrs.get("mail"),
@@ -100,7 +100,12 @@ class Manager:
             db.session.add(db_user)
             db.session.commit()
 
-            raise e
+            LOG.warning(
+                "Duplicate keystone user %s, marked user %s as duplicate",
+                attrs["mail"],
+                db_user.id,
+            )
+            return
         else:
             LOG.info("Created user %s", user.name)
 
