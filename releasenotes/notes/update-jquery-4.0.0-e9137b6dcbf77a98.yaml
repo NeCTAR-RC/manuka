@@ -1,0 +1,12 @@
+---
+upgrade:
+  - |
+    Updated the bundled jQuery library from 1.7.2 to 4.0.0. The account
+    creation status page is the only consumer and uses APIs that are
+    unchanged in jQuery 4. Note that jQuery 4 no longer supports
+    Internet Explorer or other legacy browsers.
+security:
+  - |
+    The previously bundled jQuery 1.7.2 had multiple published
+    vulnerabilities (including CVE-2020-11022, CVE-2020-11023 and
+    CVE-2015-9251) that are fixed in jQuery 4.0.0.
