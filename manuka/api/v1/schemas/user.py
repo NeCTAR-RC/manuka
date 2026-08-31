@@ -15,6 +15,11 @@ from manuka.extensions import ma
 from manuka import models
 
 
+# Fields that are only visible and updatable to privileged callers.  See
+# the ``get_restricted_fields`` and ``update_restricted_fields`` policies.
+RESTRICTED_FIELDS = ("expiry_status", "expiry_next_step")
+
+
 class UserSchema(ma.SQLAlchemyAutoSchema):
     id = ma.auto_field(column_name="keystone_user_id")
     external_ids = ma.Nested("ExternalIdSchema", many=True)
@@ -65,8 +70,11 @@ class PendingUserUpdateSchema(ma.SQLAlchemyAutoSchema):
 
 
 user = UserSchema()
+user_limited = UserSchema(exclude=RESTRICTED_FIELDS)
 users = UserSchema(many=True)
 user_update = UserUpdateSchema()
+user_update_limited = UserUpdateSchema(exclude=RESTRICTED_FIELDS)
 pending_user = PendingUserSchema()
+pending_user_limited = PendingUserSchema(exclude=RESTRICTED_FIELDS)
 pending_users = PendingUserSchema(many=True)
 pending_user_update = PendingUserUpdateSchema()

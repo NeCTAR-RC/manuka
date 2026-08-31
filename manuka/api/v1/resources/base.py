@@ -26,7 +26,9 @@ class Resource(flask_restful.Resource):
     def authorize(self, rule, target={}, do_raise=True):
         rule = self.POLICY_PREFIX % rule
         enforcer = policy.get_enforcer()
-        enforcer.authorize(rule, target, self.oslo_context, do_raise=do_raise)
+        return enforcer.authorize(
+            rule, target, self.oslo_context, do_raise=do_raise
+        )
 
     @property
     def oslo_context(self):

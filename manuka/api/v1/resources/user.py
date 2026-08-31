@@ -117,7 +117,9 @@ class UserSearch(base.Resource):
 class User(base.Resource):
     POLICY_PREFIX = policies.USER_PREFIX
     schema = schemas.user
+    limited_schema = schemas.user_limited
     update_schema = schemas.user_update
+    limited_update_schema = schemas.user_update_limited
 
     def _get_user(self, id):
         return (
@@ -125,6 +127,11 @@ class User(base.Resource):
             .filter_by(keystone_user_id=id)
             .first_or_404()
         )
+
+    def _dump(self, db_user, target):
+        if self.authorize("get_restricted_fields", target, do_raise=False):
+            return self.schema.dump(db_user)
+        return self.limited_schema.dump(db_user)
 
     def get(self, id):
         db_user = self._get_user(id)
@@ -135,7 +142,7 @@ class User(base.Resource):
         except policy.PolicyNotAuthorized:
             flask_restful.abort(404, message=f"User {id} doesn't exist")
 
-        return self.schema.dump(db_user)
+        return self._dump(db_user, target)
 
     def patch(self, id):
         data = request.get_json()
@@ -151,14 +158,20 @@ class User(base.Resource):
         except policy.PolicyNotAuthorized:
             flask_restful.abort(404, message=f"User {id} doesn't exist")
 
-        errors = self.update_schema.validate(data)
+        update_schema = self.update_schema
+        if not self.authorize(
+            "update_restricted_fields", target, do_raise=False
+        ):
+            update_schema = self.limited_update_schema
+
+        errors = update_schema.validate(data)
         if errors:
             flask_restful.abort(401, message="Not authorized to edit ")
 
-        db_user = self.update_schema.load(data, instance=db_user)
+        db_user = update_schema.load(data, instance=db_user)
         db.session.commit()
 
-        return self.schema.dump(db_user)
+        return self._dump(db_user, target)
 
 
 class ProjectsWithRole(base.Resource):
@@ -209,6 +222,7 @@ class PendingUserList(UserList):
 
 class PendingUser(User):
     schema = schemas.pending_user
+    limited_schema = schemas.pending_user_limited
 
     def _get_user(self, id):
         return (

@@ -77,6 +77,27 @@ class TestUserApi(TestUserApiBase):
         db_user = db.session.query(models.User).get(self.user.id)
         self.assertUserEqual(db_user, response.get_json())
 
+    def test_user_get_restricted(self):
+        self.user.expiry_status = "warning"
+        db.session.commit()
+
+        response = self.client.get(
+            f"/api/v1/users/{self.user.keystone_user_id}/"
+        )
+
+        self.assert200(response)
+        self.assertEqual("warning", response.get_json().get("expiry_status"))
+
+    def test_user_update_restricted(self):
+        data = {"expiry_status": "warning"}
+        response = self.client.patch(
+            f"/api/v1/users/{self.user.keystone_user_id}/", json=data
+        )
+        self.assert200(response)
+
+        db_user = db.session.query(models.User).get(self.user.id)
+        self.assertEqual("warning", db_user.expiry_status)
+
     def _test_user_update_invalid(self, status):
         new_id = "2333"
         data = {"id": new_id}
@@ -182,6 +203,30 @@ class TestUserApiUser(TestUserApi):
 
         db_user = db.session.query(models.User).get(base.USER_ID)
         self.assertUserEqual(db_user, response.get_json())
+
+    def test_user_get_restricted(self):
+        # An owner who is not an admin or reader can't see the restricted
+        # expiry fields, even on their own record.
+        self.user_self.expiry_status = "warning"
+        db.session.commit()
+
+        response = self.client.get(f"/api/v1/users/{base.KEYSTONE_USER_ID}/")
+
+        self.assert200(response)
+        self.assertNotIn("expiry_status", response.get_json())
+        self.assertNotIn("expiry_next_step", response.get_json())
+
+    def test_user_update_restricted(self):
+        # An owner who is not an admin or writer may update their own
+        # record but not the restricted expiry fields.
+        data = {"expiry_status": "warning"}
+        response = self.client.patch(
+            f"/api/v1/users/{base.KEYSTONE_USER_ID}/", json=data
+        )
+        self.assert401(response)
+
+        db_user = db.session.query(models.User).get(base.USER_ID)
+        self.assertIsNone(db_user.expiry_status)
 
     def test_user_update_invalid(self):
         self._test_user_update_invalid(404)

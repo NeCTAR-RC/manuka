@@ -1,0 +1,12 @@
+---
+security:
+  - |
+    The user API now enforces the ``account:user:get_restricted_fields`` and
+    ``account:user:update_restricted_fields`` policies on the account expiry
+    fields (``expiry_status`` and ``expiry_next_step``). Previously any owner
+    could read these fields on their own record and set them, which let a
+    user manipulate their own account-expiry state and evade the expiry
+    workflow. The fields are now omitted from ``GET /v1/users/{user_id}/``
+    for callers without the admin or reader role, and ``PATCH
+    /v1/users/{user_id}/`` rejects them for callers without the admin or
+    writer role.
