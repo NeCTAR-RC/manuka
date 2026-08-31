@@ -8,11 +8,20 @@
 <div class="centered_message">
   <div class="message_box error">
     <h2>Error</h2>
-    <p>{{ message|safe }}</p>
+    {% if message is string %}
+    <p>{{ message }}</p>
+    {% else %}
+    {% for paragraph in message %}
+    <p>{{ paragraph }}</p>
+    {% endfor %}
+    {% endif %}
     {% if errors %}
     {% for error in errors %}
     <br /><b>* {{ error }}</b>
     {% endfor %}
+    {% endif %}
+    {% if support_url %}
+    <p>Please contact <a href="{{ support_url }}">support</a> to resolve this issue.</p>
     {% endif %}
   </div>
 </div>

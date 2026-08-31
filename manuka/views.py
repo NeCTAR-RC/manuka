@@ -134,15 +134,17 @@ def root():
         error_values.sort()
         data = {
             "title": "Error",
-            "message": "Not enough details have been received from your "
-            "institution to allow you to log on to the cloud. "
-            "We need your id, your e-mail and your full name."
-            "<br />Please contact your institution and tell them "
-            'that their "AAF IdP" is broken!'
-            "<br />Copy and paste the details below into your "
-            "email to your institution's support desk."
-            "<br /><b>The following required fields are missing "
-            "or incorrect from the AAF service:</b>",
+            "message": [
+                "Not enough details have been received from your "
+                "institution to allow you to log on to the cloud. We "
+                "need your id, your e-mail and your full name.",
+                "Please contact your institution and tell them that "
+                'their "AAF IdP" is broken!',
+                "Copy and paste the details below into your email to "
+                "your institution's support desk.",
+                "The following required fields are missing or incorrect "
+                "from the AAF service:",
+            ],
             "errors": error_values,
         }
         return flask.render_template("error.html", **data)
@@ -236,14 +238,14 @@ def root():
             )
             data = {
                 "title": "Error",
-                "message": "Your details could not be found on the "
-                "central authentication server. "
-                "Thus you will <b><i>not</i></b> be able to "
-                "access the cloud! <br />Please contact <a "
-                'href="' + CONF.support_url + '">support</a> '
-                "to resolve this issue."
-                "<br />The error message is:",
+                "message": [
+                    "Your details could not be found on the central "
+                    "authentication server. Thus you will not be able "
+                    "to access the cloud!",
+                    "The error message is:",
+                ],
                 "errors": [str(e)],
+                "support_url": CONF.support_url,
             }
 
             # We should perhaps redirect the user to a nicer more
@@ -273,9 +275,8 @@ def root():
             LOG.exception("Attempt to authenticate to a blocked URL: %s", t)
             data = {
                 "title": "Authentication Error",
-                "message": "You attempted to authenticate to the "
-                + t
-                + " URL, which is not permitted by this service.",
+                "message": f"You attempted to authenticate to the {t} "
+                "URL, which is not permitted by this service.",
             }
             return flask.render_template("error.html", **data)
 

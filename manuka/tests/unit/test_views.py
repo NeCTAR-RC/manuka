@@ -46,18 +46,17 @@ class TestShibbolethAttrMap(base.TestCase):
         self.assertEqual(views.ShibbolethAttrMap.get_attr("location"), "l")
 
 
-MISSING_ATTR_MSG = (
-    "Not enough details have been received from "
-    "your institution to allow you to "
-    "log on to the cloud. We need your id, your "
-    "e-mail and your full name.<br />"
-    "Please contact your institution and tell "
-    'them that their "AAF IdP" is broken!<br />'
+MISSING_ATTR_MSG = [
+    "Not enough details have been received from your "
+    "institution to allow you to log on to the cloud. We "
+    "need your id, your e-mail and your full name.",
+    "Please contact your institution and tell them that "
+    'their "AAF IdP" is broken!',
     "Copy and paste the details below into your email to "
-    "your institution's support desk.<br />"
-    "<b>The following required fields are missing "
-    "or incorrect from the AAF service:</b>"
-)
+    "your institution's support desk.",
+    "The following required fields are missing or incorrect "
+    "from the AAF service:",
+]
 
 
 @mock.patch("manuka.views.worker_api", new=mock.Mock())
@@ -355,6 +354,37 @@ class TestViews(base.TestCase):
             "http://bad URL, "
             "which is not permitted by this service.",
         )
+
+    @mock.patch("manuka.models.create_db_user")
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_return_path_xss_escaped(
+        self, mock_keystone_authenticate, mock_create
+    ):
+        """A rejected return-path is HTML-escaped in the error page.
+
+        Regression test for a reflected XSS: the rejected URL is echoed
+        into the error page, so it must be HTML-escaped in the output.
+        """
+        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+
+        self.make_db_user(state="created")
+
+        token = "secret"
+        project_id = "abcdef"
+        user = mock.Mock()
+        user.configure_mock(name="test@example.com", email="test@example.com")
+        mock_keystone_authenticate.return_value = token, project_id, user
+
+        payload = "<script>alert(1)</script>"
+        response = self.client.get(
+            "/login/", query_string={"return-path": payload}
+        )
+
+        self.assert200(response)
+        self.assertTemplateUsed("error.html")
+        body = response.get_data(as_text=True)
+        self.assertNotIn(payload, body)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", body)
 
     def test_account_status_no_user(self):
         response = self.client.get("/login/account_status")

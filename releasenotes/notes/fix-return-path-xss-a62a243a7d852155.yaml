@@ -1,0 +1,14 @@
+---
+security:
+  - |
+    Fixed a reflected cross-site scripting (XSS) vulnerability in the login
+    view. When a ``return-path`` query parameter failed the whitelist check,
+    its value was reflected verbatim into an error page whose message was
+    rendered as raw HTML, allowing arbitrary script injection into an
+    authenticated user's session.
+
+    As part of the fix the ``error.html`` template no longer renders its
+    message with the ``|safe`` filter. Error messages are now passed as plain
+    text (autoescaped by the template engine) and all page structure is
+    defined in the template, so untrusted values can no longer be injected as
+    HTML through any error page.
