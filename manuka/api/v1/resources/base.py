@@ -14,6 +14,7 @@
 import flask
 from flask import request
 import flask_restful
+from oslo_policy import policy as oslo_policy
 
 from manuka.common import keystone
 from manuka import policy
@@ -26,9 +27,16 @@ class Resource(flask_restful.Resource):
     def authorize(self, rule, target={}, do_raise=True):
         rule = self.POLICY_PREFIX % rule
         enforcer = policy.get_enforcer()
-        return enforcer.authorize(
-            rule, target, self.oslo_context, do_raise=do_raise
-        )
+        try:
+            return enforcer.authorize(
+                rule, target, self.oslo_context, do_raise=do_raise
+            )
+        except oslo_policy.InvalidScope as exc:
+            # Present scope failures as a normal authorization failure
+            # so callers only need to handle PolicyNotAuthorized.
+            raise oslo_policy.PolicyNotAuthorized(
+                rule, target, self.oslo_context.to_policy_values()
+            ) from exc
 
     @property
     def oslo_context(self):

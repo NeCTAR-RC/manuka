@@ -37,3 +37,40 @@ class TestKeystoneApi(base.ApiTestCase):
         response = self.client.get("/api/v1/keystone-ext/user-by-name/bob/")
         self.assert200(response)
         self.assertEqual(user_info, response.get_json())
+
+
+class TestKeystoneApiSystemScoped(TestKeystoneApi):
+    """A system-scoped admin token has the same access as a project admin."""
+
+    SYSTEM_SCOPE = "all"
+
+
+class TestKeystoneApiSystemReader(TestKeystoneApi):
+    """A system-scoped reader token can look up keystone users."""
+
+    ROLES = ["reader"]
+    SYSTEM_SCOPE = "all"
+
+
+class TestKeystoneApiProjectReader(base.ApiTestCase):
+    """A project-scoped reader token gets no access.
+
+    The reader role only grants read access when system-scoped.
+    """
+
+    ROLES = ["reader"]
+
+    def test_user_by_name(self):
+        response = self.client.get("/api/v1/keystone-ext/user-by-name/bob/")
+        self.assert404(response)
+
+
+class TestKeystoneApiDomainScoped(base.ApiTestCase):
+    """Domain-scoped tokens are rejected by scope enforcement."""
+
+    ROLES = ["admin"]
+    DOMAIN_ID = base.DOMAIN_ID
+
+    def test_user_by_name(self):
+        response = self.client.get("/api/v1/keystone-ext/user-by-name/bob/")
+        self.assert404(response)

@@ -20,14 +20,20 @@ ADMIN_OR_READER = "admin_or_reader"
 ADMIN_OR_WRITER = "admin_or_writer"
 ADMIN_OR_OWNER = "admin_or_owner"
 
+SCOPE_SYSTEM_PROJECT = ["system", "project"]
+
 
 base_rules = [
     policy.RuleDefault(
         name="admin_required", check_str="role:admin or is_admin:1"
     ),
     policy.RuleDefault(
+        name="system_reader",
+        check_str="role:reader and system_scope:all",
+    ),
+    policy.RuleDefault(
         name="reader",
-        check_str="role:reader or role:read_only "
+        check_str="rule:system_reader or role:read_only "
         "or role:cloud_admin or role:helpdesk",
     ),
     policy.RuleDefault(
@@ -59,6 +65,7 @@ user_rules = [
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "get",
         check_str=f"rule:{ADMIN_OR_OWNER_OR_READER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Show user details.",
         operations=[
             {"path": "/v1/users/{user_id}/", "method": "GET"},
@@ -68,6 +75,7 @@ user_rules = [
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "list",
         check_str="rule:admin_required",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="List users.",
         operations=[
             {"path": "/v1/users/", "method": "GET"},
@@ -77,12 +85,14 @@ user_rules = [
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "search",
         check_str=f"rule:{ADMIN_OR_READER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Search users.",
         operations=[{"path": "/v1/users/search/", "method": "POST"}],
     ),
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "update",
         check_str=f"rule:{ADMIN_OR_OWNER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Update a user",
         operations=[
             {"path": "/v1/users/{user_id}/", "method": "PATCH"},
@@ -91,12 +101,14 @@ user_rules = [
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "delete",
         check_str=f"rule:{ADMIN_OR_WRITER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Delete user.",
         operations=[{"path": "/v1/users/{user_id}/", "method": "DELETE"}],
     ),
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "get_restricted_fields",
         check_str=f"rule:{ADMIN_OR_READER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="View restricted user fields",
         operations=[
             {"path": "/v1/users/{user_id}/", "method": "GET"},
@@ -106,6 +118,7 @@ user_rules = [
     policy.DocumentedRuleDefault(
         name=USER_PREFIX % "update_restricted_fields",
         check_str=f"rule:{ADMIN_OR_WRITER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Update restricted user fields",
         operations=[{"path": "/v1/users/{user_id}/", "method": "PATCH"}],
     ),
@@ -117,6 +130,7 @@ external_id_rules = [
     policy.DocumentedRuleDefault(
         name=EXTERNAL_ID_PREFIX % "get",
         check_str=f"rule:{ADMIN_OR_READER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Show external id details.",
         operations=[
             {"path": "/v1/external-ids/{external_id}/", "method": "GET"},
@@ -126,6 +140,7 @@ external_id_rules = [
     policy.DocumentedRuleDefault(
         name=EXTERNAL_ID_PREFIX % "update",
         check_str=f"rule:{ADMIN_OR_WRITER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Update a external_id",
         operations=[
             {"path": "/v1/external-ids/{external_id}/", "method": "PATCH"}
@@ -134,6 +149,7 @@ external_id_rules = [
     policy.DocumentedRuleDefault(
         name=EXTERNAL_ID_PREFIX % "delete",
         check_str=f"rule:{ADMIN_OR_WRITER}",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Delete external_id.",
         operations=[
             {"path": "/v1/external-ids/{external_id}/", "method": "DELETE"}
@@ -148,6 +164,7 @@ keystone_rules = [
     policy.DocumentedRuleDefault(
         name=KEYSTONE_PREFIX % "get_by_name",
         check_str=f"rule:{ADMIN_OR_READER} or role:tenantmanager",
+        scope_types=SCOPE_SYSTEM_PROJECT,
         description="Show keystone user by username",
         operations=[
             {

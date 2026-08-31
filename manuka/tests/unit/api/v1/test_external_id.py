@@ -67,3 +67,68 @@ class TestExternalIdApi(base.ApiTestCase):
             f"/api/v1/external-ids/{self.external_id.id}/"
         )
         self.assertStatus(response, 204)
+
+
+class TestExternalIdApiSystemScoped(TestExternalIdApi):
+    """A system-scoped admin token has the same access as a project admin."""
+
+    SYSTEM_SCOPE = "all"
+
+
+class TestExternalIdApiSystemReader(base.ApiTestCase):
+    """A system-scoped reader token gets read-only access."""
+
+    ROLES = ["reader"]
+    SYSTEM_SCOPE = "all"
+
+    def setUp(self):
+        super().setUp()
+        user, external_id = self.make_db_user(
+            state="created", email="test@example.com"
+        )
+        self.user = user
+        self.external_id = external_id
+
+    def test_external_id_get(self):
+        response = self.client.get(
+            f"/api/v1/external-ids/{self.external_id.id}/"
+        )
+
+        self.assert200(response)
+        self.assertExternalIdEqual(self.external_id, response.get_json())
+
+    def test_external_id_update(self):
+        data = {"user_id": self.user.keystone_user_id}
+        response = self.client.patch(
+            f"/api/v1/external-ids/{self.external_id.id}/", json=data
+        )
+        self.assert404(response)
+
+    def test_external_id_delete(self):
+        response = self.client.delete(
+            f"/api/v1/external-ids/{self.external_id.id}/"
+        )
+        self.assert404(response)
+
+
+class TestExternalIdApiProjectReader(TestExternalIdApiSystemReader):
+    """A project-scoped reader token gets no access.
+
+    The reader role only grants read access when system-scoped.
+    """
+
+    ROLES = ["reader"]
+    SYSTEM_SCOPE = None
+
+    def test_external_id_get(self):
+        response = self.client.get(
+            f"/api/v1/external-ids/{self.external_id.id}/"
+        )
+        self.assert404(response)
+
+
+class TestExternalIdApiDomainScoped(TestExternalIdApiProjectReader):
+    """Domain-scoped tokens are rejected by scope enforcement."""
+
+    ROLES = ["admin"]
+    DOMAIN_ID = base.DOMAIN_ID

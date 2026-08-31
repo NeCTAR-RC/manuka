@@ -12,6 +12,7 @@
 #    under the License.
 
 from oslo_config import cfg
+from oslo_policy import opts as policy_opts
 from oslo_policy import policy
 
 from manuka.common import policies
@@ -23,6 +24,11 @@ _ENFORCER = None
 def get_enforcer():
     global _ENFORCER
     if not _ENFORCER:
+        # Defaults only, so operators can still override via
+        # [oslo_policy] in manuka.conf.
+        policy_opts.set_defaults(
+            CONF, enforce_scope=True, enforce_new_defaults=True
+        )
         _ENFORCER = policy.Enforcer(CONF)
         _ENFORCER.register_defaults(policies.list_rules())
     return _ENFORCER

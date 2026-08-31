@@ -242,6 +242,110 @@ class TestUserApiUser(TestUserApi):
         self.assert403(response)
 
 
+class TestUserApiSystemScoped(TestUserApi):
+    """A system-scoped admin token has the same access as a project admin."""
+
+    SYSTEM_SCOPE = "all"
+
+
+class TestUserApiSystemReader(TestUserApiBase):
+    """A system-scoped reader token gets read-only access."""
+
+    ROLES = ["reader"]
+    SYSTEM_SCOPE = "all"
+
+    def test_user_list(self):
+        response = self.client.get("/api/v1/users/")
+        self.assert403(response)
+
+    def test_user_get(self):
+        self.user.expiry_status = "warning"
+        db.session.commit()
+
+        response = self.client.get(
+            f"/api/v1/users/{self.user.keystone_user_id}/"
+        )
+
+        self.assert200(response)
+        self.assertUserEqual(self.user, response.get_json())
+        # Readers can see the restricted expiry fields.
+        self.assertEqual("warning", response.get_json().get("expiry_status"))
+
+    def test_user_search(self):
+        data = {"search": "test@example"}
+        response = self.client.post("/api/v1/users/search/", json=data)
+
+        self.assert200(response)
+        self.assertEqual(1, len(response.get_json().get("results")))
+
+    def test_user_update(self):
+        data = {"phone_number": "new-12345"}
+        response = self.client.patch(
+            f"/api/v1/users/{self.user.keystone_user_id}/", json=data
+        )
+        self.assert404(response)
+
+
+class TestUserApiProjectReader(TestUserApiBase):
+    """A project-scoped reader token gets no access to other users.
+
+    The reader role only grants read access when system-scoped.
+    """
+
+    ROLES = ["reader"]
+
+    def test_user_list(self):
+        response = self.client.get("/api/v1/users/")
+        self.assert403(response)
+
+    def test_user_get(self):
+        response = self.client.get(
+            f"/api/v1/users/{self.user.keystone_user_id}/"
+        )
+        self.assert404(response)
+
+    def test_user_search(self):
+        data = {"search": "test@example"}
+        response = self.client.post("/api/v1/users/search/", json=data)
+        self.assert403(response)
+
+    def test_user_update(self):
+        data = {"phone_number": "new-12345"}
+        response = self.client.patch(
+            f"/api/v1/users/{self.user.keystone_user_id}/", json=data
+        )
+        self.assert404(response)
+
+
+class TestUserApiDomainScoped(TestUserApiBase):
+    """Domain-scoped tokens are rejected by scope enforcement."""
+
+    ROLES = ["admin"]
+    DOMAIN_ID = base.DOMAIN_ID
+
+    def test_user_list(self):
+        response = self.client.get("/api/v1/users/")
+        self.assert403(response)
+
+    def test_user_get(self):
+        response = self.client.get(
+            f"/api/v1/users/{self.user.keystone_user_id}/"
+        )
+        self.assert404(response)
+
+    def test_user_search(self):
+        data = {"search": "test@example"}
+        response = self.client.post("/api/v1/users/search/", json=data)
+        self.assert403(response)
+
+    def test_user_update(self):
+        data = {"phone_number": "new-12345"}
+        response = self.client.patch(
+            f"/api/v1/users/{self.user.keystone_user_id}/", json=data
+        )
+        self.assert404(response)
+
+
 class PendingTestUserApi(base.ApiTestCase):
     def setUp(self):
         super().setUp()
@@ -305,6 +409,12 @@ class PendingTestUserApi(base.ApiTestCase):
             f"/api/v1/pending-users/{self.user3.id}/"
         )
         self.assert404(response)
+
+
+class PendingTestUserApiSystemScoped(PendingTestUserApi):
+    """A system-scoped admin token has the same access as a project admin."""
+
+    SYSTEM_SCOPE = "all"
 
 
 class ProjectsWithRoleTestUserApi(TestUserApiBase):

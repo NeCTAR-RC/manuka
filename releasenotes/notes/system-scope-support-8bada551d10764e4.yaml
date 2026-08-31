@@ -1,0 +1,30 @@
+---
+features:
+  - |
+    Manuka now supports Keystone system-scoped tokens (secure RBAC).
+    All policy rules declare ``scope_types`` and scope enforcement is
+    enabled by default. A system-scoped token with the ``admin`` role
+    has the same access as a project-scoped admin, and a new
+    ``system_reader`` base rule (``role:reader and system_scope:all``)
+    gives a system-scoped token with the ``reader`` role the same
+    read-only access as the existing ``reader`` base rule.
+upgrade:
+  - |
+    ``[oslo_policy] enforce_scope`` and ``enforce_new_defaults`` now
+    default to ``True`` and ``oslo.policy>=5.0.0`` is required.
+    Domain-scoped tokens are rejected by all APIs. Operators can
+    temporarily set ``[oslo_policy] enforce_scope = False`` to restore
+    the previous scope behaviour; note that option is deprecated
+    upstream for removal.
+  - |
+    The ``reader`` base rule no longer matches a project-scoped token
+    with the ``reader`` role; the role must now be granted with system
+    scope to receive read access. Accounts that relied on a
+    project-scoped ``reader`` role should be granted the role on the
+    system instead, or use the ``read_only`` role.
+security:
+  - |
+    Fixed an issue where a token with the ``reader`` role scoped to
+    any single project received read access to all user records,
+    including the restricted expiry fields, external ids and keystone
+    user lookups.
