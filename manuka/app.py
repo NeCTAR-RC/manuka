@@ -18,8 +18,8 @@ import flask
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_middleware import healthcheck
+from oslo_middleware import http_proxy_to_wsgi
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from werkzeug.middleware import proxy_fix
 
 from manuka.common import sentry
 from manuka import config
@@ -74,7 +74,7 @@ def create_app(test_config=None, conf_file=None, init_config=True):
     app.wsgi_app = DispatcherMiddleware(
         app.wsgi_app, {"/healthcheck": healthcheck.Healthcheck(None)}
     )
-    app.wsgi_app = proxy_fix.ProxyFix(app.wsgi_app)
+    app.wsgi_app = http_proxy_to_wsgi.HTTPProxyToWSGI(app.wsgi_app)
 
     if CONF.auth_strategy == "keystone":
         from manuka.common import keystone

@@ -1,0 +1,23 @@
+---
+upgrade:
+  - |
+    Proxy header handling now uses oslo.middleware's
+    ``HTTPProxyToWSGI`` and is controlled by the
+    ``[oslo_middleware] enable_proxy_headers_parsing`` option (default
+    ``false``), replacing the werkzeug ``ProxyFix`` middleware that
+    was always applied regardless of configuration. Deployments that
+    sit behind a reverse proxy or load balancer and rely on
+    ``X-Forwarded-For``, ``X-Forwarded-Proto``, ``X-Forwarded-Host``
+    or the RFC 7239 ``Forwarded`` header to determine the real client
+    IP and scheme must set
+    ``[oslo_middleware] enable_proxy_headers_parsing = true`` in
+    ``manuka.conf``, otherwise the headers are ignored and requests
+    are treated as coming directly from the proxy.
+security:
+  - |
+    Proxy headers (``X-Forwarded-For``, ``X-Forwarded-Proto`` and
+    others) are no longer trusted unconditionally. They are now only
+    parsed when ``[oslo_middleware] enable_proxy_headers_parsing`` is
+    explicitly set to ``true``, preventing a client that is not
+    actually behind a trusted proxy from spoofing its source IP or
+    scheme.
