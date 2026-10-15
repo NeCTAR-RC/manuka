@@ -156,6 +156,13 @@ oidc_opts = [
         default="http://nectar.org.au/",
         help="Where the provider sends the browser after logging out.",
     ),
+    cfg.BoolOpt(
+        "prompt_saml_users",
+        default=False,
+        help="After a Shibboleth login, offer users who have no OpenID "
+        "Connect identity yet to set up the new login before they go "
+        "on to the dashboard.",
+    ),
     cfg.IntOpt(
         "link_timeout",
         default=600,

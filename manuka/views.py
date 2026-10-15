@@ -270,6 +270,32 @@ def _logout_url(protocol):
     return SAML_LOGOUT_URL
 
 
+def _offer_oidc(db_user):
+    """Whether to interrupt a Shibboleth login to offer the new login.
+
+    Only while the transition is on, for users without an OpenID
+    Connect identity, and not after they asked to be left alone for
+    this session. A "Not now" answer in the posted form is recorded
+    here.
+    """
+    if not (CONF.oidc.enabled and CONF.oidc.prompt_saml_users):
+        return False
+    if db_user.has_protocol(models.PROTOCOL_OIDC):
+        return False
+    if request.form.get("oidc_later"):
+        session["oidc_offer_dismissed"] = True
+        LOG.info("User %s postponed setting up the new login", db_user)
+    return not session.get("oidc_offer_dismissed")
+
+
+def _render_offer_oidc():
+    data = {
+        "title": "A new way to log in",
+        "setup_url": flask.url_for("oidc.oidc_login", **_return_path_args()),
+    }
+    return flask.render_template("offer_oidc.html", **data)
+
+
 def _set_session_identity(external_id):
     """Record the identity that has just authenticated in the session."""
     session["external_id"] = external_id.id
@@ -404,6 +430,9 @@ def _complete_login(db_user, external_id, attrs, protocol):
         LOG.info("User %s username and email do not match", db_user)
         data = {"user": user}
         return flask.render_template("username_form.html", **data)
+
+    if protocol == models.PROTOCOL_SAML and _offer_oidc(db_user):
+        return _render_offer_oidc()
 
     # sjjf: default to the configured target URL, but allow the source
     # to specify a different return-path. The specified return path is

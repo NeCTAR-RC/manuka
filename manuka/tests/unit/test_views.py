@@ -653,3 +653,88 @@ class TestViews(base.TestCase):
         self.assertEqual(response.status_code, 400)
 
         self.assertIsNotNone(user.orcid)
+
+
+@mock.patch("manuka.models.keystone_authenticate")
+@mock.patch("manuka.views.worker_api", new=mock.Mock())
+class TestOIDCOffer(base.TestCase):
+    """Offering the new login to users who log in through Shibboleth."""
+
+    def setUp(self):
+        super().setUp()
+        self.app.wsgi_app = fake_shib.TestShibWrapper(self.app.wsgi_app)
+        CONF.set_override("prompt_saml_users", True, "oidc")
+
+    def login(self, mock_keystone_authenticate, **kwargs):
+        user = mock.Mock()
+        user.configure_mock(name="test@example.com", email="test@example.com")
+        mock_keystone_authenticate.return_value = "secret", "abcdef", user
+        return self.client.open("/login/", **kwargs)
+
+    def test_offer_shown(self, mock_keystone_authenticate):
+        self.make_db_user(state="created")
+        response = self.login(mock_keystone_authenticate, method="GET")
+        self.assert200(response)
+        self.assertTemplateUsed("offer_oidc.html")
+        self.assertContext("setup_url", "/oidc/login/")
+        body = response.get_data(as_text=True)
+        self.assertIn('href="/oidc/login/"', body)
+        self.assertIn('name="oidc_later"', body)
+
+    def test_offer_carries_return_path(self, mock_keystone_authenticate):
+        return_path = "https://test.example.com/auth/token"
+        CONF.set_override("allow_list", [return_path])
+        self.make_db_user(state="created")
+        self.login(
+            mock_keystone_authenticate,
+            method="GET",
+            query_string={"return-path": return_path},
+        )
+        self.assertTemplateUsed("offer_oidc.html")
+        self.assertContext(
+            "setup_url", f"/oidc/login/?return-path={return_path}"
+        )
+
+    def test_offer_not_shown_when_not_prompting(
+        self, mock_keystone_authenticate
+    ):
+        CONF.set_override("prompt_saml_users", False, "oidc")
+        self.make_db_user(state="created")
+        self.login(mock_keystone_authenticate, method="GET")
+        self.assertTemplateUsed("redirect.html")
+
+    def test_offer_not_shown_when_oidc_disabled(
+        self, mock_keystone_authenticate
+    ):
+        CONF.set_override("enabled", False, "oidc")
+        self.make_db_user(state="created")
+        self.login(mock_keystone_authenticate, method="GET")
+        self.assertTemplateUsed("redirect.html")
+
+    def test_offer_not_shown_when_linked(self, mock_keystone_authenticate):
+        user, _ = self.make_db_user(state="created")
+        self.make_external_id(
+            user, "sub-1", attrs={"id": "sub-1"}, protocol="oidc"
+        )
+        self.login(mock_keystone_authenticate, method="GET")
+        self.assertTemplateUsed("redirect.html")
+
+    def test_offer_not_shown_before_account_exists(
+        self, mock_keystone_authenticate
+    ):
+        self.make_db_user(state="registered")
+        self.login(mock_keystone_authenticate, method="GET")
+        self.assertTemplateUsed("creating_account.html")
+
+    def test_offer_dismissed(self, mock_keystone_authenticate):
+        self.make_db_user(state="created")
+        response = self.login(
+            mock_keystone_authenticate, method="POST", data={"oidc_later": 1}
+        )
+        self.assert200(response)
+        self.assertTemplateUsed("redirect.html")
+        with self.client.session_transaction() as sess:
+            self.assertTrue(sess["oidc_offer_dismissed"])
+        # Not asked again for the rest of the session.
+        self.login(mock_keystone_authenticate, method="GET")
+        self.assertTemplateUsed("redirect.html")
