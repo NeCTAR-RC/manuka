@@ -42,6 +42,11 @@ AFFILIATION_VALUES = [
     "library-walk-in",
 ]
 
+# The login protocols an external identity can come from.
+PROTOCOL_SAML = "saml"
+PROTOCOL_OIDC = "oidc"
+PROTOCOLS = (PROTOCOL_SAML, PROTOCOL_OIDC)
+
 
 def get_key():
     # We need this as a method as key needs to be accessed
@@ -91,6 +96,10 @@ class User(db.Model):
     def __repr__(self):
         return f"<User '{self.id}', '{self.displayname}')>"
 
+    def has_protocol(self, protocol):
+        """Whether the user has an external identity for a protocol."""
+        return any(e.protocol == protocol for e in self.external_ids)
+
 
 class ExternalId(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,11 +109,20 @@ class ExternalId(db.Model):
     idp = db.Column(db.String(250))
     attributes = db.Column(db.JSON)
     last_login = db.Column(db.DateTime())
+    protocol = db.Column(
+        db.String(32), nullable=False, server_default=PROTOCOL_SAML
+    )
 
-    def __init__(self, user, persistent_id, attributes):
+    def __init__(
+        self, user, persistent_id, attributes, protocol=PROTOCOL_SAML, idp=None
+    ):
+        if protocol not in PROTOCOLS:
+            raise ValueError(f"Unknown login protocol '{protocol}'")
         self.user = user
         self.persistent_id = persistent_id
         self.attributes = attributes
+        self.protocol = protocol
+        self.idp = idp
 
 
 class DomainIdpMapping(db.Model):
@@ -180,7 +198,7 @@ def sync_keystone_user(
     return keystone_user
 
 
-def create_db_user(attrs):
+def create_db_user(attrs, protocol=PROTOCOL_SAML):
     """Create a new user from the external attributes
 
     Required attributes are `id`, `fullname` and `mail`
@@ -189,8 +207,9 @@ def create_db_user(attrs):
     """
     # add db user
     db_user = User()
-    external_id = ExternalId(db_user, attrs["id"], attrs)
-    external_id.idp = attrs.get("idp")
+    external_id = ExternalId(
+        db_user, attrs["id"], attrs, protocol=protocol, idp=attrs.get("idp")
+    )
     db.session.add(db_user)
     db.session.add(external_id)
     db.session.commit()

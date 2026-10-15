@@ -39,8 +39,49 @@ class TestModels(base.TestCase):
         self.assertEqual(1, len(external_ids))
         self.assertEqual(fake_shib.ID, external_ids[0].persistent_id)
         self.assertEqual(fake_shib.IDP, external_ids[0].idp)
+        self.assertEqual("saml", external_ids[0].protocol)
         self.assertEqual(external_ids[0].user, db_user)
         self.assertEqual("new", db_user.state)
+        self.assertTrue(db_user.has_protocol("saml"))
+        self.assertFalse(db_user.has_protocol("oidc"))
+
+    def test_create_db_user_oidc(self):
+        attrs = dict(self.shib_attrs, id="sub-1234", idp="https://issuer")
+        user, external_id = models.create_db_user(attrs, protocol="oidc")
+        db_user = db.session.query(models.User).get(user.id)
+        self.assertEqual("oidc", db_user.external_ids[0].protocol)
+        self.assertEqual("https://issuer", db_user.external_ids[0].idp)
+        self.assertEqual("sub-1234", db_user.external_ids[0].persistent_id)
+        self.assertTrue(db_user.has_protocol("oidc"))
+        self.assertFalse(db_user.has_protocol("saml"))
+
+    def test_external_id_unknown_protocol(self):
+        self.assertRaises(
+            ValueError,
+            models.ExternalId,
+            models.User(),
+            "1",
+            {},
+            protocol="ldap",
+        )
+
+    def test_external_id_protocol_default_in_db(self):
+        # A row inserted without a protocol, as every pre-existing row
+        # was, reads back as saml through the server default.
+        user, external_id = self.make_db_user()
+        db.session.execute(
+            models.ExternalId.__table__.insert().values(
+                user_id=user.id, persistent_id="legacy", attributes={}
+            )
+        )
+        db.session.commit()
+        legacy = (
+            db.session.query(models.ExternalId)
+            .filter_by(persistent_id="legacy")
+            .one()
+        )
+        self.assertEqual("saml", legacy.protocol)
+        self.assertEqual(2, len(user.external_ids))
 
     @freeze_time("2012-01-14")
     def test_update_db_user(self):

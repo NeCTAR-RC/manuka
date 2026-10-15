@@ -37,6 +37,9 @@ class TestExternalIdApi(base.ApiTestCase):
 
         self.assert200(response)
         self.assertExternalIdEqual(self.external_id, response.get_json())
+        self.assertEqual("saml", response.get_json()["protocol"])
+        self.assertNotIn("persistent_id", response.get_json())
+        self.assertNotIn("attributes", response.get_json())
 
     def test_external_id_update(self):
         new_user, new_external_id = self.make_db_user(

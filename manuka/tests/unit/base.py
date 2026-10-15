@@ -67,6 +67,8 @@ class TestCase(flask_testing.TestCase):
         orcid="testorcid",
         expiry_status=None,
         expiry_next_step=None,
+        protocol="saml",
+        attrs=None,
     ):
         # create registered user
         db_user = models.User()
@@ -93,13 +95,33 @@ class TestCase(flask_testing.TestCase):
         db_user.ignore_username_not_email = False
         db_user.orcid = orcid
 
-        external_id = models.ExternalId(db_user, id, self.shib_attrs)
-        external_id.idp = fake_shib.IDP
+        external_id = models.ExternalId(
+            db_user,
+            id,
+            self.shib_attrs if attrs is None else attrs,
+            protocol=protocol,
+            idp=fake_shib.IDP,
+        )
         db.session.add(db_user)
         db.session.add(external_id)
         db.session.commit()
 
         return db_user, external_id
+
+    def make_external_id(
+        self, user, persistent_id, attrs=None, protocol="saml", idp=None
+    ):
+        """Attach a further external identity to an existing user."""
+        external_id = models.ExternalId(
+            user,
+            persistent_id,
+            self.shib_attrs if attrs is None else attrs,
+            protocol=protocol,
+            idp=fake_shib.IDP if idp is None else idp,
+        )
+        db.session.add(external_id)
+        db.session.commit()
+        return external_id
 
     def assertExternalIdsEqual(self, eids, api_eids):
         self.assertEqual(len(eids), len(api_eids))
