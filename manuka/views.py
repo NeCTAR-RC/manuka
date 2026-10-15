@@ -12,8 +12,10 @@
 #    under the License.
 
 import datetime
+import hmac
 import json
 import re
+import secrets
 import time
 from urllib import parse
 
@@ -23,8 +25,10 @@ from flask import session
 from oslo_config import cfg
 from oslo_context import context
 from oslo_log import log as logging
+from sqlalchemy import exc as sa_exc
 
 from manuka.common import clients
+from manuka.common import rpc
 from manuka.extensions import db
 from manuka import models
 from manuka import oidc
@@ -73,7 +77,12 @@ MISSING_ATTR_MSG = {
 }
 
 # Session keys that only live for the duration of one OIDC login.
-OIDC_SESSION_KEYS = ("oidc_attrs", "oidc_attrs_exp", "oidc_return_path")
+OIDC_SESSION_KEYS = (
+    "oidc_attrs",
+    "oidc_attrs_exp",
+    "oidc_return_path",
+    "pending_oidc",
+)
 # Authlib keeps the state, nonce and PKCE verifier of each started
 # login under keys with this prefix.
 AUTHLIB_STATE_PREFIX = f"_state_{oidc.CLIENT_NAME}_"
@@ -511,18 +520,176 @@ def _render_identity_drift():
 
 
 def _render_choose_link(attrs):
-    """Ask a first-time OIDC user whether they already have an account."""
+    """Ask a first-time OIDC user whether they already have an account.
+
+    Opens a time-limited window in which /login/link/ may attach this
+    identity to the account behind a Shibboleth login.
+    """
     existing = (
         db.session.query(models.User)
         .filter_by(email=attrs["mail"], state="created")
         .first()
     )
+    session["pending_oidc"] = {
+        "sub": attrs["id"],
+        "exp": int(time.time()) + CONF.oidc.link_timeout,
+        "nonce": secrets.token_urlsafe(16),
+    }
     data = {
         "title": "Welcome to the Nectar Research Cloud",
         "attrs": attrs,
         "email_known": existing is not None,
+        "link_url": flask.url_for("login.link", **_return_path_args()),
     }
     return flask.render_template("choose_link.html", **data)
+
+
+def _pending_oidc(oidc_attrs):
+    """The link window opened for the OIDC login in progress, or None."""
+    pending = session.get("pending_oidc")
+    if (
+        not oidc_attrs
+        or not pending
+        or time.time() > pending.get("exp", 0)
+        or pending.get("sub") != oidc_attrs["id"]
+    ):
+        return None
+    return pending
+
+
+def _render_link_error(message):
+    data = {
+        "title": "Account linking failed",
+        "message": message,
+        "support_url": CONF.support_url,
+    }
+    return flask.render_template("error.html", **data)
+
+
+def _notify_link(user, external_id, method):
+    """Announce on the notification bus that an identity was linked."""
+    payload = {
+        "user_id": user.keystone_user_id,
+        "external_id": external_id.id,
+        "protocol": external_id.protocol,
+        "idp": external_id.idp,
+        "method": method,
+    }
+    rpc.get_notifier().info({}, "account.external_id.link", payload)
+
+
+@login_bp.route("/link/", methods=("GET", "POST"))
+def link():
+    """Connect the OpenID Connect login in progress to an existing account.
+
+    Apache only serves this path with a Shibboleth session, so the SAML
+    attributes in the environ prove the user controls the account they
+    are linking to. GET shows both identities for confirmation; POST
+    with the nonce from that page performs the link.
+    """
+    saml_attrs = ShibbolethAttrMap.parse(request.environ)
+    errors = _check_required_attrs(
+        saml_attrs, ShibbolethAttrMap, models.PROTOCOL_SAML
+    )
+    if errors:
+        return _render_attr_errors(errors, models.PROTOCOL_SAML)
+
+    oidc_attrs = _session_oidc_attrs()
+    pending = _pending_oidc(oidc_attrs)
+    if pending is None:
+        return _render_link_error(
+            "Your new login session has expired or was not started. "
+            "Please log in again and choose to link your existing account."
+        )
+
+    saml_id = (
+        db.session.query(models.ExternalId)
+        .filter_by(
+            persistent_id=saml_attrs["id"], protocol=models.PROTOCOL_SAML
+        )
+        .first()
+    )
+    user = saml_id.user if saml_id is not None else None
+    if user is None or user.state != "created" or not user.keystone_user_id:
+        LOG.warning(
+            "oidc.link.refused: no created account behind the Shibboleth "
+            "login offered for subject %s",
+            oidc_attrs["id"],
+        )
+        return _render_link_error(
+            "We could not find an existing Nectar account for the "
+            "institution login you used. If you are new to Nectar, log in "
+            "again and create an account."
+        )
+    if user.has_protocol(models.PROTOCOL_OIDC):
+        LOG.warning(
+            "oidc.link.refused: user %s already has an OpenID Connect "
+            "identity",
+            user.id,
+        )
+        return _render_link_error(
+            "That Nectar account is already connected to another login."
+        )
+    match = models.find_linkable_user(oidc_attrs)
+    if match is not None and match.user.id != user.id:
+        LOG.warning(
+            "oidc.link.refused: subject %s matches user %s by %s but the "
+            "Shibboleth login belongs to user %s",
+            oidc_attrs["id"],
+            match.user.id,
+            match.key,
+            user.id,
+        )
+        return _render_link_error(
+            "The details provided by the login service belong to a "
+            "different Nectar account than the one you signed in to."
+        )
+
+    if request.method == "POST":
+        nonce = request.form.get("nonce", "")
+        if not request.form.get("confirm") or not hmac.compare_digest(
+            nonce, pending["nonce"]
+        ):
+            flask.abort(400)
+        try:
+            external_id = models.link_external_id(
+                user, oidc_attrs, models.PROTOCOL_OIDC, seed_from=saml_id
+            )
+        except sa_exc.IntegrityError:
+            db.session.rollback()
+            LOG.warning(
+                "oidc.link.refused: subject %s was linked elsewhere before "
+                "user %s confirmed",
+                oidc_attrs["id"],
+                user.id,
+            )
+            return _render_link_error(
+                "This login has already been connected to an account. "
+                "Please log in again."
+            )
+        LOG.info(
+            "oidc.link.confirmed: subject %s linked to user %s (keystone %s) "
+            "by Shibboleth external id %s",
+            oidc_attrs["id"],
+            user.id,
+            user.keystone_user_id,
+            saml_id.id,
+        )
+        _notify_link(user, external_id, "shibboleth")
+        session.pop("pending_oidc", None)
+        _set_session_identity(external_id)
+        return flask.redirect(
+            flask.url_for("oidc.oidc_continue", **_return_path_args())
+        )
+
+    data = {
+        "title": "Link your accounts",
+        "saml_attrs": saml_attrs,
+        "oidc_attrs": oidc_attrs,
+        "nonce": pending["nonce"],
+        "cancel_url": flask.url_for("oidc.oidc_logout"),
+    }
+    return flask.render_template("link_confirm.html", **data)
 
 
 @oidc_bp.route("/login/")
@@ -632,6 +799,7 @@ def oidc_continue():
                 match.key,
                 match.external_id.id,
             )
+            _notify_link(db_user, external_id, "auto")
         elif not request.form.get("create_new"):
             return _render_choose_link(attrs)
         else:

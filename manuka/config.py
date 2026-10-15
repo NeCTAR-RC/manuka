@@ -157,6 +157,12 @@ oidc_opts = [
         help="Where the provider sends the browser after logging out.",
     ),
     cfg.IntOpt(
+        "link_timeout",
+        default=600,
+        help="Seconds a user has to link an existing account once the "
+        "choice has been offered.",
+    ),
+    cfg.IntOpt(
         "eppn_autolink_max_age_days",
         default=180,
         help="A first OpenID Connect login is linked to an existing SAML "

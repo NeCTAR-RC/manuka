@@ -21,6 +21,7 @@ from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
 from manuka.tests.unit import fake_oidc
+from manuka.tests.unit import fake_shib
 from manuka import views
 
 
@@ -211,15 +212,22 @@ class TestOIDCLogin(OIDCTestCase):
 
     def test_continue_unknown_subject_shows_choice(self):
         self.set_oidc_session()
-        response = self.client.get("/oidc/continue/")
+        response = self.client.get("/oidc/continue/?return-path=https://x/y")
         self.assert200(response)
         self.assertTemplateUsed("choose_link.html")
         self.assertContext("email_known", False)
+        self.assertContext("link_url", "/login/link/?return-path=https://x/y")
         body = response.get_data(as_text=True)
         self.assertIn(fake_oidc.DISPLAYNAME, body)
         self.assertIn('name="create_new"', body)
+        self.assertIn('href="/login/link/?return-path=https://x/y"', body)
         self.assertEqual([], self.external_ids())
         self.assertEqual(0, db.session.query(models.User).count())
+        with self.client.session_transaction() as sess:
+            pending = sess["pending_oidc"]
+            self.assertEqual(fake_oidc.SUB, pending["sub"])
+            self.assertGreater(pending["exp"], time.time())
+            self.assertGreaterEqual(len(pending["nonce"]), 16)
 
     def test_continue_unknown_subject_known_email(self):
         self.make_db_user(state="created", email=fake_oidc.EMAIL)
@@ -382,6 +390,7 @@ class TestOIDCLogin(OIDCTestCase):
         self.assertEqual("https://home/", response.location)
 
 
+@mock.patch("manuka.views.rpc", new=mock.Mock())
 @mock.patch("manuka.views.worker_api", new=mock.Mock())
 class TestOIDCAutoLink(OIDCTestCase):
     def saml_user(self, **overrides):
@@ -491,3 +500,237 @@ class TestOIDCAutoLink(OIDCTestCase):
         mock_keystone_authenticate.assert_not_called()
         with self.client.session_transaction() as sess:
             self.assertNotIn("external_id", sess)
+
+
+@mock.patch("manuka.views.rpc")
+@mock.patch("manuka.views.worker_api", new=mock.Mock())
+class TestOIDCLink(OIDCTestCase):
+    """Linking the OIDC login in progress by Shibboleth re-authentication."""
+
+    NONCE = "test-nonce-value"
+
+    def setUp(self):
+        super().setUp()
+        # The Shibboleth identity presents a different email from the
+        # OIDC one so the confirmation page visibly shows both.
+        self.app.wsgi_app = fake_shib.TestShibWrapper(
+            self.app.wsgi_app, mail="old@example.com"
+        )
+        self.oidc_attrs = self.set_oidc_session()
+
+    def set_pending(self, sub=fake_oidc.SUB, expired=False):
+        with self.client.session_transaction() as sess:
+            sess["pending_oidc"] = {
+                "sub": sub,
+                "exp": int(time.time()) + (-1 if expired else 600),
+                "nonce": self.NONCE,
+            }
+
+    def saml_user(self, state="created", **overrides):
+        # fake_shib.TestShibWrapper presents persistent id fake_shib.ID.
+        return self.make_db_user(
+            state=state,
+            email="old@example.com",
+            attrs=dict(self.shib_attrs, **overrides),
+        )
+
+    def confirm(self, nonce=NONCE, **extra):
+        data = {"confirm": "Link these accounts", "nonce": nonce}
+        data.update(extra)
+        return self.client.post("/login/link/", data=data)
+
+    def assertLinkFailed(self, response, fragment):
+        self.assert200(response)
+        self.assertTemplateUsed("error.html")
+        self.assertContext("title", "Account linking failed")
+        self.assertIn(fragment, response.get_data(as_text=True))
+
+    def test_get_shows_confirmation(self, mock_rpc):
+        self.saml_user()
+        self.set_pending()
+        response = self.client.get("/login/link/")
+        self.assert200(response)
+        self.assertTemplateUsed("link_confirm.html")
+        self.assertContext("nonce", self.NONCE)
+        self.assertContext("oidc_attrs", self.oidc_attrs)
+        body = response.get_data(as_text=True)
+        # Both identities come from the live logins, not the database.
+        self.assertIn("old@example.com", body)
+        self.assertIn(fake_oidc.EMAIL, body)
+        self.assertIn(fake_shib.IDP, body)
+        self.assertIn(fake_oidc.HOME_ORG, body)
+        self.assertIn(f'value="{self.NONCE}"', body)
+        self.assertIn('href="/oidc/logout/"', body)
+        self.assertEqual(1, len(self.external_ids()))
+
+    def test_no_pending(self, mock_rpc):
+        self.saml_user()
+        response = self.client.get("/login/link/")
+        self.assertLinkFailed(response, "expired or was not started")
+
+    def test_expired_pending(self, mock_rpc):
+        self.saml_user()
+        self.set_pending(expired=True)
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "expired or was not started"
+        )
+
+    def test_pending_for_other_subject(self, mock_rpc):
+        self.saml_user()
+        self.set_pending(sub="someone-else")
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "expired or was not started"
+        )
+
+    def test_no_oidc_login_in_progress(self, mock_rpc):
+        self.saml_user()
+        self.set_pending()
+        with self.client.session_transaction() as sess:
+            del sess["oidc_attrs"]
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "expired or was not started"
+        )
+
+    def test_unknown_saml_user(self, mock_rpc):
+        self.set_pending()
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "could not find an existing"
+        )
+        self.assertEqual([], self.external_ids())
+        self.assertEqual(0, db.session.query(models.User).count())
+
+    def test_saml_user_not_created(self, mock_rpc):
+        self.saml_user(state="registered")
+        self.set_pending()
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "could not find an existing"
+        )
+
+    def test_saml_user_without_keystone_account(self, mock_rpc):
+        self.make_db_user(
+            state="created", email="old@example.com", keystone_user_id=None
+        )
+        self.set_pending()
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "could not find an existing"
+        )
+
+    def test_user_already_linked(self, mock_rpc):
+        user, _ = self.saml_user()
+        self.make_external_id(
+            user, "other-sub", attrs={"id": "other-sub"}, protocol="oidc"
+        )
+        self.set_pending()
+        self.assertLinkFailed(
+            self.client.get("/login/link/"), "already connected"
+        )
+
+    def test_conflicting_candidate(self, mock_rpc):
+        self.saml_user()
+        self.make_db_user(
+            id=2,
+            state="created",
+            email="two@example.com",
+            persistent_id="pid-2",
+            attrs=dict(self.shib_attrs, shared_token=fake_oidc.SHARED_TOKEN),
+        )
+        self.set_pending()
+        with self.assertLogs("manuka.views", level="WARNING") as logs:
+            response = self.confirm()
+        self.assertLinkFailed(response, "different Nectar account")
+        self.assertTrue(
+            any("oidc.link.refused" in line for line in logs.output)
+        )
+        self.assertEqual(2, len(self.external_ids()))
+
+    def test_bad_nonce_rejected(self, mock_rpc):
+        self.saml_user()
+        self.set_pending()
+        response = self.confirm(nonce="wrong")
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(1, len(self.external_ids()))
+
+    def test_missing_confirm_rejected(self, mock_rpc):
+        self.saml_user()
+        self.set_pending()
+        response = self.client.post("/login/link/", data={"nonce": self.NONCE})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(1, len(self.external_ids()))
+
+    def test_confirm_links_and_redirects(self, mock_rpc):
+        db_user, saml_id = self.saml_user(
+            firstname="Godfrey", telephonenumber="1800 815 270"
+        )
+        self.set_pending()
+        with self.assertLogs("manuka.views", level="INFO") as logs:
+            response = self.client.post(
+                "/login/link/?return-path=https://x/y",
+                data={"confirm": "1", "nonce": self.NONCE},
+            )
+        self.assertRedirectsTo(
+            response, "/oidc/continue/", {"return-path": ["https://x/y"]}
+        )
+
+        self.assertEqual(2, len(db_user.external_ids))
+        oidc_id = [e for e in db_user.external_ids if e.protocol == "oidc"][0]
+        self.assertEqual(fake_oidc.SUB, oidc_id.persistent_id)
+        self.assertEqual(fake_oidc.ISSUER, oidc_id.idp)
+        self.assertEqual(
+            {"firstname": "Godfrey", "telephonenumber": "1800 815 270"},
+            oidc_id.attributes,
+        )
+        with self.client.session_transaction() as sess:
+            self.assertEqual(oidc_id.id, sess["external_id"])
+            self.assertNotIn("pending_oidc", sess)
+            self.assertIn("oidc_attrs", sess)
+        self.assertTrue(
+            any("oidc.link.confirmed" in line for line in logs.output)
+        )
+        mock_rpc.get_notifier.return_value.info.assert_called_once_with(
+            {},
+            "account.external_id.link",
+            {
+                "user_id": db_user.keystone_user_id,
+                "external_id": oidc_id.id,
+                "protocol": "oidc",
+                "idp": fake_oidc.ISSUER,
+                "method": "shibboleth",
+            },
+        )
+
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_confirm_then_continue_logs_in(
+        self, mock_keystone_authenticate, mock_rpc
+    ):
+        self.mock_keystone_user(mock_keystone_authenticate)
+        db_user, saml_id = self.saml_user()
+        self.set_pending()
+        self.confirm()
+        self.client.get("/oidc/continue/")
+        self.assertTemplateUsed("redirect.html")
+        mock_keystone_authenticate.assert_called_once_with(
+            db_user, set_username_as_email=False
+        )
+
+    def test_confirm_subject_linked_meanwhile(self, mock_rpc):
+        self.saml_user()
+        self.make_db_user(
+            id=2,
+            state="created",
+            email="two@example.com",
+            persistent_id=fake_oidc.SUB,
+            protocol="oidc",
+            attrs={"id": fake_oidc.SUB},
+        )
+        self.set_pending()
+        response = self.confirm()
+        self.assertLinkFailed(response, "already been connected")
+        self.assertEqual(2, len(self.external_ids()))
+        mock_rpc.get_notifier.return_value.info.assert_not_called()
+
+    def test_get_without_shibboleth_attributes(self, mock_rpc):
+        self.app.wsgi_app = self.app.wsgi_app.app  # drop the fake
+        self.set_pending()
+        self.client.get("/login/link/")
+        self.assertTemplateUsed("error.html")
+        self.assertContext("message", views.MISSING_ATTR_MSG["saml"])
