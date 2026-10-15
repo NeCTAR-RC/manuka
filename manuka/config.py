@@ -157,6 +157,12 @@ oidc_opts = [
         help="Where the provider sends the browser after logging out.",
     ),
     cfg.BoolOpt(
+        "fake",
+        default=False,
+        help="Replace the provider with a local form at /oidc/fake/ that "
+        "returns whatever claims are typed in. For development only.",
+    ),
+    cfg.BoolOpt(
         "prompt_saml_users",
         default=False,
         help="After a Shibboleth login, offer users who have no OpenID "

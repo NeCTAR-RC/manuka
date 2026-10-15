@@ -61,6 +61,11 @@ def init_app(app):
     if not CONF.oidc.enabled:
         LOG.debug("OpenID Connect login is disabled")
         return None
+    if CONF.oidc.fake:
+        LOG.warning(
+            "OpenID Connect login is using the FAKE provider at /oidc/fake/"
+        )
+        return None
     return oauth.register(
         CLIENT_NAME,
         client_id=CONF.oidc.client_id,
@@ -75,6 +80,10 @@ def init_app(app):
 
 def get_client():
     """The registered client, or None when login is disabled."""
+    if CONF.oidc.enabled and CONF.oidc.fake:
+        from manuka import oidc_faker
+
+        return oidc_faker.FakeOIDCClient()
     oauth = flask.current_app.extensions.get(EXTENSION_KEY)
     if oauth is None:
         return None

@@ -845,6 +845,16 @@ def oidc_continue():
     return _complete_login(db_user, external_id, attrs, models.PROTOCOL_OIDC)
 
 
+@oidc_bp.route("/fake/", methods=("GET", "POST"))
+def oidc_fake():
+    """The development stand-in for the provider, see manuka.oidc_faker."""
+    if not CONF.oidc.fake:
+        flask.abort(404)
+    from manuka import oidc_faker
+
+    return oidc_faker.fake_form()
+
+
 @oidc_bp.route("/logout/")
 def oidc_logout():
     """End the manuka session and the provider's single sign-on session."""
