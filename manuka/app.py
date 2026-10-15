@@ -24,6 +24,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from manuka.common import sentry
 from manuka import config
 from manuka import extensions
+from manuka import oidc
 
 
 CONF = cfg.CONF
@@ -108,6 +109,7 @@ def register_extensions(app, api_bp):
         app, extensions.db, directory=os.path.join(app.root_path, "migrations")
     )
     extensions.ma.init_app(app)
+    oidc.init_app(app)
 
 
 def register_blueprints(app):

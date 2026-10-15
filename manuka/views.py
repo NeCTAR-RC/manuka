@@ -125,6 +125,38 @@ class ShibbolethAttrMap(AttrMap):
     }
 
 
+class OIDCAttrMap(AttrMap):
+    """Claims from the OpenID Connect provider.
+
+    The claim names are set by the protocol mappers on the provider's
+    client configuration. The manuka names match what ShibbolethAttrMap
+    produces, so identities from both protocols compare like for like.
+    """
+
+    EMAIL_KEY = "email"
+    data = {
+        "sub": "id",
+        "iss": "idp",
+        "email": "mail",
+        "name": "fullname",
+        "given_name": "firstname",
+        "family_name": "surname",
+        "preferred_username": "uid",
+        "eduperson_principal_name": "eppn",
+        "au_edu_person_shared_token": "shared_token",
+        "subject_id": "subject-id",
+        "pairwise_id": "pairwise-id",
+        "eduperson_affiliation": "affiliation",
+        "eduperson_scoped_affiliation": "scoped_affiliation",
+        "schac_home_organization": "homeorganization",
+        "eduperson_orcid": "orcid",
+        "phone_number": "telephonenumber",
+        # The alias of the identity provider that brokered the login
+        # (for example aaf or tuakiri), not an entityID.
+        "identity_provider": "federation",
+    }
+
+
 def _check_required_attrs(attrs, attr_map, protocol):
     """Check the attributes needed to identify and register a user.
 

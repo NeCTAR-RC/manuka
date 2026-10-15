@@ -18,6 +18,7 @@ from oslo_config import cfg
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit import fake_oidc
 from manuka.tests.unit import fake_shib
 from manuka import views
 
@@ -58,6 +59,52 @@ class TestShibbolethAttrMap(base.TestCase):
         self.assertEqual(views.ShibbolethAttrMap.get_attr("mail"), "mail")
         self.assertEqual(views.ShibbolethAttrMap.get_attr("location"), "l")
         self.assertIsNone(views.ShibbolethAttrMap.get_attr("nope"))
+
+
+class TestOIDCAttrMap(base.TestCase):
+    def test_parse_maps_all_claims(self):
+        claims = dict(fake_oidc.CLAIMS, email="Test@Example.com")
+        claims["eduperson_orcid"] = "0000-0001-2345-6789"
+        claims["phone_number"] = "+61 3 1234 5678"
+        claims["eduperson_scoped_affiliation"] = "staff@example.edu"
+        self.assertEqual(
+            {
+                "id": fake_oidc.SUB,
+                "idp": fake_oidc.ISSUER,
+                "mail": "test@example.com",
+                "fullname": fake_oidc.DISPLAYNAME,
+                "firstname": "john",
+                "surname": "smith",
+                "uid": "jsmith",
+                "eppn": fake_oidc.EPPN,
+                "shared_token": fake_oidc.SHARED_TOKEN,
+                "subject-id": fake_oidc.SUBJECT_ID,
+                "pairwise-id": fake_oidc.PAIRWISE_ID,
+                "affiliation": "staff;member",
+                "scoped_affiliation": "staff@example.edu",
+                "homeorganization": fake_oidc.HOME_ORG,
+                "orcid": "0000-0001-2345-6789",
+                "telephonenumber": "+61 3 1234 5678",
+                "federation": fake_oidc.FEDERATION,
+            },
+            views.OIDCAttrMap.parse(claims),
+        )
+
+    def test_parse_ignores_unknown_claims(self):
+        claims = {"sub": "s", "aud": "manuka", "exp": 1, "nonce": "n"}
+        self.assertEqual({"id": "s"}, views.OIDCAttrMap.parse(claims))
+
+    def test_get_attr(self):
+        self.assertEqual("sub", views.OIDCAttrMap.get_attr("id"))
+        self.assertEqual("email", views.OIDCAttrMap.get_attr("mail"))
+        self.assertEqual("name", views.OIDCAttrMap.get_attr("fullname"))
+
+    def test_shared_keys_with_shibboleth(self):
+        # The identifiers used to match identities across protocols must
+        # land under the same manuka attribute names.
+        for key in ("subject-id", "pairwise-id", "shared_token", "eppn"):
+            self.assertIn(key, views.ShibbolethAttrMap.data.values())
+            self.assertIn(key, views.OIDCAttrMap.data.values())
 
 
 class TestRequiredAttrs(base.TestCase):

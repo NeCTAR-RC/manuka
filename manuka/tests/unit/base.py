@@ -23,6 +23,7 @@ from manuka.common import keystone
 from manuka import extensions
 from manuka.extensions import db
 from manuka import models
+from manuka.tests.unit import fake_oidc
 from manuka.tests.unit import fake_shib
 
 
@@ -48,6 +49,14 @@ class TestCase(flask_testing.TestCase):
             "idp": fake_shib.IDP,
             "id": fake_shib.ID,
         }
+        self.oidc_claims = dict(fake_oidc.CLAIMS)
+
+    def patch_oidc_client(self, client=None):
+        """Replace the OpenID Connect client with a fake for this test."""
+        if client is None:
+            client = fake_oidc.FakeOIDCClient(self.oidc_claims)
+        mock.patch("manuka.oidc.get_client", return_value=client).start()
+        return client
 
     def tearDown(self):
         super().tearDown()

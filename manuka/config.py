@@ -104,6 +104,49 @@ orcid_opts = [
     cfg.StrOpt("default_redirect_url", default=None),
 ]
 
+oidc_opts = [
+    cfg.BoolOpt(
+        "enabled",
+        default=False,
+        help="Enable login through the OpenID Connect provider.",
+    ),
+    cfg.StrOpt(
+        "issuer",
+        help="Issuer URL of the OpenID Connect provider, for example "
+        "https://sso.example.org/realms/nectar.",
+    ),
+    cfg.StrOpt(
+        "server_metadata_url",
+        help="URL of the provider's discovery document. Defaults to "
+        "<issuer>/.well-known/openid-configuration.",
+    ),
+    cfg.StrOpt("client_id", help="Client ID registered with the provider."),
+    cfg.StrOpt(
+        "client_secret",
+        secret=True,
+        help="Client secret registered with the provider.",
+    ),
+    cfg.ListOpt(
+        "scopes",
+        default=["openid", "profile", "email"],
+        help="Scopes requested from the provider.",
+    ),
+    cfg.StrOpt(
+        "redirect_url",
+        help="The callback URL registered with the provider, for example "
+        "https://accounts.example.org/oidc/callback. When unset the URL "
+        "is derived from the incoming request, which is only safe for "
+        "development.",
+    ),
+    cfg.BoolOpt(
+        "use_userinfo_endpoint",
+        default=False,
+        help="Also fetch claims from the userinfo endpoint and merge them "
+        "over the ID token claims. Only needed when the provider does "
+        "not put the mapped claims in the ID token.",
+    ),
+]
+
 sentry_opts = [
     cfg.StrOpt(
         "dsn",
@@ -120,6 +163,7 @@ sentry_opts = [
 
 
 cfg.CONF.register_opts(sentry_opts, group="sentry")
+cfg.CONF.register_opts(oidc_opts, group="oidc")
 cfg.CONF.register_opts(orcid_opts, group="orcid")
 cfg.CONF.register_opts(keystone_opts, group="keystone")
 cfg.CONF.register_opts(swift_opts, group="swift")
@@ -158,6 +202,7 @@ def setup_logging(conf):
 def list_opts():
     return [
         ("DEFAULT", default_opts),
+        ("oidc", oidc_opts),
         ("orcid", orcid_opts),
         ("keystone", keystone_opts),
         ("swift", swift_opts),
