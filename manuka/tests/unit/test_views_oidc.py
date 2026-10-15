@@ -380,3 +380,114 @@ class TestOIDCLogin(OIDCTestCase):
         response = self.client.get("/oidc/logout/")
         self.assertEqual(302, response.status_code)
         self.assertEqual("https://home/", response.location)
+
+
+@mock.patch("manuka.views.worker_api", new=mock.Mock())
+class TestOIDCAutoLink(OIDCTestCase):
+    def saml_user(self, **overrides):
+        return self.make_db_user(
+            state="created",
+            email="old@example.com",
+            attrs=dict(self.shib_attrs, **overrides),
+        )
+
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_auto_links_existing_user(self, mock_keystone_authenticate):
+        self.mock_keystone_user(mock_keystone_authenticate)
+        db_user, saml_id = self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        attrs = self.set_oidc_session()
+
+        with self.assertLogs("manuka.views", level="INFO") as logs:
+            response = self.client.get("/oidc/continue/")
+
+        self.assert200(response)
+        self.assertTemplateUsed("redirect.html")
+        self.assertEqual(2, len(db_user.external_ids))
+        oidc_id = [e for e in db_user.external_ids if e.protocol == "oidc"][0]
+        self.assertEqual(fake_oidc.SUB, oidc_id.persistent_id)
+        self.assertEqual(fake_oidc.ISSUER, oidc_id.idp)
+        self.assertEqual(attrs, oidc_id.attributes)
+        self.assertIsNotNone(oidc_id.last_login)
+        self.assertEqual(1, db.session.query(models.User).count())
+        with self.client.session_transaction() as sess:
+            self.assertEqual(oidc_id.id, sess["external_id"])
+        self.assertTrue(
+            any("oidc.autolink" in line for line in logs.output), logs.output
+        )
+
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_auto_link_keeps_user_profile_values(
+        self, mock_keystone_authenticate
+    ):
+        self.mock_keystone_user(mock_keystone_authenticate)
+        db_user, saml_id = self.saml_user(
+            shared_token=fake_oidc.SHARED_TOKEN, telephonenumber="111"
+        )
+        db_user.phone_number = "999"  # set by the user through the API
+        db.session.commit()
+        self.oidc_claims["phone_number"] = "111"
+        self.set_oidc_session()
+
+        self.client.get("/oidc/continue/")
+        self.assertTemplateUsed("redirect.html")
+        self.assertEqual("999", db_user.phone_number)
+
+    def test_no_auto_link_on_email(self):
+        self.saml_user(mail=fake_oidc.EMAIL)
+        self.set_oidc_session()
+        self.client.get("/oidc/continue/")
+        self.assertTemplateUsed("choose_link.html")
+        self.assertEqual(1, len(self.external_ids()))
+
+    def test_ambiguous_match_shows_choice(self):
+        self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        self.make_db_user(
+            id=2,
+            state="created",
+            email="two@example.com",
+            persistent_id="pid-2",
+            attrs=dict(self.shib_attrs, shared_token=fake_oidc.SHARED_TOKEN),
+        )
+        self.set_oidc_session()
+        with self.assertLogs("manuka.models", level="WARNING") as logs:
+            self.client.get("/oidc/continue/")
+        self.assertTemplateUsed("choose_link.html")
+        self.assertTrue(
+            any("oidc.link.ambiguous" in line for line in logs.output)
+        )
+
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_known_subject_drift_warns(self, mock_keystone_authenticate):
+        self.mock_keystone_user(mock_keystone_authenticate)
+        attrs = self.set_oidc_session()
+        self.make_db_user(
+            state="created",
+            persistent_id=fake_oidc.SUB,
+            protocol="oidc",
+            attrs=dict(attrs, shared_token="previous-token"),
+        )
+        with self.assertLogs("manuka.views", level="WARNING") as logs:
+            response = self.client.get("/oidc/continue/")
+        self.assert200(response)
+        self.assertTemplateUsed("redirect.html")
+        self.assertTrue(
+            any("oidc.identity_drift" in line for line in logs.output)
+        )
+
+    @mock.patch("manuka.models.keystone_authenticate")
+    def test_known_subject_drift_denied(self, mock_keystone_authenticate):
+        CONF.set_override("deny_on_identity_drift", True, "oidc")
+        attrs = self.set_oidc_session()
+        self.make_db_user(
+            state="created",
+            persistent_id=fake_oidc.SUB,
+            protocol="oidc",
+            attrs=dict(attrs, **{"subject-id": "someone-else"}),
+        )
+        response = self.client.get("/oidc/continue/")
+        self.assert200(response)
+        self.assertTemplateUsed("error.html")
+        self.assertContext("title", "Login blocked")
+        mock_keystone_authenticate.assert_not_called()
+        with self.client.session_transaction() as sess:
+            self.assertNotIn("external_id", sess)

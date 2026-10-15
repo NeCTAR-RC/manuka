@@ -156,6 +156,22 @@ oidc_opts = [
         default="http://nectar.org.au/",
         help="Where the provider sends the browser after logging out.",
     ),
+    cfg.IntOpt(
+        "eppn_autolink_max_age_days",
+        default=180,
+        help="A first OpenID Connect login is linked to an existing SAML "
+        "identity by eppn only when that identity logged in within this "
+        "many days. Institutions can reassign an eppn, so a recent login "
+        "is the evidence it still belongs to the same person.",
+    ),
+    cfg.BoolOpt(
+        "deny_on_identity_drift",
+        default=False,
+        help="Refuse a login when the provider presents a known subject "
+        "with a different subject-id or shared token than it did before, "
+        "which indicates accounts were merged on the provider side. "
+        "When false the login is allowed and a warning is logged.",
+    ),
 ]
 
 sentry_opts = [

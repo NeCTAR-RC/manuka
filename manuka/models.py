@@ -11,6 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import datetime
 import flask
 
@@ -46,6 +47,38 @@ AFFILIATION_VALUES = [
 PROTOCOL_SAML = "saml"
 PROTOCOL_OIDC = "oidc"
 PROTOCOLS = (PROTOCOL_SAML, PROTOCOL_OIDC)
+
+# Identifiers that let a first OpenID Connect login be matched to an
+# existing SAML identity, strongest first, as (attribute key, strong).
+# Both attribute maps store these under the same keys. subject-id and
+# the AAF shared token are not targeted at a particular service and
+# are never reassigned, so one match is conclusive. An eppn can be
+# reassigned by an institution, so it only counts for an identity that
+# logged in recently. Email is deliberately absent: it is neither
+# unique nor stable. pairwise-id is targeted at the receiving service
+# provider, so the value recorded from Shibboleth never equals the one
+# seen through Keycloak; it is stored but cannot match.
+AUTO_LINK_KEYS = (
+    ("subject-id", True),
+    ("shared_token", True),
+    ("eppn", False),
+)
+
+# Identifiers that must not change between logins of a known subject.
+DRIFT_KEYS = ("subject-id", "shared_token")
+
+# Profile attributes that _merge_info_values reconciles between what
+# the identity provider sends and what the user may have set.
+MERGED_ATTRS = (
+    "firstname",
+    "surname",
+    "telephonenumber",
+    "mobilenumber",
+    "organisation",
+    "affiliation",
+)
+
+LinkMatch = collections.namedtuple("LinkMatch", "user key external_id")
 
 
 def get_key():
@@ -214,6 +247,108 @@ def create_db_user(attrs, protocol=PROTOCOL_SAML):
     db.session.add(external_id)
     db.session.commit()
     return db_user, external_id
+
+
+def external_id_attribute_equals(key, value):
+    """SQL expression matching rows whose stored attribute equals value.
+
+    Works on the JSON attributes column of both MySQL/MariaDB and the
+    SQLite used in tests, including for hyphenated keys.
+    """
+    return ExternalId.attributes[key].as_string() == value
+
+
+def find_linkable_user(attrs):
+    """Find the existing user an unseen OpenID Connect identity belongs to.
+
+    Walks AUTO_LINK_KEYS, strongest first, and stops at the first key
+    present in attrs that matches any SAML identity of a created user.
+    Returns a LinkMatch when that key matches exactly one user who has
+    no OpenID Connect identity yet, otherwise None. An ambiguous match
+    on a key is final: weaker keys are not consulted.
+    """
+    for key, strong in AUTO_LINK_KEYS:
+        value = attrs.get(key)
+        if not value:
+            continue
+        query = (
+            db.session.query(ExternalId)
+            .join(User, ExternalId.user_id == User.id)
+            .filter(ExternalId.protocol == PROTOCOL_SAML)
+            .filter(User.state == "created")
+            .filter(User.keystone_user_id.isnot(None))
+            .filter(external_id_attribute_equals(key, value))
+        )
+        if not strong:
+            max_age = datetime.timedelta(
+                days=CONF.oidc.eppn_autolink_max_age_days
+            )
+            query = query.filter(
+                ExternalId.last_login >= datetime.datetime.now() - max_age
+            )
+        rows = query.all()
+        if not rows:
+            continue
+        by_user = {row.user_id: row for row in rows}
+        if len(by_user) > 1:
+            LOG.warning(
+                "oidc.link.ambiguous: %s matches users %s",
+                key,
+                sorted(by_user.keys()),
+            )
+            return None
+        external_id = next(iter(by_user.values()))
+        user = external_id.user
+        if user.has_protocol(PROTOCOL_OIDC):
+            LOG.warning(
+                "oidc.link.refused: user %s matched by %s already has an "
+                "OpenID Connect identity",
+                user.id,
+                key,
+            )
+            return None
+        return LinkMatch(user, key, external_id)
+    return None
+
+
+def link_external_id(user, attrs, protocol, seed_from=None):
+    """Attach a further external identity to an existing user.
+
+    When seed_from, one of the user's existing identities, is given the
+    profile attributes it last received are copied onto the new row.
+    update_db_user then treats the first login through the new identity
+    as a repeat login, keeping values the user set themselves, instead
+    of as a provider that is supplying those attributes for the first
+    time, which would override them.
+    """
+    seed = {}
+    if seed_from is not None and seed_from.attributes:
+        seed = {
+            key: value
+            for key, value in seed_from.attributes.items()
+            if key in MERGED_ATTRS
+        }
+    external_id = ExternalId(
+        user, attrs["id"], seed, protocol=protocol, idp=attrs.get("idp")
+    )
+    db.session.add(external_id)
+    db.session.commit()
+    return external_id
+
+
+def identity_drift(external_id, attrs):
+    """The DRIFT_KEYS whose stored value differs from the incoming one.
+
+    A change in an identifier that is never reassigned means the
+    provider now presents a different person under the same subject,
+    which happens when accounts are merged on the provider side.
+    """
+    stored = external_id.attributes or {}
+    return [
+        key
+        for key in DRIFT_KEYS
+        if stored.get(key) and attrs.get(key) and stored[key] != attrs[key]
+    ]
 
 
 def _normalize(value):

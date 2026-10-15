@@ -497,6 +497,19 @@ def _render_login_failed(detail):
     return flask.render_template("error.html", **data)
 
 
+def _render_identity_drift():
+    data = {
+        "title": "Login blocked",
+        "message": [
+            "The identity your institution provided does not match the "
+            "one previously connected to this login.",
+            "To protect your account we have not logged you in.",
+        ],
+        "support_url": CONF.support_url,
+    }
+    return flask.render_template("error.html", **data)
+
+
 def _render_choose_link(attrs):
     """Ask a first-time OIDC user whether they already have an account."""
     existing = (
@@ -587,19 +600,49 @@ def oidc_continue():
         .filter_by(persistent_id=attrs["id"], protocol=models.PROTOCOL_OIDC)
         .first()
     )
-    if external_id is None:
-        if not request.form.get("create_new"):
-            return _render_choose_link(attrs)
-        db_user, external_id = models.create_db_user(
-            attrs, protocol=models.PROTOCOL_OIDC
-        )
-        LOG.info(
-            "oidc.newuser: created user %s for subject %s",
-            db_user.id,
-            attrs["id"],
-        )
-    else:
+    if external_id is not None:
         db_user = external_id.user
+        drift = models.identity_drift(external_id, attrs)
+        if drift:
+            LOG.warning(
+                "oidc.identity_drift: subject %s of user %s now carries a "
+                "different %s",
+                attrs["id"],
+                db_user.id,
+                ", ".join(drift),
+            )
+            if CONF.oidc.deny_on_identity_drift:
+                return _render_identity_drift()
+    else:
+        match = models.find_linkable_user(attrs)
+        if match is not None:
+            db_user = match.user
+            external_id = models.link_external_id(
+                db_user,
+                attrs,
+                models.PROTOCOL_OIDC,
+                seed_from=match.external_id,
+            )
+            LOG.info(
+                "oidc.autolink: subject %s linked to user %s (keystone %s) "
+                "by %s of external id %s",
+                attrs["id"],
+                db_user.id,
+                db_user.keystone_user_id,
+                match.key,
+                match.external_id.id,
+            )
+        elif not request.form.get("create_new"):
+            return _render_choose_link(attrs)
+        else:
+            db_user, external_id = models.create_db_user(
+                attrs, protocol=models.PROTOCOL_OIDC
+            )
+            LOG.info(
+                "oidc.newuser: created user %s for subject %s",
+                db_user.id,
+                attrs["id"],
+            )
 
     _set_session_identity(external_id)
     return _complete_login(db_user, external_id, attrs, models.PROTOCOL_OIDC)

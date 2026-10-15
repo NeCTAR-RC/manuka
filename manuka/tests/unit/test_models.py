@@ -12,6 +12,7 @@
 #    under the License.
 
 from datetime import datetime
+from datetime import timedelta
 from unittest import mock
 import werkzeug
 
@@ -21,7 +22,9 @@ from oslo_config import cfg
 from manuka.extensions import db
 from manuka import models
 from manuka.tests.unit import base
+from manuka.tests.unit import fake_oidc
 from manuka.tests.unit import fake_shib
+from manuka import views
 
 
 CONF = cfg.CONF
@@ -316,3 +319,212 @@ class TestModels(base.TestCase):
         self.assertEqual(
             mock_client.users.update.return_value, updated_keystone_user
         )
+
+
+class TestAutoLink(base.TestCase):
+    """Matching a first OpenID Connect login to an existing SAML user."""
+
+    def setUp(self):
+        super().setUp()
+        self.oidc_attrs = views.OIDCAttrMap.parse(fake_oidc.CLAIMS)
+        self.next_id = 100
+
+    def saml_user(self, state="created", keystone_user_id=0, **overrides):
+        self.next_id += 1
+        attrs = dict(self.shib_attrs, **overrides)
+        return self.make_db_user(
+            id=self.next_id,
+            state=state,
+            email=f"user{self.next_id}@example.com",
+            keystone_user_id=keystone_user_id,
+            persistent_id=f"pid-{self.next_id}",
+            attrs=attrs,
+        )
+
+    def test_keys_are_produced_by_both_attribute_maps(self):
+        for key, strong in models.AUTO_LINK_KEYS:
+            self.assertIn(key, views.ShibbolethAttrMap.data.values())
+            self.assertIn(key, views.OIDCAttrMap.data.values())
+            self.assertIsInstance(strong, bool)
+        self.assertNotIn("mail", [k for k, _ in models.AUTO_LINK_KEYS])
+        self.assertNotIn("pairwise-id", [k for k, _ in models.AUTO_LINK_KEYS])
+
+    def test_match_subject_id(self):
+        self.saml_user(shared_token="other")
+        user, external_id = self.saml_user(
+            **{"subject-id": fake_oidc.SUBJECT_ID}
+        )
+        match = models.find_linkable_user(self.oidc_attrs)
+        self.assertEqual(user, match.user)
+        self.assertEqual("subject-id", match.key)
+        self.assertEqual(external_id, match.external_id)
+
+    def test_match_shared_token(self):
+        user, external_id = self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        match = models.find_linkable_user(self.oidc_attrs)
+        self.assertEqual(user, match.user)
+        self.assertEqual("shared_token", match.key)
+
+    def test_match_eppn_recent_login(self):
+        user, external_id = self.saml_user(eppn=fake_oidc.EPPN)
+        external_id.last_login = datetime.now() - timedelta(days=10)
+        db.session.commit()
+        match = models.find_linkable_user(self.oidc_attrs)
+        self.assertEqual(user, match.user)
+        self.assertEqual("eppn", match.key)
+
+    def test_match_eppn_stale_login(self):
+        user, external_id = self.saml_user(eppn=fake_oidc.EPPN)
+        external_id.last_login = datetime.now() - timedelta(days=200)
+        db.session.commit()
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_match_eppn_never_logged_in(self):
+        user, external_id = self.saml_user(eppn=fake_oidc.EPPN)
+        self.assertIsNone(external_id.last_login)
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_match_eppn_window_configurable(self):
+        CONF.set_override("eppn_autolink_max_age_days", 365, "oidc")
+        user, external_id = self.saml_user(eppn=fake_oidc.EPPN)
+        external_id.last_login = datetime.now() - timedelta(days=200)
+        db.session.commit()
+        self.assertEqual(user, models.find_linkable_user(self.oidc_attrs).user)
+
+    def test_strong_key_wins_over_weaker(self):
+        self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        winner, _ = self.saml_user(**{"subject-id": fake_oidc.SUBJECT_ID})
+        match = models.find_linkable_user(self.oidc_attrs)
+        self.assertEqual(winner, match.user)
+        self.assertEqual("subject-id", match.key)
+
+    def test_ambiguous_strong_key_is_final(self):
+        self.saml_user(**{"subject-id": fake_oidc.SUBJECT_ID})
+        self.saml_user(**{"subject-id": fake_oidc.SUBJECT_ID})
+        # A clean match on a weaker key must not rescue the ambiguity.
+        self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_several_identities_of_one_user_is_a_match(self):
+        user, _ = self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        self.make_external_id(
+            user,
+            "pid-extra",
+            attrs=dict(self.shib_attrs, shared_token=fake_oidc.SHARED_TOKEN),
+        )
+        self.assertEqual(user, models.find_linkable_user(self.oidc_attrs).user)
+
+    def test_email_only_does_not_match(self):
+        self.saml_user(mail=fake_oidc.EMAIL)
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_pairwise_id_does_not_match(self):
+        self.saml_user(**{"pairwise-id": fake_oidc.PAIRWISE_ID})
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_requires_created_state(self):
+        for state in ("new", "registered", "duplicate"):
+            self.saml_user(state=state, shared_token=fake_oidc.SHARED_TOKEN)
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_requires_keystone_user(self):
+        self.saml_user(
+            keystone_user_id=None, shared_token=fake_oidc.SHARED_TOKEN
+        )
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_requires_saml_identity(self):
+        user, _ = self.saml_user()
+        self.make_external_id(
+            user,
+            "other-sub",
+            attrs=dict(self.oidc_attrs, id="other-sub"),
+            protocol="oidc",
+        )
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_user_already_linked(self):
+        user, _ = self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        self.make_external_id(
+            user, "other-sub", attrs={"id": "other-sub"}, protocol="oidc"
+        )
+        self.assertIsNone(models.find_linkable_user(self.oidc_attrs))
+
+    def test_no_identifiers_in_attrs(self):
+        self.saml_user(shared_token=fake_oidc.SHARED_TOKEN)
+        attrs = {"id": "x", "mail": fake_oidc.EMAIL, "fullname": "x"}
+        self.assertIsNone(models.find_linkable_user(attrs))
+
+    def test_attribute_lookup_with_hyphenated_key(self):
+        user, external_id = self.saml_user(**{"subject-id": "abc@x"})
+        rows = (
+            db.session.query(models.ExternalId)
+            .filter(models.external_id_attribute_equals("subject-id", "abc@x"))
+            .all()
+        )
+        self.assertEqual([external_id], rows)
+        rows = (
+            db.session.query(models.ExternalId)
+            .filter(models.external_id_attribute_equals("subject-id", "nope"))
+            .all()
+        )
+        self.assertEqual([], rows)
+
+    def test_link_external_id_seeds_profile_attributes(self):
+        user, saml_id = self.saml_user(
+            firstname="Godfrey",
+            telephonenumber="1800 815 270",
+            shared_token=fake_oidc.SHARED_TOKEN,
+        )
+        linked = models.link_external_id(
+            user, self.oidc_attrs, "oidc", seed_from=saml_id
+        )
+        self.assertEqual("oidc", linked.protocol)
+        self.assertEqual(fake_oidc.SUB, linked.persistent_id)
+        self.assertEqual(fake_oidc.ISSUER, linked.idp)
+        self.assertEqual(
+            {"firstname": "Godfrey", "telephonenumber": "1800 815 270"},
+            linked.attributes,
+        )
+        self.assertEqual(user, linked.user)
+        self.assertTrue(user.has_protocol("oidc"))
+        self.assertTrue(user.has_protocol("saml"))
+
+    def test_link_external_id_without_seed(self):
+        user, _ = self.saml_user()
+        linked = models.link_external_id(user, self.oidc_attrs, "oidc")
+        self.assertEqual({}, linked.attributes)
+
+    def test_identity_drift(self):
+        user, _ = self.saml_user()
+        linked = self.make_external_id(
+            user,
+            fake_oidc.SUB,
+            attrs=dict(self.oidc_attrs),
+            protocol="oidc",
+        )
+        self.assertEqual([], models.identity_drift(linked, self.oidc_attrs))
+
+        changed = dict(self.oidc_attrs, **{"subject-id": "someone-else"})
+        self.assertEqual(
+            ["subject-id"], models.identity_drift(linked, changed)
+        )
+        changed["shared_token"] = "other-token"
+        self.assertEqual(
+            ["subject-id", "shared_token"],
+            models.identity_drift(linked, changed),
+        )
+
+    def test_identity_drift_ignores_absent_values(self):
+        user, _ = self.saml_user()
+        linked = self.make_external_id(
+            user, fake_oidc.SUB, attrs={}, protocol="oidc"
+        )
+        self.assertEqual([], models.identity_drift(linked, self.oidc_attrs))
+        linked.attributes = dict(self.oidc_attrs)
+        without = {
+            k: v
+            for k, v in self.oidc_attrs.items()
+            if k not in models.DRIFT_KEYS
+        }
+        self.assertEqual([], models.identity_drift(linked, without))
