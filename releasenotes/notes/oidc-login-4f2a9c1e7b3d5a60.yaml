@@ -1,0 +1,71 @@
+---
+features:
+  - |
+    Users can now log in through an OpenID Connect provider (Keycloak) at
+    ``/oidc/login/``, alongside the existing Shibboleth login at ``/login/``.
+    Both protocols share one manuka user and one keystone account; the
+    protocol an external identity came from is recorded in the new
+    ``protocol`` column of ``external_id`` and exposed by the API.
+  - |
+    A first OpenID Connect login is linked to an existing account
+    automatically when the claims carry a SAML ``subject-id`` or AAF shared
+    token that exactly one existing SAML identity also carries, or an
+    ``eppn`` of an identity that logged in within
+    ``[oidc] eppn_autolink_max_age_days``. Email never links accounts. When
+    no identifier matches, the user may link the account by signing in once
+    through Shibboleth at ``/login/link/`` and confirming both identities,
+    or create a new account.
+  - |
+    After a Shibboleth login, users without an OpenID Connect identity are
+    offered to set up the new login when ``[oidc] prompt_saml_users`` is
+    set.
+  - |
+    ``manuka-manage oidc-migration-report`` lists active users by whether
+    they already use the new login, will link automatically, or still need
+    to act, as CSV with each user's SAML IdP for per-institution follow-up.
+  - |
+    The keystone domain of a new user's project can be mapped from the
+    alias of the identity provider that brokered an OpenID Connect login
+    (for example ``tuakiri``) or from the home organisation, as well as
+    from a SAML IdP entityID. ``manuka-manage add-domain-mapping`` accepts
+    any of these as the key.
+  - |
+    ``[oidc] fake = true`` replaces the provider with a local form at
+    ``/oidc/fake/`` for development, in the same way as ``fake_shib``.
+upgrade:
+  - |
+    Run ``manuka-manage db upgrade``. The migration adds
+    ``external_id.protocol`` with a server default of ``saml``, which
+    backfills every existing row.
+  - |
+    A new ``[oidc]`` configuration section controls the OpenID Connect
+    login. It is disabled by default. To enable it set ``enabled``,
+    ``issuer``, ``client_id``, ``client_secret`` and ``redirect_url``, and
+    register a confidential client with the provider whose redirect URI is
+    ``<base URL>/oidc/callback``. The provider must emit the claims listed
+    in ``OIDCAttrMap`` (``manuka/views.py``), in particular
+    ``eduperson_principal_name``, ``au_edu_person_shared_token``,
+    ``subject_id`` and ``identity_provider``, in the ID token.
+  - |
+    The account creation progress page now polls ``/account_status``
+    instead of ``/login/account_status``. The new path must be reachable
+    without a Shibboleth session; the old path still works.
+  - |
+    The session cookie is now ``SameSite=Lax`` and ``Secure`` by default.
+    Set ``[flask] session_cookie_secure = false`` for development over
+    plain HTTP.
+  - |
+    Authlib is a new dependency. It is not in the OpenStack upper
+    constraints; the ``cryptography`` pin there resolves it to the 1.6
+    series.
+security:
+  - |
+    The ``return-path`` of an OpenID Connect login is validated against the
+    allow list before the browser is sent to the provider and again before
+    the keystone token is handed over. The callback URL, whose code and
+    state are single use, never renders a page. Linking by Shibboleth
+    re-authentication requires a nonce from the confirmation page, compared
+    in constant time, and re-checks every precondition on submission. A
+    login whose ``subject-id`` or shared token differs from the one
+    previously seen for that subject is logged as identity drift and can be
+    refused with ``[oidc] deny_on_identity_drift``.
