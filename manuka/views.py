@@ -38,8 +38,65 @@ LOG = logging.getLogger(__name__)
 # This regex matches an RFC 5322 addr-spec with a 2 to 4 char TLD
 EMAIL_RE = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
+# Attributes every login protocol must supply before a user can be
+# matched or created.
+REQUIRED_ATTRS = ("id", "mail", "fullname")
 
-class ShibbolethAttrMap:
+SAML_LOGOUT_URL = "/Shibboleth.sso/Logout?return=http://nectar.org.au/"
+
+# The explanation shown on the error page when a login protocol does
+# not supply the required attributes, keyed by protocol.
+MISSING_ATTR_MSG = {
+    "saml": [
+        "Not enough details have been received from your "
+        "institution to allow you to log on to the cloud. We "
+        "need your id, your e-mail and your full name.",
+        "Please contact your institution and tell them that "
+        'their "AAF IdP" is broken!',
+        "Copy and paste the details below into your email to "
+        "your institution's support desk.",
+        "The following required fields are missing or incorrect "
+        "from the AAF service:",
+    ],
+}
+
+
+class AttrMap:
+    """Map attributes from an external identity source to manuka's names.
+
+    Subclasses set ``data`` to a dict of source attribute name to
+    manuka attribute name and ``EMAIL_KEY`` to the source name of the
+    email attribute, which is normalised to lower case.
+    """
+
+    data = {}
+    EMAIL_KEY = "mail"
+
+    @classmethod
+    def parse(cls, source):
+        metadata = {}
+        for k, v in cls.data.items():
+            value = source.get(k)
+            if not value:
+                continue
+            if isinstance(value, (list, tuple)):
+                # Multi-valued attributes are joined the way mod_shib
+                # joins them so stored attributes keep one shape.
+                value = ";".join(str(item) for item in value)
+            if k == cls.EMAIL_KEY:
+                value = value.lower()
+            metadata[v] = value
+        return metadata
+
+    @classmethod
+    def get_attr(cls, name):
+        for k, v in cls.data.items():
+            if name == v:
+                return k
+
+
+class ShibbolethAttrMap(AttrMap):
+    EMAIL_KEY = "mail"
     data = {
         "persistent-id": "id",
         "cn": "cn",
@@ -66,101 +123,94 @@ class ShibbolethAttrMap:
         "pairwise-id": "pairwise-id",
     }
 
-    @classmethod
-    def parse(cls, environ):
-        metadata = {}
-        for k, v in cls.data.items():
-            if environ.get(k):
-                if k == "mail":
-                    metadata[v] = environ.get(k).lower()
-                else:
-                    metadata[v] = environ.get(k)
-        return metadata
 
-    @classmethod
-    def get_attr(cls, name):
-        for k, v in cls.data.items():
-            if name == v:
-                return k
+def _check_required_attrs(attrs, attr_map, protocol):
+    """Check the attributes needed to identify and register a user.
 
-
-@login_bp.route("/account_status")
-def account_status():
-    external_id = (
-        db.session.query(models.ExternalId)
-        .filter_by(persistent_id=session.get("shib_user_id"))
-        .first_or_404()
-    )
-
-    data = {"state": external_id.user.state}
-    return json.dumps(data)
-
-
-@login_bp.route("/", methods=("GET", "POST"))
-def root():
-    shib_attrs = ShibbolethAttrMap.parse(request.environ)
-    LOG.info("The AAF responded with: %s.", shib_attrs)
+    Returns a dict of field name to error message, empty when the
+    attributes are acceptable.
+    """
     errors = {}
-    for field in ["id", "mail", "fullname"]:
-        if field not in shib_attrs:
+    for field in REQUIRED_ATTRS:
+        if field not in attrs:
             errors[field] = (
-                f"Required field '{ShibbolethAttrMap.get_attr(field)}' "
-                "can't be found."
+                f"Required field '{attr_map.get_attr(field)}' can't be found."
             )
 
     if errors:
         LOG.error(
-            "The AAF IdP is not returning the required "
+            "The %s identity provider is not returning the required "
             "attributes. The following are missing: %s. "
             "The following are present: %s.",
+            protocol,
             ", ".join(errors.keys()),
-            shib_attrs,
+            attrs,
         )
 
-    mail_value = shib_attrs.get("mail")
+    mail_value = attrs.get("mail")
     if mail_value and not EMAIL_RE.match(mail_value):
         LOG.error(
-            "The AAF IdP is returning a bad 'mail' attribute: '%s'", mail_value
+            "The %s identity provider is returning a bad 'mail' "
+            "attribute: '%s'",
+            protocol,
+            mail_value,
         )
         errors["mail"] = (
             "The '{}' field must be one RFC 5322 <addr-spec>: "
             "the value provided is '{}'".format(
-                ShibbolethAttrMap.get_attr("mail"), mail_value
+                attr_map.get_attr("mail"), mail_value
             )
         )
+    return errors
 
-    if errors:
-        error_values = list(errors.values())
-        error_values.sort()
-        data = {
-            "title": "Error",
-            "message": [
-                "Not enough details have been received from your "
-                "institution to allow you to log on to the cloud. We "
-                "need your id, your e-mail and your full name.",
-                "Please contact your institution and tell them that "
-                'their "AAF IdP" is broken!',
-                "Copy and paste the details below into your email to "
-                "your institution's support desk.",
-                "The following required fields are missing or incorrect "
-                "from the AAF service:",
-            ],
-            "errors": error_values,
-        }
-        return flask.render_template("error.html", **data)
 
-    external_id = (
-        db.session.query(models.ExternalId)
-        .filter_by(persistent_id=shib_attrs["id"])
-        .first()
-    )
-    if not external_id:
-        db_user, external_id = models.create_db_user(shib_attrs)
-    else:
-        db_user = external_id.user
+def _render_attr_errors(errors, protocol):
+    """Render the error page for missing or invalid login attributes."""
+    data = {
+        "title": "Error",
+        "message": MISSING_ATTR_MSG[protocol],
+        "errors": sorted(errors.values()),
+    }
+    return flask.render_template("error.html", **data)
 
-    session["shib_user_id"] = shib_attrs["id"]
 
+def _validate_return_path(value):
+    """Validate a requested return-path against the whitelist.
+
+    Returns a ``(target, error_response)`` pair. ``target`` is the
+    configured default target when no return-path was requested, the
+    requested path when it is whitelisted, and ``None`` with a rendered
+    error page when it is blocked.
+    """
+    if not value:
+        return CONF.default_target, None
+
+    url_pieces = parse.urlparse(value)
+    url_match = f"{url_pieces.scheme}://{url_pieces.netloc}{url_pieces.path}"
+    if url_match in (CONF.whitelist or []):
+        return value, None
+
+    LOG.warning("Attempt to authenticate to a blocked URL: %s", value)
+    data = {
+        "title": "Authentication Error",
+        "message": f"You attempted to authenticate to the {value} "
+        "URL, which is not permitted by this service.",
+    }
+    return None, flask.render_template("error.html", **data)
+
+
+def _logout_url(protocol):
+    """The URL that ends the login session for the given protocol."""
+    return SAML_LOGOUT_URL
+
+
+def _complete_login(db_user, external_id, attrs, protocol):
+    """Finish a login once the user has been identified.
+
+    Handles terms acceptance, account creation progress, username
+    changes and the final hand-off of a keystone token to the
+    requested target. Shared by every login protocol.
+    """
     current_terms_version = CONF.terms_version
 
     if request.form.get("agree") and db_user.state == "new":
@@ -169,20 +219,20 @@ def root():
         db_user.terms_accepted_at = date_now
         db_user.state = "registered"
         db_user.terms_version = current_terms_version
-        models.update_db_user(db_user, external_id, shib_attrs)
+        models.update_db_user(db_user, external_id, attrs)
         db.session.commit()
         LOG.info("User %s accepted terms", db_user)
         # after registering present the user with a page indicating
         # there account is being created
         worker = worker_api.WorkerAPI()
         ctxt = context.RequestContext()
-        worker.create_user(ctxt, shib_attrs)
+        worker.create_user(ctxt, attrs)
 
     if request.form.get("agree") and db_user.state == "created":
         # New terms version accepted
         db_user.terms_version = current_terms_version
         db_user.terms_accepted_at = datetime.datetime.now()
-        models.update_db_user(db_user, external_id, shib_attrs)
+        models.update_db_user(db_user, external_id, attrs)
         db.session.commit()
         LOG.info("User %s accepted new terms", db_user)
 
@@ -198,6 +248,7 @@ def root():
             "title": "Terms and Conditions.",
             "terms_version": current_terms_version,
             "updated_terms": db_user.terms_version,
+            "logout_url": _logout_url(protocol),
         }
         return flask.render_template("terms_form.html", **data)
 
@@ -252,7 +303,7 @@ def root():
             # useful error page...
             return flask.render_template("error.html", **data)
 
-    models.update_db_user(db_user, external_id, shib_attrs)
+    models.update_db_user(db_user, external_id, attrs)
 
     if user.name != user.email and not db_user.ignore_username_not_email:
         LOG.info("User %s username and email do not match", db_user)
@@ -262,27 +313,50 @@ def root():
     # sjjf: default to the configured target URL, but allow the source
     # to specify a different return-path. The specified return path is
     # then verified against a white list.
-    target = CONF.default_target
-    if request.args.get("return-path"):
-        t = request.args.get("return-path")
-        url_pieces = parse.urlparse(t)
-        url_match = (
-            f"{url_pieces.scheme}://{url_pieces.netloc}{url_pieces.path}"
-        )
-        if url_match in CONF.whitelist:
-            target = t
-        else:
-            LOG.exception("Attempt to authenticate to a blocked URL: %s", t)
-            data = {
-                "title": "Authentication Error",
-                "message": f"You attempted to authenticate to the {t} "
-                "URL, which is not permitted by this service.",
-            }
-            return flask.render_template("error.html", **data)
+    target, error_response = _validate_return_path(
+        request.args.get("return-path")
+    )
+    if error_response is not None:
+        return error_response
 
     data = {"token": token, "tenant_id": project_id, "target": target}
 
     return flask.render_template("redirect.html", **data)
+
+
+@login_bp.route("/account_status")
+def account_status():
+    external_id = (
+        db.session.query(models.ExternalId)
+        .filter_by(persistent_id=session.get("shib_user_id"))
+        .first_or_404()
+    )
+
+    data = {"state": external_id.user.state}
+    return json.dumps(data)
+
+
+@login_bp.route("/", methods=("GET", "POST"))
+def root():
+    attrs = ShibbolethAttrMap.parse(request.environ)
+    LOG.info("SAML attributes received: %s.", attrs)
+    errors = _check_required_attrs(attrs, ShibbolethAttrMap, "saml")
+    if errors:
+        return _render_attr_errors(errors, "saml")
+
+    external_id = (
+        db.session.query(models.ExternalId)
+        .filter_by(persistent_id=attrs["id"])
+        .first()
+    )
+    if not external_id:
+        db_user, external_id = models.create_db_user(attrs)
+    else:
+        db_user = external_id.user
+
+    session["shib_user_id"] = attrs["id"]
+
+    return _complete_login(db_user, external_id, attrs, "saml")
 
 
 @default_bp.route("/terms.html")

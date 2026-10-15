@@ -41,9 +41,81 @@ class TestShibbolethAttrMap(base.TestCase):
             {"id": "1234", "mail": "test@example.com"},
         )
 
+    def test_parse_ignores_unknown_and_empty(self):
+        environ = {"persistent-id": "1234", "mail": "", "unknown": "x"}
+        self.assertEqual(
+            views.ShibbolethAttrMap.parse(environ), {"id": "1234"}
+        )
+
+    def test_parse_joins_lists(self):
+        environ = {"affiliation": ["staff", "member"], "sn": ("Smith",)}
+        self.assertEqual(
+            views.ShibbolethAttrMap.parse(environ),
+            {"affiliation": "staff;member", "surname": "Smith"},
+        )
+
     def test_attr(self):
         self.assertEqual(views.ShibbolethAttrMap.get_attr("mail"), "mail")
         self.assertEqual(views.ShibbolethAttrMap.get_attr("location"), "l")
+        self.assertIsNone(views.ShibbolethAttrMap.get_attr("nope"))
+
+
+class TestRequiredAttrs(base.TestCase):
+    def test_all_present(self):
+        attrs = {"id": "1", "mail": "a@example.com", "fullname": "A"}
+        self.assertEqual(
+            {},
+            views._check_required_attrs(
+                attrs, views.ShibbolethAttrMap, "saml"
+            ),
+        )
+
+    def test_missing(self):
+        errors = views._check_required_attrs(
+            {"mail": "a@example.com"}, views.ShibbolethAttrMap, "saml"
+        )
+        self.assertEqual({"id", "fullname"}, set(errors.keys()))
+        self.assertEqual(
+            "Required field 'persistent-id' can't be found.", errors["id"]
+        )
+
+    def test_bad_mail(self):
+        errors = views._check_required_attrs(
+            {"id": "1", "mail": "not-an-email", "fullname": "A"},
+            views.ShibbolethAttrMap,
+            "saml",
+        )
+        self.assertEqual(["mail"], list(errors.keys()))
+
+
+class TestReturnPath(base.TestCase):
+    def test_default(self):
+        self.assertEqual(
+            (CONF.default_target, None), views._validate_return_path(None)
+        )
+        self.assertEqual(
+            (CONF.default_target, None), views._validate_return_path("")
+        )
+
+    def test_whitelisted(self):
+        return_path = "https://test.example.com/auth/token?next=x"
+        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+        self.assertEqual(
+            (return_path, None), views._validate_return_path(return_path)
+        )
+
+    def test_blocked(self):
+        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+        target, response = views._validate_return_path("http://bad")
+        self.assertIsNone(target)
+        self.assertIsNotNone(response)
+        self.assertTemplateUsed("error.html")
+        self.assertContext("title", "Authentication Error")
+
+    def test_blocked_no_whitelist(self):
+        target, response = views._validate_return_path("http://bad")
+        self.assertIsNone(target)
+        self.assertIsNotNone(response)
 
 
 MISSING_ATTR_MSG = [
@@ -119,6 +191,8 @@ class TestViews(base.TestCase):
         response = self.client.get("/login/")
         self.assert200(response)
         self.assertTemplateUsed("terms_form.html")
+        self.assertContext("logout_url", views.SAML_LOGOUT_URL)
+        self.assertIn(views.SAML_LOGOUT_URL, response.get_data(as_text=True))
         external_id = (
             db.session.query(models.ExternalId)
             .filter_by(persistent_id=fake_shib.ID)
