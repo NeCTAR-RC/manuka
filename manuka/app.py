@@ -117,6 +117,7 @@ def register_blueprints(app):
 
     app.register_blueprint(views.default_bp)
     app.register_blueprint(views.login_bp)
+    app.register_blueprint(views.oidc_bp)
 
 
 def register_resources(api):

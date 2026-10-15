@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block body %}
+<div id="terms" class="centered_wrapper">
+  <div class="content border_rounded border_shadow">
+    <h1>Welcome to the Nectar Research Cloud</h1>
+    <p>You have signed in as <b>{{ attrs.fullname }}</b> ({{ attrs.mail }}),
+      but this login is not yet connected to a Nectar account.</p>
+    {% if email_known %}
+    <div class="status_box">
+      <p>An existing Nectar account uses the email address
+        <b>{{ attrs.mail }}</b>. If that account is yours, please link it
+        rather than creating a new one.</p>
+    </div>
+    {% endif %}
+    <p>If you have used the Nectar Research Cloud before, link this login
+      to your existing account so you keep your projects. If this is your
+      first time, create a new account.</p>
+    <div class="button_box">
+      {% if link_url %}
+      <a id="link_existing" href="{{ link_url }}">Link my existing account</a>
+      {% endif %}
+      <form id="create_new" action="" method="POST">
+        <input id="create_new_submit" type="submit" name="create_new" value="I am new to Nectar"/>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

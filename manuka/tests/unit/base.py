@@ -78,6 +78,7 @@ class TestCase(flask_testing.TestCase):
         expiry_next_step=None,
         protocol="saml",
         attrs=None,
+        persistent_id=None,
     ):
         # create registered user
         db_user = models.User()
@@ -106,7 +107,7 @@ class TestCase(flask_testing.TestCase):
 
         external_id = models.ExternalId(
             db_user,
-            id,
+            id if persistent_id is None else persistent_id,
             self.shib_attrs if attrs is None else attrs,
             protocol=protocol,
             idp=fake_shib.IDP,

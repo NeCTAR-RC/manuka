@@ -19,7 +19,7 @@ claims; the login views live in manuka.views and reach the client
 through get_client(), which is the single point tests replace.
 """
 
-from authlib.integrations.base_client import OAuthError  # noqa: F401
+from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.flask_client import OAuth
 import flask
 from oslo_config import cfg
@@ -32,6 +32,11 @@ LOG = logging.getLogger(__name__)
 CLIENT_NAME = "keycloak"
 EXTENSION_KEY = "manuka.oidc"
 METADATA_PATH = "/.well-known/openid-configuration"
+
+
+# Everything Authlib raises while exchanging the code and validating
+# the ID token (mismatching state, token errors, bad signatures).
+ProviderError = AuthlibBaseError
 
 
 class OIDCError(Exception):

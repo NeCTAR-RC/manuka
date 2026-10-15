@@ -145,6 +145,17 @@ oidc_opts = [
         "over the ID token claims. Only needed when the provider does "
         "not put the mapped claims in the ID token.",
     ),
+    cfg.IntOpt(
+        "session_timeout",
+        default=3600,
+        help="Seconds a user has to finish logging in (terms, username "
+        "and account linking pages) after the provider returns them.",
+    ),
+    cfg.StrOpt(
+        "post_logout_redirect_url",
+        default="http://nectar.org.au/",
+        help="Where the provider sends the browser after logging out.",
+    ),
 ]
 
 sentry_opts = [
