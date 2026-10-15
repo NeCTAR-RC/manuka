@@ -55,7 +55,7 @@ class TestManager(base.TestCase):
         project.id = "ksp-123"
         user = mock_utils.create_user.return_value
         user.id = "ksu-123"
-        domain = mock_utils.get_domain_for_idp.return_value
+        domain = mock_utils.get_domain_for_attrs.return_value
         db_user, external_id = self.make_db_user()
         db_user_id = db_user.id
         self.shib_attrs["idp"] = "fake-idp"
@@ -68,8 +68,8 @@ class TestManager(base.TestCase):
 
         db_user = db.session.query(models.User).get(db_user_id)
 
-        mock_utils.get_domain_for_idp.assert_called_once_with(
-            self.shib_attrs["idp"]
+        mock_utils.get_domain_for_attrs.assert_called_once_with(
+            self.shib_attrs
         )
 
         mock_utils.create_project.assert_called_once_with(
@@ -136,6 +136,50 @@ class TestManager(base.TestCase):
         mock_keystone,
         mock_fd,
     ):
+        self._create_user_duplicate(
+            mock_utils,
+            mock_ks_auth,
+            mock_notifier,
+            mock_rpc,
+            mock_keystone,
+            mock_fd,
+            protocol="saml",
+        )
+
+    @mock.patch("manuka.worker.manager.rpc")
+    @mock.patch("manuka.worker.manager.notifier")
+    @mock.patch("manuka.models.keystone_authenticate")
+    @mock.patch("manuka.worker.manager.utils")
+    def test_create_user_duplicate_oidc(
+        self,
+        mock_utils,
+        mock_ks_auth,
+        mock_notifier,
+        mock_rpc,
+        mock_app,
+        mock_keystone,
+        mock_fd,
+    ):
+        self._create_user_duplicate(
+            mock_utils,
+            mock_ks_auth,
+            mock_notifier,
+            mock_rpc,
+            mock_keystone,
+            mock_fd,
+            protocol="oidc",
+        )
+
+    def _create_user_duplicate(
+        self,
+        mock_utils,
+        mock_ks_auth,
+        mock_notifier,
+        mock_rpc,
+        mock_keystone,
+        mock_fd,
+        protocol,
+    ):
         swift_quota = 10
         CONF.set_override("default_quota_gb", swift_quota, "swift")
 
@@ -147,8 +191,8 @@ class TestManager(base.TestCase):
             keystoneauth1.exceptions.http.Conflict
         )
         user.id = "ksu-123"
-        domain = mock_utils.get_domain_for_idp.return_value
-        db_user, external_id = self.make_db_user()
+        domain = mock_utils.get_domain_for_attrs.return_value
+        db_user, external_id = self.make_db_user(protocol=protocol)
         db_user_id = db_user.id
         self.shib_attrs["idp"] = "fake-idp"
 
@@ -160,8 +204,8 @@ class TestManager(base.TestCase):
 
         db_user = db.session.query(models.User).get(db_user_id)
 
-        mock_utils.get_domain_for_idp.assert_called_once_with(
-            self.shib_attrs["idp"]
+        mock_utils.get_domain_for_attrs.assert_called_once_with(
+            self.shib_attrs
         )
 
         mock_utils.create_project.assert_called_once_with(
@@ -184,7 +228,7 @@ class TestManager(base.TestCase):
         mock_notifier.send_message.assert_called_once_with(
             session=mock.ANY,
             email=self.shib_attrs["mail"],
-            context={"user": self.shib_attrs},
+            context={"user": self.shib_attrs, "protocol": protocol},
             template="duplicate_account.tmpl",
             subject="Nectar Cloud login issue",
         )

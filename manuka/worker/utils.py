@@ -71,16 +71,35 @@ def get_roles(client, role_names):
     return roles
 
 
-def get_domain_for_idp(idp):
-    mapping = (
-        db.session.query(models.DomainIdpMapping)
-        .filter_by(idp_entity_id=idp)
-        .first()
-    )
+# Login attributes that can select the keystone domain for a new user,
+# in order of preference: the SAML IdP entityID, the alias of the
+# identity provider that brokered an OIDC login, and the home
+# organisation. DomainIdpMapping rows are keyed on any of these.
+DOMAIN_MAPPING_ATTRS = ("idp", "federation", "homeorganization")
 
-    if mapping:
-        return mapping.domain_id
+
+def get_domain_for_attrs(attrs):
+    """The keystone domain for the project of a newly created user.
+
+    The first attribute in DOMAIN_MAPPING_ATTRS with a mapping wins;
+    users with no mapping go in the default domain.
+    """
+    for key in DOMAIN_MAPPING_ATTRS:
+        value = attrs.get(key)
+        if not value:
+            continue
+        mapping = (
+            db.session.query(models.DomainIdpMapping)
+            .filter_by(idp_entity_id=value)
+            .first()
+        )
+        if mapping:
+            return mapping.domain_id
     return "default"
+
+
+def get_domain_for_idp(idp):
+    return get_domain_for_attrs({"idp": idp})
 
 
 def add_security_groups(user_id, project_id, token):

@@ -3,10 +3,20 @@ Hi {{ user.fullname }},
 <br/>
 We recently had an attempted login to the ARDC Nectar Research Cloud Dashboard with the email address: {{ user.mail }}
 <br/>
+{% if protocol == "oidc" %}
+This has been flagged because the login came through the new Nectar login service with an identity we have not seen before, while an account with this email address already exists.
+<br/>
+<br/>
+If that account is yours, please log in again and choose "Link my existing account" when asked. You will be asked to sign in once through your institution the previous way, which confirms the account is yours and keeps your projects.
+<br/>
+<br/>
+If you are unable to do that, so we can correctly link your account, please confirm as many specific details as possible:
+{% else %}
 This has been flagged because your AAF identity for your institution account has changed.
 <br/>
 <br/>
 For security purposes and so we can correctly link your account, please confirm as many specific details as possible:
+{% endif %}
 <br/>
 1. Do you remember previously logging into the Nectar Cloud Dashboard or a Nectar Service (BinderHub, JupyterHub, Virtual Desktop)?
 <br/>

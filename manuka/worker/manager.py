@@ -61,8 +61,7 @@ class Manager:
         )
         db_user = external_id.user
 
-        idp = attrs.get("idp")
-        domain = utils.get_domain_for_idp(idp)
+        domain = utils.get_domain_for_attrs(attrs)
         LOG.info("Using project domain_id=%s", domain)
         if CONF.fake_shib:
             project_suffix = uuidutils.generate_uuid()
@@ -90,7 +89,7 @@ class Manager:
             notifier.send_message(
                 session=session,
                 email=attrs.get("mail"),
-                context={"user": attrs},
+                context={"user": attrs, "protocol": external_id.protocol},
                 template="duplicate_account.tmpl",
                 subject="Nectar Cloud login issue",
             )

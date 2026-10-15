@@ -30,6 +30,21 @@ class TestNotifier(base.TestCase):
             {"user": {"email": "foo", "fullname": "Bob Smith"}},
         )
         self.assertIn("Bob Smith", template)
+        self.assertIn("AAF identity", template)
+        self.assertNotIn("Link my existing account", template)
+
+    def test_render_duplicate_template_oidc(self):
+        base_notifier = notifier.BaseNotifier()
+        template = base_notifier.render_template(
+            "duplicate_account.tmpl",
+            {
+                "user": {"mail": "foo", "fullname": "Bob Smith"},
+                "protocol": "oidc",
+            },
+        )
+        self.assertIn("Bob Smith", template)
+        self.assertIn("Link my existing account", template)
+        self.assertNotIn("AAF identity", template)
 
     @mock.patch("taynacclient.client.Client")
     def test_send_message(self, mock_taynac):

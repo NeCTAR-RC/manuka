@@ -102,16 +102,54 @@ class TestUtils(base.TestCase):
         client.roles.list.assert_called_once_with()
         self.assertEqual([role1, role2], roles)
 
-    def test_get_domain_for_idp(self):
-        mapping = models.DomainIdpMapping(
-            domain_id="domain123", idp_entity_id="https://idp2"
-        )
-        db.session.add(mapping)
+    def _add_mappings(self):
+        for domain_id, key in (
+            ("domain-idp", "https://idp2"),
+            ("domain-tuakiri", "tuakiri"),
+            ("domain-org", "example.edu"),
+        ):
+            db.session.add(
+                models.DomainIdpMapping(domain_id=domain_id, idp_entity_id=key)
+            )
         db.session.commit()
+
+    def test_get_domain_for_idp(self):
+        self._add_mappings()
         domain = utils.get_domain_for_idp("http://idp1")
         self.assertEqual("default", domain)
         domain = utils.get_domain_for_idp("https://idp2")
-        self.assertEqual("domain123", domain)
+        self.assertEqual("domain-idp", domain)
+
+    def test_get_domain_for_attrs_entity_id(self):
+        self._add_mappings()
+        self.assertEqual(
+            "domain-idp", utils.get_domain_for_attrs({"idp": "https://idp2"})
+        )
+
+    def test_get_domain_for_attrs_federation(self):
+        self._add_mappings()
+        attrs = {"idp": "https://keycloak/realms/x", "federation": "tuakiri"}
+        self.assertEqual("domain-tuakiri", utils.get_domain_for_attrs(attrs))
+
+    def test_get_domain_for_attrs_home_organisation(self):
+        self._add_mappings()
+        attrs = {"federation": "aaf", "homeorganization": "example.edu"}
+        self.assertEqual("domain-org", utils.get_domain_for_attrs(attrs))
+
+    def test_get_domain_for_attrs_precedence(self):
+        self._add_mappings()
+        attrs = {
+            "idp": "https://idp2",
+            "federation": "tuakiri",
+            "homeorganization": "example.edu",
+        }
+        self.assertEqual("domain-idp", utils.get_domain_for_attrs(attrs))
+
+    def test_get_domain_for_attrs_default(self):
+        self._add_mappings()
+        self.assertEqual("default", utils.get_domain_for_attrs({}))
+        attrs = {"idp": "https://other", "federation": "aaf"}
+        self.assertEqual("default", utils.get_domain_for_attrs(attrs))
 
     @mock.patch("manuka.common.clients.get_openstack_client")
     def test_add_security_groups(self, mock_get_osc):
