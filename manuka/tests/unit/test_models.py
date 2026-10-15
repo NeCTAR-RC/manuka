@@ -528,3 +528,52 @@ class TestAutoLink(base.TestCase):
             if k not in models.DRIFT_KEYS
         }
         self.assertEqual([], models.identity_drift(linked, without))
+
+
+class TestMigrationReport(base.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.now = datetime.now()
+        self.since = self.now - timedelta(days=180)
+        self.next_id = 200
+
+    def user(self, state="created", login_days_ago=10, **kwargs):
+        self.next_id += 1
+        attrs = dict(self.shib_attrs, **kwargs.pop("attrs", {}))
+        user, external_id = self.make_db_user(
+            id=self.next_id,
+            state=state,
+            email=f"user{self.next_id}@example.com",
+            persistent_id=f"pid-{self.next_id}",
+            attrs=attrs,
+            **kwargs,
+        )
+        user.last_login = self.now - timedelta(days=login_days_ago)
+        db.session.commit()
+        return user
+
+    def test_buckets(self):
+        linked = self.user()
+        self.make_external_id(
+            linked, "sub-linked", attrs={"id": "sub-linked"}, protocol="oidc"
+        )
+        auto_subject = self.user(attrs={"subject-id": "abc@x"})
+        auto_token = self.user(attrs={"shared_token": "tok"})
+        action = self.user()
+        action_eppn_only = self.user(attrs={"eppn": "e@x"})
+        warning = self.user(expiry_status="warning")
+
+        # Excluded: expired, not created, no keystone user, stale login.
+        self.user(expiry_status="inactive")
+        self.user(state="registered")
+        self.user(keystone_user_id=None)
+        self.user(login_days_ago=200)
+
+        report = models.oidc_migration_report(self.since)
+        self.assertEqual([linked], report["linked"])
+        self.assertEqual([auto_subject, auto_token], report["auto"])
+        self.assertEqual([action, action_eppn_only, warning], report["action"])
+
+    def test_empty(self):
+        report = models.oidc_migration_report(self.since)
+        self.assertEqual({"linked": [], "auto": [], "action": []}, report)

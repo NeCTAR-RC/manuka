@@ -351,6 +351,60 @@ def identity_drift(external_id, attrs):
     ]
 
 
+# expiry_status values that mean the account is in use, matching the
+# expiry_status=active filter of the user list API.
+ACTIVE_EXPIRY_STATUSES = ("warning", "active")
+
+MIGRATION_BUCKETS = ("linked", "auto", "action")
+
+
+def active_users_query(since):
+    """Users with a keystone account who are not expired and logged in
+    since the given time."""
+    return (
+        db.session.query(User)
+        .filter(User.state == "created")
+        .filter(User.keystone_user_id.isnot(None))
+        .filter(
+            db.or_(
+                User.expiry_status.in_(ACTIVE_EXPIRY_STATUSES),
+                User.expiry_status.is_(None),
+            )
+        )
+        .filter(User.last_login >= since)
+    )
+
+
+def oidc_migration_report(since):
+    """Group active users by how they will reach the OpenID Connect login.
+
+    linked: already has an OpenID Connect identity.
+    auto:   no OpenID Connect identity, but a SAML identity carries a
+            strong identifier, so the first OpenID Connect login links
+            itself, even after Shibboleth is switched off.
+    action: neither, so the user must link by Shibboleth
+            re-authentication before the switch-off, or with help from
+            support after it. This is the group to contact.
+
+    Returns a dict of bucket name to list of users ordered by id.
+    """
+    strong_keys = [key for key, strong in AUTO_LINK_KEYS if strong]
+    report = {bucket: [] for bucket in MIGRATION_BUCKETS}
+    for user in active_users_query(since).order_by(User.id):
+        if user.has_protocol(PROTOCOL_OIDC):
+            report["linked"].append(user)
+        elif any(
+            (external_id.attributes or {}).get(key)
+            for external_id in user.external_ids
+            if external_id.protocol == PROTOCOL_SAML
+            for key in strong_keys
+        ):
+            report["auto"].append(user)
+        else:
+            report["action"].append(user)
+    return report
+
+
 def _normalize(value):
     """Normalize a string
 
