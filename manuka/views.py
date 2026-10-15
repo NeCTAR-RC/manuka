@@ -14,6 +14,7 @@
 import datetime
 import json
 import re
+import time
 from urllib import parse
 
 import flask
@@ -204,6 +205,35 @@ def _logout_url(protocol):
     return SAML_LOGOUT_URL
 
 
+def _set_session_identity(external_id):
+    """Record the identity that has just authenticated in the session."""
+    session["external_id"] = external_id.id
+    session["auth_time"] = int(time.time())
+    session.pop("shib_user_id", None)
+
+
+def _current_external_id():
+    """The ExternalId row for the identity in the current session.
+
+    Aborts with 404 when the session holds no known identity.
+    """
+    external_id = None
+    row_id = session.get("external_id")
+    if row_id is not None:
+        external_id = db.session.get(models.ExternalId, row_id)
+    elif session.get("shib_user_id"):
+        # Sessions established before the external_id key existed.
+        # Remove this fallback once every such session has expired.
+        external_id = (
+            db.session.query(models.ExternalId)
+            .filter_by(persistent_id=session["shib_user_id"])
+            .first()
+        )
+    if external_id is None:
+        flask.abort(404)
+    return external_id
+
+
 def _complete_login(db_user, external_id, attrs, protocol):
     """Finish a login once the user has been identified.
 
@@ -324,16 +354,16 @@ def _complete_login(db_user, external_id, attrs, protocol):
     return flask.render_template("redirect.html", **data)
 
 
-@login_bp.route("/account_status")
+@default_bp.route("/account_status")
 def account_status():
-    external_id = (
-        db.session.query(models.ExternalId)
-        .filter_by(persistent_id=session.get("shib_user_id"))
-        .first_or_404()
-    )
-
+    external_id = _current_external_id()
     data = {"state": external_id.user.state}
     return json.dumps(data)
+
+
+# The old path is under the Shibboleth protected /login location, which
+# OIDC logins cannot reach. Keep it for pages loaded before the move.
+login_bp.add_url_rule("/account_status", "account_status", account_status)
 
 
 @login_bp.route("/", methods=("GET", "POST"))
@@ -354,7 +384,7 @@ def root():
     else:
         db_user = external_id.user
 
-    session["shib_user_id"] = attrs["id"]
+    _set_session_identity(external_id)
 
     return _complete_login(db_user, external_id, attrs, "saml")
 
@@ -381,11 +411,7 @@ def orcid_link():
             "message": "Invalid Request",
         }
         return flask.render_template("error.html", **data), 400
-    external_id = (
-        db.session.query(models.ExternalId)
-        .filter_by(persistent_id=session.get("shib_user_id"))
-        .first_or_404()
-    )
+    external_id = _current_external_id()
     orcid_client = clients.get_orcid_client()
     try:
         oauth_redirect_url = request.base_url
@@ -422,11 +448,7 @@ def orcid_unlink():
             "message": "Invalid Request",
         }
         return flask.render_template("error.html", **data), 400
-    external_id = (
-        db.session.query(models.ExternalId)
-        .filter_by(persistent_id=session.get("shib_user_id"))
-        .first_or_404()
-    )
+    external_id = _current_external_id()
     user = external_id.user
     user.orcid = None
     user.orcid_token = None

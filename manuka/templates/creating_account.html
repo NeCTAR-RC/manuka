@@ -35,7 +35,7 @@
 
          var intervalID = setInterval(function(){
              $.ajax({
-                 url: "{{ request.script_name }}account_status",
+                 url: "{{ url_for('default.account_status') }}",
                  dataType: "json",
                  success: callback});
          }, 2000);

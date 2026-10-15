@@ -460,11 +460,45 @@ class TestViews(base.TestCase):
         self.assertNotIn(payload, body)
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", body)
 
+    def test_login_sets_session_identity(self):
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["shib_user_id"] = "stale"
+        self.client.get("/login/")
+        with self.client.session_transaction() as sess:
+            self.assertEqual(external_id.id, sess["external_id"])
+            self.assertIsInstance(sess["auth_time"], int)
+            self.assertNotIn("shib_user_id", sess)
+
+    def test_creating_account_polls_account_status(self):
+        self.make_db_user(state="registered")
+        response = self.client.get("/login/")
+        self.assertTemplateUsed("creating_account.html")
+        self.assertIn(
+            'url: "/account_status"', response.get_data(as_text=True)
+        )
+
     def test_account_status_no_user(self):
+        response = self.client.get("/account_status")
+        self.assert404(response)
         response = self.client.get("/login/account_status")
         self.assert404(response)
 
+    def test_account_status_unknown_row(self):
+        with self.client.session_transaction() as sess:
+            sess["external_id"] = 999
+        response = self.client.get("/account_status")
+        self.assert404(response)
+
     def test_account_status(self):
+        user, external_id = self.make_db_user(state="registered")
+        with self.client.session_transaction() as sess:
+            sess["external_id"] = external_id.id
+        response = self.client.get("/account_status")
+        self.assert200(response)
+        self.assertEqual(b'{"state": "registered"}', response.get_data())
+
+    def test_account_status_legacy_path_and_session(self):
         self.make_db_user(state="registered")
         with self.client.session_transaction() as sess:
             sess["shib_user_id"] = "1324"
@@ -491,7 +525,7 @@ class TestViews(base.TestCase):
 
         user, external_id = self.make_db_user(state="registered")
         with self.client.session_transaction() as sess:
-            sess["shib_user_id"] = external_id.persistent_id
+            sess["external_id"] = external_id.id
 
         response = self.client.get(
             "/orcid/link/?code=mock_code&next=http://example.org/next_page"
@@ -505,7 +539,7 @@ class TestViews(base.TestCase):
     def test_orcid_unlink(self):
         user, external_id = self.make_db_user(state="registered")
         with self.client.session_transaction() as sess:
-            sess["shib_user_id"] = external_id.persistent_id
+            sess["external_id"] = external_id.id
 
         response = self.client.post(
             "/orcid/unlink/", data={"next": "http://example.org/next_page"}
@@ -537,7 +571,7 @@ class TestViews(base.TestCase):
 
         user, external_id = self.make_db_user(state="registered")
         with self.client.session_transaction() as sess:
-            sess["shib_user_id"] = external_id.persistent_id
+            sess["external_id"] = external_id.id
 
         response = self.client.get(
             "/orcid/link/?code=mock_code&next=http://example.org/next_page"
@@ -551,7 +585,7 @@ class TestViews(base.TestCase):
     def test_orcid_unlink_no_next(self):
         user, external_id = self.make_db_user(state="registered")
         with self.client.session_transaction() as sess:
-            sess["shib_user_id"] = external_id.persistent_id
+            sess["external_id"] = external_id.id
 
         response = self.client.post("/orcid/unlink/")
         self.assertEqual(response.status_code, 400)

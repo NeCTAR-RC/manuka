@@ -51,6 +51,18 @@ def create_app(test_config=None, conf_file=None, init_config=True):
     else:
         app.config.update(test_config)
 
+    # The session cookie carries login state across the redirects of
+    # the login flows, so it must be sent on top-level cross-site
+    # navigations (Lax) but never to scripts or over plain HTTP.
+    cookie_settings = {
+        "SESSION_COOKIE_SAMESITE": "Lax",
+        "SESSION_COOKIE_HTTPONLY": True,
+        "SESSION_COOKIE_SECURE": CONF.flask.session_cookie_secure,
+    }
+    for key, value in cookie_settings.items():
+        if not test_config or key not in test_config:
+            app.config[key] = value
+
     config.setup_logging(CONF)
     if init_config:
         sentry.setup()

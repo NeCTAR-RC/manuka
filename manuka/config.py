@@ -54,6 +54,12 @@ flask_opts = [
     cfg.StrOpt("secret_key", secret=True),
     cfg.StrOpt("host", default="0.0.0.0"),
     cfg.IntOpt("port", default=5000),
+    cfg.BoolOpt(
+        "session_cookie_secure",
+        default=True,
+        help="Only send the session cookie over HTTPS. Set to false for "
+        "local development over plain HTTP.",
+    ),
 ]
 
 database_opts = [
