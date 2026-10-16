@@ -33,7 +33,12 @@ default_opts = [
         "idp_domain_mapping_dir", default="/etc/manuka/idp_domain_mappings"
     ),
     cfg.StrOpt("default_target"),
-    cfg.ListOpt("whitelist"),
+    cfg.ListOpt(
+        "allow_list",
+        deprecated_name="whitelist",
+        help="URLs (scheme, host and path) that a login may redirect to "
+        "via the return-path query parameter.",
+    ),
     cfg.BoolOpt("fake_shib", default=False),
     cfg.StrOpt(
         "auth_strategy",

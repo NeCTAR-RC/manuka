@@ -176,11 +176,11 @@ def _render_attr_errors(errors, protocol):
 
 
 def _validate_return_path(value):
-    """Validate a requested return-path against the whitelist.
+    """Validate a requested return-path against the allow list.
 
     Returns a ``(target, error_response)`` pair. ``target`` is the
     configured default target when no return-path was requested, the
-    requested path when it is whitelisted, and ``None`` with a rendered
+    requested path when it is in the allow list, and ``None`` with a rendered
     error page when it is blocked.
     """
     if not value:
@@ -188,7 +188,7 @@ def _validate_return_path(value):
 
     url_pieces = parse.urlparse(value)
     url_match = f"{url_pieces.scheme}://{url_pieces.netloc}{url_pieces.path}"
-    if url_match in (CONF.whitelist or []):
+    if url_match in (CONF.allow_list or []):
         return value, None
 
     LOG.warning("Attempt to authenticate to a blocked URL: %s", value)
@@ -342,7 +342,7 @@ def _complete_login(db_user, external_id, attrs, protocol):
 
     # sjjf: default to the configured target URL, but allow the source
     # to specify a different return-path. The specified return path is
-    # then verified against a white list.
+    # then verified against an allow list.
     target, error_response = _validate_return_path(
         request.args.get("return-path")
     )

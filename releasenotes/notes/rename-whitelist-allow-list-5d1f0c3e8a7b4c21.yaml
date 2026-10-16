@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    The ``[DEFAULT] whitelist`` option has been renamed to
+    ``[DEFAULT] allow_list``. The old name is still accepted but is
+    deprecated and will be removed in a future release.

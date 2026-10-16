@@ -2,7 +2,7 @@
 security:
   - |
     Fixed a reflected cross-site scripting (XSS) vulnerability in the login
-    view. When a ``return-path`` query parameter failed the whitelist check,
+    view. When a ``return-path`` query parameter failed the allow list check,
     its value was reflected verbatim into an error page whose message was
     rendered as raw HTML, allowing arbitrary script injection into an
     authenticated user's session.

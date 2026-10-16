@@ -97,22 +97,26 @@ class TestReturnPath(base.TestCase):
             (CONF.default_target, None), views._validate_return_path("")
         )
 
-    def test_whitelisted(self):
+    def test_allowed(self):
         return_path = "https://test.example.com/auth/token?next=x"
-        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+        CONF.set_override(
+            "allow_list", ["https://test.example.com/auth/token"]
+        )
         self.assertEqual(
             (return_path, None), views._validate_return_path(return_path)
         )
 
     def test_blocked(self):
-        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+        CONF.set_override(
+            "allow_list", ["https://test.example.com/auth/token"]
+        )
         target, response = views._validate_return_path("http://bad")
         self.assertIsNone(target)
         self.assertIsNotNone(response)
         self.assertTemplateUsed("error.html")
         self.assertContext("title", "Authentication Error")
 
-    def test_blocked_no_whitelist(self):
+    def test_blocked_no_allow_list(self):
         target, response = views._validate_return_path("http://bad")
         self.assertIsNone(target)
         self.assertIsNotNone(response)
@@ -378,9 +382,9 @@ class TestViews(base.TestCase):
     @mock.patch("manuka.models.create_db_user")
     @mock.patch("manuka.models.keystone_authenticate")
     def test_return_path(self, mock_keystone_authenticate, mock_create):
-        """Redirect to a whitelisted return path specified in the query URL."""
+        """Redirect to an allowed return path specified in the query URL."""
         return_path = "https://test.example.com/auth/token"
-        CONF.set_override("whitelist", [return_path])
+        CONF.set_override("allow_list", [return_path])
 
         self.make_db_user(state="created")
 
@@ -404,9 +408,9 @@ class TestViews(base.TestCase):
     def test_return_path_negative(
         self, mock_keystone_authenticate, mock_create
     ):
-        """Redirect to a whitelisted return path specified in the query URL."""
+        """Redirect to an allowed return path specified in the query URL."""
         return_path = "https://test.example.com/auth/token"
-        CONF.set_override("whitelist", [return_path])
+        CONF.set_override("allow_list", [return_path])
 
         self.make_db_user(state="created")
 
@@ -439,7 +443,9 @@ class TestViews(base.TestCase):
         Regression test for a reflected XSS: the rejected URL is echoed
         into the error page, so it must be HTML-escaped in the output.
         """
-        CONF.set_override("whitelist", ["https://test.example.com/auth/token"])
+        CONF.set_override(
+            "allow_list", ["https://test.example.com/auth/token"]
+        )
 
         self.make_db_user(state="created")
 
