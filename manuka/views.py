@@ -190,6 +190,9 @@ def _validate_return_path(value):
     url_match = f"{url_pieces.scheme}://{url_pieces.netloc}{url_pieces.path}"
     if url_match in (CONF.allow_list or []):
         return value, None
+    if CONF.allow_any_return_path:
+        LOG.warning("Allowing return-path %s outside the allow list", value)
+        return value, None
 
     LOG.warning("Attempt to authenticate to a blocked URL: %s", value)
     data = {

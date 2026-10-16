@@ -39,6 +39,12 @@ default_opts = [
         help="URLs (scheme, host and path) that a login may redirect to "
         "via the return-path query parameter.",
     ),
+    cfg.BoolOpt(
+        "allow_any_return_path",
+        default=False,
+        help="Ignore allow_list and redirect to any requested return-path. "
+        "For development only; never enable this in production.",
+    ),
     cfg.BoolOpt("fake_shib", default=False),
     cfg.StrOpt(
         "auth_strategy",

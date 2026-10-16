@@ -121,6 +121,15 @@ class TestReturnPath(base.TestCase):
         self.assertIsNone(target)
         self.assertIsNotNone(response)
 
+    def test_allow_any_return_path(self):
+        CONF.set_override(
+            "allow_list", ["https://test.example.com/auth/token"]
+        )
+        CONF.set_override("allow_any_return_path", True)
+        self.assertEqual(
+            ("http://other", None), views._validate_return_path("http://other")
+        )
+
 
 MISSING_ATTR_MSG = [
     "Not enough details have been received from your "

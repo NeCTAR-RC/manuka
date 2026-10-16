@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added the ``[DEFAULT] allow_any_return_path`` option. When set to
+    ``true``, the ``return-path`` query parameter is no longer checked
+    against ``allow_list`` and any URL is accepted. Use this only in
+    development environments. It defaults to ``false``.
