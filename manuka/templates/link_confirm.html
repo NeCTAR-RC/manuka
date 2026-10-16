@@ -1,30 +1,33 @@
 {% extends "layout.html" %}
 
-{% block title %}
-  {{ title }}
-{% endblock %}
-
-{% block body %}
-<div id="terms" class="centered_wrapper">
-  <div class="content border_rounded border_shadow">
-    <h1>Link your accounts</h1>
-    <p>Please confirm that both of these logins are yours. Once linked, the
-      new login takes you to your existing Nectar account and projects.</p>
-    <table>
-      <tr><th></th><th>Existing Nectar account</th><th>New login</th></tr>
-      <tr><td>Name</td><td>{{ saml_attrs.fullname }}</td><td>{{ oidc_attrs.fullname }}</td></tr>
-      <tr><td>Email</td><td>{{ saml_attrs.mail }}</td><td>{{ oidc_attrs.mail }}</td></tr>
-      <tr><td>Institution</td>
-        <td>{{ saml_attrs.homeorganization or saml_attrs.idp }}</td>
-        <td>{{ oidc_attrs.homeorganization or oidc_attrs.federation or oidc_attrs.idp }}</td></tr>
+{% block content %}
+<header class="page-header">
+  <h1>Link your accounts</h1>
+</header>
+<div class="card">
+  <p>Please confirm that both of these logins are yours. Once linked, the
+    new login takes you to your existing Nectar account and projects.</p>
+  <div class="table-frame">
+    <table class="table">
+      <thead>
+        <tr><td></td><th scope="col">Existing Nectar account</th><th scope="col">New login</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Name</th><td>{{ saml_attrs.fullname }}</td><td>{{ oidc_attrs.fullname }}</td></tr>
+        <tr><th scope="row">Email</th><td>{{ saml_attrs.mail }}</td><td>{{ oidc_attrs.mail }}</td></tr>
+        <tr><th scope="row">Institution</th>
+          <td>{{ saml_attrs.homeorganization or saml_attrs.idp }}</td>
+          <td>{{ oidc_attrs.homeorganization or oidc_attrs.federation or oidc_attrs.idp }}</td></tr>
+      </tbody>
     </table>
-    <div class="button_box">
-      <form id="link" action="" method="POST">
-        <input type="hidden" name="nonce" value="{{ nonce }}"/>
-        <input id="confirm" type="submit" name="confirm" value="Link these accounts"/>
-      </form>
-      <a id="cancel" href="{{ cancel_url }}">Cancel</a>
-    </div>
+  </div>
+  <div class="actions">
+    <a id="cancel" class="btn btn-secondary" href="{{ cancel_url }}">Cancel</a>
+    <form id="link" action="" method="POST">
+      <input type="hidden" name="nonce" value="{{ nonce }}"/>
+      <button id="confirm" class="btn btn-primary" type="submit"
+              name="confirm" value="Link these accounts">Link these accounts</button>
+    </form>
   </div>
 </div>
 {% endblock %}

@@ -1,25 +1,22 @@
 {% extends "layout.html" %}
 
-{% block title %}
-  {{ title }}
-{% endblock %}
-
-{% block body %}
-<div id="terms" class="centered_wrapper">
-  <div class="content border_rounded border_shadow">
-    <h1>A new way to log in</h1>
-    <p>The Nectar Research Cloud is moving to a new login service, the same
-      one used by the Virtual Desktop and JupyterHub services. The way you
-      just logged in will be switched off in the future.</p>
-    <p>Setting up the new login takes a minute: you sign in through the new
-      service, and because you are already signed in here we can connect it
-      to your existing account and projects straight away.</p>
-    <div class="button_box">
-      <a id="setup_oidc" href="{{ setup_url }}">Set up the new login</a>
-      <form id="later" action="" method="POST">
-        <input id="oidc_later" type="submit" name="oidc_later" value="Not now"/>
-      </form>
-    </div>
+{% block content %}
+<header class="page-header">
+  <h1>A new way to log in</h1>
+</header>
+<div class="card">
+  <p>The Nectar Research Cloud is moving to a new login service, the same
+    one used by the Virtual Desktop and JupyterHub services. The way you
+    just logged in will be switched off in the future.</p>
+  <p>Setting up the new login takes a minute: you sign in through the new
+    service, and because you are already signed in here we can connect it
+    to your existing account and projects straight away.</p>
+  <div class="actions">
+    <form id="later" action="" method="POST">
+      <button id="oidc_later" class="btn btn-secondary" type="submit"
+              name="oidc_later" value="Not now">Not now</button>
+    </form>
+    <a id="setup_oidc" class="btn btn-primary" href="{{ setup_url }}">Set up the new login</a>
   </div>
 </div>
 {% endblock %}

@@ -1,45 +1,57 @@
 {% extends "layout.html" %}
 
-{% block title %}
-  {{ title }}
-{% endblock %}
-
-{% block body %}
-  <div id="creating-account" class="centered_wrapper">
-    <div id="message" class="content border_rounded border_shadow">
-      <p>
-        <img src="{{ url_for('static', filename='throbber.gif') }}"></img>
-      </p>
-      <p>
-        Creating account.....
-      </p>
+{% block content %}
+<header class="page-header">
+  <h1>Setting up your account</h1>
+</header>
+<div id="creating-account" class="card">
+  <div id="message" aria-live="polite">
+    <div class="loading" role="status">
+      <svg class="loader" viewBox="0 0 18.6667 18.6667" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.33333 1V4.33333" />
+        <path d="M12.8333 5.83333L15.25 3.41667" />
+        <path d="M14.3333 9.33333H17.6667" />
+        <path d="M12.8333 12.8333L15.25 15.25" />
+        <path d="M9.33333 14.3333V17.6667" />
+        <path d="M3.41667 15.25L5.83333 12.8333" />
+        <path d="M1 9.33333H4.33333" />
+        <path d="M3.41667 3.41667L5.83333 5.83333" />
+      </svg>
+      <p>Creating your account. This usually takes less than a minute.</p>
     </div>
-    <script type="text/javascript">
-     (function () {
-         var count = 0;
-
-         function callback (data) {
-             if (data.state == "created") {
-                 window.location = window.location.href;
-             }
-             if (data.state == "duplicate") {
-                 $("#message").empty().html("<p>There was a problem creating your account due to an existing account with a matching email address, but a different ID token, please check your email for instructions.<br /> Alternatively please contact <a href=\"{{support_url}}\">support</a> for further details.</p>");
-                 clearInterval(intervalID);
-             }
-             if (count > 10) {
-                 $("#message").empty().html("<p>There was a problem creating your account, our system administrators will have been notified of the issue. <br /> Please contact <a href=\"{{support_url}}\">support</a> for further details.</p>");
-                 clearInterval(intervalID);
-             }
-             count += 1;
-         };
-
-         var intervalID = setInterval(function(){
-             $.ajax({
-                 url: "{{ url_for('default.account_status') }}",
-                 dataType: "json",
-                 success: callback});
-         }, 2000);
-     })();
-    </script>
   </div>
+  <script>
+   (function () {
+       var count = 0;
+
+       function showError(text) {
+           $("#message").empty().html(
+               "<div class=\"alert\" data-tone=\"danger\" role=\"alert\"><p>" + text +
+               "</p><p>Please contact <a href=\"{{ support_url }}\">support</a> for further details.</p></div>");
+           clearInterval(intervalID);
+       }
+
+       function callback (data) {
+           if (data.state == "created") {
+               window.location = window.location.href;
+           }
+           if (data.state == "duplicate") {
+               showError("There was a problem creating your account due to an existing account with a matching email address, but a different ID token. Please check your email for instructions.");
+           }
+           if (count > 10) {
+               showError("There was a problem creating your account. Our system administrators have been notified of the issue.");
+           }
+           count += 1;
+       };
+
+       var intervalID = setInterval(function(){
+           $.ajax({
+               url: "{{ url_for('default.account_status') }}",
+               dataType: "json",
+               success: callback});
+       }, 2000);
+   })();
+  </script>
+</div>
 {% endblock %}

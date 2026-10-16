@@ -1,9 +1,22 @@
 {% extends "layout.html" %}
-{% block body %}
-  <body onload="document.forms['token'].submit()">
-    <form id="token" method="POST" action="{{ target }}">
-      <input type="hidden" name="token" value="{{ token }}"/>
-      <input type="hidden" name="tenant_id" value="{{ tenant_id }}"/>
-    </form>
-  </body>
+
+{% block title %}Signing in{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <h1>Signing in</h1>
+</header>
+<div class="card">
+  <form id="token" method="POST" action="{{ target }}">
+    <input type="hidden" name="token" value="{{ token }}"/>
+    <input type="hidden" name="tenant_id" value="{{ tenant_id }}"/>
+    <p>Taking you to the Nectar Research Cloud dashboard.</p>
+    <noscript>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Continue to the dashboard</button>
+      </div>
+    </noscript>
+  </form>
+  <script>document.forms["token"].submit();</script>
+</div>
 {% endblock %}

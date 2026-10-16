@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    The login pages now use the ARDC design system, matching the other ARDC
+    Nectar Research Cloud web services. Pages share a header with the ARDC
+    Nectar Research Cloud logo and a link to the Support Centre, and the
+    Figtree typeface is served with manuka instead of from Google Fonts.
+upgrade:
+  - |
+    ``manuka/static/base.css`` is replaced by ``manuka/static/ardc.css``, and
+    the unused ``terms.html`` template and ``throbber.gif``,
+    ``login_btn.png`` and ``PIE.htc`` static files are removed.

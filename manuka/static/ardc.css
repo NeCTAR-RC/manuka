@@ -1,0 +1,689 @@
+/*
+ * ARDC design system styles for the manuka login pages.
+ *
+ * A plain CSS port of the tokens and component styles in @ardc-ui/react
+ * (https://www.figma.com/design/UVPSrOf7cXAQn0ZCRxfnj5/ARDC-Design-System),
+ * laid out the way nectar-eligibility lays out its pages: a sticky white
+ * header, a Grey-50 main area, and a centred heading above a white card.
+ * Manuka renders server-side templates with no Sass build, so the tokens are
+ * custom properties here and every rem value is precomputed from 16px.
+ */
+
+/*
+ * Figtree, the ARDC brand typeface, self-hosted rather than fetched from the
+ * Google Fonts CDN: a CDN import is render-blocking and sends every visitor's
+ * IP to a third party. Figtree is a variable font, so one file per style and
+ * subset covers the whole 400-700 weight range.
+ */
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/figtree-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/figtree-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/figtree-italic-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/figtree-italic-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --brand-yellow-500: #f8b20e;
+  --brand-blue-500: #00b0d5;
+  --brand-purple-500: #8e489b;
+  --secondary-purple-700: #552b5d;
+  --secondary-yellow-700: #aa5a07;
+  --secondary-green-500: #39833e;
+
+  --neutral-white: #fff;
+  --neutral-gray-50: #f3f3f3;
+  --neutral-gray-100: #e2e2e2;
+  --neutral-gray-300: #a9a9a9;
+  --neutral-gray-500: #6f6f6f;
+  --neutral-gray-700: #434343;
+  --neutral-gray-900: #161616;
+
+  --semantic-red-500: #d30000;
+  --semantic-red-50: #fbe5e5;
+  --semantic-green-50: #ebf3ec;
+  --semantic-yellow-50: #fef7e7;
+  --semantic-blue-600: #0288d1;
+  --semantic-blue-100: #e0f2fe;
+
+  --font-family-base: "Figtree", sans-serif;
+
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-16: 4rem;
+
+  /* Borders, radii and focus rings stay in px: a hairline must remain a
+     hairline at every root font size. */
+  --border-width: 1px;
+  --border-radius: 4px;
+  --border-radius-sm: 2px;
+  --focus-ring-width: 1.5px;
+  --focus-ring-offset: 4px;
+  --transition-fast: 0.15s ease-in-out;
+  --transition-base: 0.3s ease-in-out;
+
+  --container-max-width: 1140px;
+  --container-padding: 1rem;
+  --card-max-width: 50rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+/* Body/16 from the type ramp. */
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  color: var(--neutral-gray-700);
+  background-color: var(--neutral-white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--neutral-gray-900);
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 2.75rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+h5 {
+  font-size: 1.125rem;
+  line-height: 1.625rem;
+}
+
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding-left: var(--spacing-5);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Body/16 link. */
+main a:not(.btn) {
+  font-weight: 700;
+  color: var(--brand-purple-500);
+  text-decoration-line: underline;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+main a:not(.btn):hover,
+main a:not(.btn):focus,
+main a:not(.btn):active {
+  color: var(--neutral-gray-900);
+  text-decoration-color: var(--brand-blue-500);
+}
+
+main a:not(.btn):focus-visible {
+  outline: var(--focus-ring-width) solid var(--brand-purple-500);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-weight: 600;
+  color: var(--neutral-white);
+  text-decoration: none;
+  background: var(--neutral-gray-900);
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--neutral-white);
+  border-bottom: var(--border-width) solid rgba(0, 0, 0, 0.1);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding-block: var(--spacing-6);
+}
+
+.site-header .logo {
+  display: block;
+  width: auto;
+  height: 2.5rem;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--spacing-16);
+  background-color: var(--neutral-gray-50);
+}
+
+/* The centred heading above the card, as nectar-eligibility's PageShell. */
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--spacing-8);
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  text-align: center;
+}
+
+.page-header h1:focus {
+  outline: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: var(--card-max-width);
+  margin-inline: auto;
+  padding: var(--spacing-8);
+  background: var(--neutral-white);
+  border: var(--border-width) solid var(--neutral-gray-100);
+  border-radius: var(--border-radius);
+}
+
+.site-footer {
+  padding-block: var(--spacing-6);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--neutral-gray-500);
+  background-color: var(--neutral-white);
+  border-top: var(--border-width) solid rgba(0, 0, 0, 0.1);
+}
+
+.site-footer .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.site-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-6);
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer a {
+  color: var(--neutral-gray-700);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--brand-purple-500);
+  text-decoration: underline;
+}
+
+.site-footer a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--brand-purple-500);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+/*
+ * Buttons. The React library drives states from React Aria data attributes;
+ * these pages have no React Aria, so the same treatments hang off the native
+ * pseudo-classes. Borders are inset shadows, as in the library, so a variant
+ * change never shifts the layout by a pixel.
+ */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-6);
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  user-select: none;
+  outline: var(--focus-ring-width) solid transparent;
+  outline-offset: 0;
+  transition:
+    all var(--transition-base),
+    outline-offset var(--transition-base);
+}
+
+.btn:focus-visible {
+  outline-color: var(--brand-purple-500);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.btn-sm {
+  padding: var(--spacing-2) var(--spacing-6);
+}
+
+.btn .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  color: var(--neutral-gray-900);
+  background-color: var(--brand-yellow-500);
+  box-shadow: inset 0 0 0 var(--border-width) var(--secondary-yellow-700);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  color: var(--neutral-white);
+  background-color: var(--brand-purple-500);
+  box-shadow: inset 0 0 0 var(--border-width) var(--brand-purple-500);
+}
+
+.btn-primary:active {
+  color: var(--neutral-white);
+  background-color: var(--secondary-purple-700);
+  box-shadow: inset 0 0 0 var(--border-width) var(--secondary-purple-700);
+}
+
+.btn-secondary {
+  color: var(--neutral-gray-700);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--border-width) var(--neutral-gray-500);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  color: var(--brand-purple-500);
+  box-shadow: inset 0 0 0 var(--border-width) var(--brand-purple-500);
+}
+
+.btn-secondary:active {
+  color: var(--secondary-purple-700);
+  box-shadow: inset 0 0 0 var(--border-width) var(--secondary-purple-700);
+}
+
+/* The primary button's navigation tone, used for links out of the page. */
+.btn-navigation {
+  color: var(--neutral-white);
+  background-color: var(--brand-purple-500);
+}
+
+.btn-navigation:hover,
+.btn-navigation:focus-visible,
+.btn-navigation:active {
+  color: var(--neutral-white);
+  background-color: var(--secondary-purple-700);
+}
+
+/*
+ * A row of actions closing a card, laid out like nectar-eligibility's step
+ * navigation: equal-width buttons that stack on narrow screens. Forms inside
+ * the row step out of the layout so their buttons share the row's gap.
+ */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.actions form {
+  display: contents;
+}
+
+.actions > .btn,
+.actions > form > .btn {
+  flex: 1;
+}
+
+/*
+ * Alert: the semantic tone surface, a tint for the fill and the matching
+ * strong colour for the rule around it. The ramp's body colour is too light
+ * against the tints, so a toned surface always sets Grey-900.
+ */
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--neutral-gray-900);
+  border: var(--border-width) solid;
+  border-radius: var(--border-radius);
+}
+
+.alert[data-tone="info"] {
+  background-color: var(--semantic-blue-100);
+  border-color: var(--semantic-blue-600);
+}
+
+.alert[data-tone="success"] {
+  background-color: var(--semantic-green-50);
+  border-color: var(--secondary-green-500);
+}
+
+.alert[data-tone="warning"] {
+  background-color: var(--semantic-yellow-50);
+  border-color: var(--secondary-yellow-700);
+}
+
+.alert[data-tone="danger"] {
+  background-color: var(--semantic-red-50);
+  border-color: var(--semantic-red-500);
+}
+
+.alert a:not(.btn) {
+  font-weight: 700;
+}
+
+/*
+ * Table: rows of Body/14 on white, ruled in Grey-100, inside a frame that
+ * takes the sideways scroll of a wide table so the page never has to.
+ */
+.table-frame {
+  overflow-x: auto;
+  background-color: var(--neutral-white);
+  border: var(--border-width) solid var(--neutral-gray-100);
+  border-radius: var(--border-radius);
+}
+
+.table {
+  width: 100%;
+  font-family: var(--font-family-base);
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  height: 3rem;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-align: start;
+  vertical-align: middle;
+  border-bottom: var(--border-width) solid var(--neutral-gray-100);
+}
+
+.table th {
+  font-weight: 700;
+  color: var(--neutral-gray-700);
+}
+
+.table td {
+  font-weight: 400;
+  color: var(--neutral-gray-900);
+  overflow-wrap: anywhere;
+}
+
+/* Two hairlines under the column names, so the header reads ahead of the
+   rules between rows. */
+.table thead > tr > * {
+  border-bottom-width: calc(var(--border-width) * 2);
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* The loading indicator: the 84px Grey-300 loader above a bold label. */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-weight: 700;
+  color: var(--neutral-gray-700);
+  text-align: center;
+}
+
+.loading .loader {
+  width: 5.25rem;
+  height: 5.25rem;
+  color: var(--neutral-gray-300);
+  /* The spec's 4px stroke mapped into the icon's 18.6667-unit viewBox. */
+  stroke-width: 0.8889px;
+  animation: loader-rotate 1s steps(8) infinite;
+}
+
+/*
+ * The loader has 8-fold symmetry, so smooth rotation looks stationary. Fading
+ * the spokes around the dial and stepping the rotation by 45 degrees makes one
+ * bright spoke appear to travel.
+ */
+.loader path:nth-of-type(2) {
+  opacity: 0.93;
+}
+
+.loader path:nth-of-type(3) {
+  opacity: 0.87;
+}
+
+.loader path:nth-of-type(4) {
+  opacity: 0.8;
+}
+
+.loader path:nth-of-type(5) {
+  opacity: 0.73;
+}
+
+.loader path:nth-of-type(6) {
+  opacity: 0.67;
+}
+
+.loader path:nth-of-type(7) {
+  opacity: 0.6;
+}
+
+.loader path:nth-of-type(8) {
+  opacity: 0.53;
+}
+
+@keyframes loader-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * The terms of service text. The versioned terms templates are legal text
+ * kept verbatim, so their spacing comes from here rather than their markup.
+ * Their own top-level heading sits under the page heading, so it steps down.
+ */
+.legal h1 {
+  margin-bottom: var(--spacing-2);
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.legal h2 {
+  margin-top: var(--spacing-4);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.legal h3 {
+  margin-top: var(--spacing-3);
+  font-size: 1.125rem;
+  line-height: 1.625rem;
+}
+
+.legal p,
+.legal li {
+  margin-block: var(--spacing-2);
+}
+
+.legal ol ol {
+  padding-left: var(--spacing-6);
+}
+
+.legal a {
+  overflow-wrap: anywhere;
+}
+
+/* Breakpoints follow nectar-eligibility: md 768px, sm 576px. */
+@media (width < 768px) {
+  .site-header .container {
+    padding-block: var(--spacing-4);
+  }
+
+  .site-header .logo {
+    height: 2rem;
+  }
+
+  main {
+    padding-block: var(--spacing-8);
+  }
+
+  /* Mobile H1. */
+  .page-header h1 {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+}
+
+@media (width < 576px) {
+  .card {
+    padding: var(--spacing-5);
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .loading .loader {
+    animation: none;
+  }
+}

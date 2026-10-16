@@ -1,13 +1,11 @@
 {% extends "layout.html" %}
 
-{% block title %}
-  {{ title }}
-{% endblock %}
-
-{% block body %}
-<div class="centered_message">
-  <div class="message_box error">
-    <h2>Error</h2>
+{% block content %}
+<header class="page-header">
+  <h1>{{ title }}</h1>
+</header>
+<div class="card">
+  <div class="alert" data-tone="danger" role="alert">
     {% if message is string %}
     <p>{{ message }}</p>
     {% else %}
@@ -16,13 +14,15 @@
     {% endfor %}
     {% endif %}
     {% if errors %}
-    {% for error in errors %}
-    <br /><b>* {{ error }}</b>
-    {% endfor %}
-    {% endif %}
-    {% if support_url %}
-    <p>Please contact <a href="{{ support_url }}">support</a> to resolve this issue.</p>
+    <ul>
+      {% for error in errors %}
+      <li><b>{{ error }}</b></li>
+      {% endfor %}
+    </ul>
     {% endif %}
   </div>
+  {% if support_url %}
+  <p>Please contact <a href="{{ support_url }}">support</a> to resolve this issue.</p>
+  {% endif %}
 </div>
 {% endblock %}

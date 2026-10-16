@@ -1,14 +1,48 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>{% block title %}{% endblock %}</title>
-    <link href="{{ url_for('static', filename='base.css') }}" media='screen' rel='stylesheet' />
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.js') }}"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}{{ title }}{% endblock %} | ARDC Nectar Research Cloud</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='ardc.css') }}" />
+    <script src="{{ url_for('static', filename='jquery.js') }}"></script>
   </head>
-{% block body %}
   <body>
-    {% block content %}{% endblock %}
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header class="site-header">
+      <div class="container">
+        <img class="logo" src="{{ url_for('static', filename='ardc_nectar_research_cloud.svg') }}"
+             alt="ARDC Nectar Research Cloud" width="234" height="72" />
+        <a class="btn btn-sm btn-navigation" href="https://support.ehelp.edu.au/"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Support Centre (opens in a new tab)">
+          Support Centre
+          <svg class="icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <g transform="translate(1.8 2.4)">
+              <path d="M15.2 12.0444V14.4111C15.2 14.8844 14.8844 15.2 14.4111 15.2H1.78889C1.31556 15.2 1 14.8844 1 14.4111V1.78889C1 1.31556 1.31556 1 1.78889 1H4.15556M8.1 8.1L14.4111 1.78889M8.88889 1H14.4111C14.8844 1 15.2 1.31556 15.2 1.78889V7.31111"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </g>
+          </svg>
+        </a>
+      </div>
+    </header>
+    <main id="main-content">
+      <div class="page container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <ul>
+          <li><a href="https://ardc.edu.au/services/ardc-nectar-research-cloud/">About Nectar</a></li>
+          <li><a href="https://ardc.edu.au/terms-and-conditions/">Terms and Conditions</a></li>
+          <li><a href="https://ardc.edu.au/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="https://ardc.edu.au/accessibility-statement-for-ardc/">Accessibility Statement</a></li>
+          <li><a href="https://ardc.edu.au/contact-us/">Contact ARDC</a></li>
+        </ul>
+        <p>Australian Research Data Commons</p>
+      </div>
+    </footer>
   </body>
-{% endblock %}
 </html>

@@ -1,32 +1,30 @@
 {% extends "layout.html" %}
 
-{% block title %}
-  {{ title }}
-{% endblock %}
+{% block title %}Terms of Use{% endblock %}
 
-{% block body %}
-  <div id="terms" class="centered_wrapper">
-      {% if updated_terms %}
-      <div class="status_box">
-      <p>We've updated our terms and conditions, please agree to these new terms.
-      </p>
-      </div>
-      {% endif %}
-    <div class="content">
-      <h1>Terms of Use</h1>
-      <p>Please read these terms of use carefully. By pressing "Agree",
-	  you agree you have read these terms and agree to be bound and abide
-	  by them. ARDC (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;)
-	  reserves its right to modify these terms at any time.
-      </p>
-
-      {% include terms_version + '-terms_text.html' %}
-      <div class="button_box">
-	<form id="token" action="" method="POST">
-	  <input id="agree" type="submit" name="agree" value="Agree"/>
-	</form>
-	<a id="disagree" href="{{ logout_url }}">Disagree</a>
-      </div>
-    </div>
+{% block content %}
+<header class="page-header">
+  <h1>Terms of Use</h1>
+</header>
+<div id="terms" class="card">
+  {% if updated_terms %}
+  <div class="alert" data-tone="info" role="note">
+    <p>We've updated our terms and conditions. Please agree to these new terms.</p>
   </div>
+  {% endif %}
+  <p>Please read these terms of use carefully. By pressing "Agree",
+    you agree you have read these terms and agree to be bound and abide
+    by them. ARDC (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;)
+    reserves its right to modify these terms at any time.</p>
+  <div class="legal">
+    {% include terms_version + '-terms_text.html' %}
+  </div>
+  <div class="actions">
+    <a id="disagree" class="btn btn-secondary" href="{{ logout_url }}">Disagree</a>
+    <form id="token" action="" method="POST">
+      <button id="agree" class="btn btn-primary" type="submit"
+              name="agree" value="Agree">Agree</button>
+    </form>
+  </div>
+</div>
 {% endblock %}
