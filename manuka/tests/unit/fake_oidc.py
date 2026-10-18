@@ -29,6 +29,7 @@ SHARED_TOKEN = "AbCdEf1234567890SharedToken"
 SUBJECT_ID = "abc123def456@example.edu"
 PAIRWISE_ID = "pw-abc123@example.edu"
 HOME_ORG = "example.edu"
+ORGANISATION = "Example University"
 FEDERATION = "aaf"
 
 CLAIMS = {
@@ -40,11 +41,12 @@ CLAIMS = {
     "given_name": "john",
     "family_name": "smith",
     "preferred_username": "jsmith",
-    "eduperson_principal_name": EPPN,
+    "organization_name": ORGANISATION,
+    "edu_person_principal_name": EPPN,
     "au_edu_person_shared_token": SHARED_TOKEN,
     "subject_id": SUBJECT_ID,
     "pairwise_id": PAIRWISE_ID,
-    "eduperson_affiliation": ["staff", "member"],
+    "edu_person_affiliation": ["staff", "member"],
     "schac_home_organization": HOME_ORG,
     "identity_provider": FEDERATION,
 }

@@ -64,7 +64,7 @@ class TestOIDCFaker(base.TestCase):
                 "email": "Dev@Example.edu",
                 "name": "Dev User",
                 "au_edu_person_shared_token": "tok-7",
-                "eduperson_affiliation": "staff",
+                "edu_person_affiliation": "staff",
             },
         )
         self.assertEqual(302, response.status_code)

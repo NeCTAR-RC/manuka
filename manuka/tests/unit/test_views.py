@@ -64,9 +64,9 @@ class TestShibbolethAttrMap(base.TestCase):
 class TestOIDCAttrMap(base.TestCase):
     def test_parse_maps_all_claims(self):
         claims = dict(fake_oidc.CLAIMS, email="Test@Example.com")
-        claims["eduperson_orcid"] = "0000-0001-2345-6789"
+        claims["edu_person_orcid"] = "0000-0001-2345-6789"
         claims["phone_number"] = "+61 3 1234 5678"
-        claims["eduperson_scoped_affiliation"] = "staff@example.edu"
+        claims["edu_person_scoped_affiliation"] = "staff@example.edu"
         self.assertEqual(
             {
                 "id": fake_oidc.SUB,
@@ -75,7 +75,7 @@ class TestOIDCAttrMap(base.TestCase):
                 "fullname": fake_oidc.DISPLAYNAME,
                 "firstname": "john",
                 "surname": "smith",
-                "uid": "jsmith",
+                "organisation": fake_oidc.ORGANISATION,
                 "eppn": fake_oidc.EPPN,
                 "shared_token": fake_oidc.SHARED_TOKEN,
                 "subject-id": fake_oidc.SUBJECT_ID,

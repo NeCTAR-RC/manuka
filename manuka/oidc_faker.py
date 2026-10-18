@@ -45,11 +45,11 @@ fake Shibboleth session to exercise automatic linking.</p>
 <tr><td>Name</td><td><input name="name" value="{name}"/></td></tr>
 <tr><td>Given name</td><td><input name="given_name" value="{given_name}"/></td></tr>
 <tr><td>Family name</td><td><input name="family_name" value="{family_name}"/></td></tr>
-<tr><td>eppn</td><td><input name="eduperson_principal_name" value=""/></td></tr>
+<tr><td>eppn</td><td><input name="edu_person_principal_name" value=""/></td></tr>
 <tr><td>Shared token</td><td><input name="au_edu_person_shared_token" value=""/></td></tr>
 <tr><td>subject-id</td><td><input name="subject_id" value=""/></td></tr>
 <tr><td>pairwise-id</td><td><input name="pairwise_id" value=""/></td></tr>
-<tr><td>Affiliation</td><td><input name="eduperson_affiliation" value="member"/></td></tr>
+<tr><td>Affiliation</td><td><input name="edu_person_affiliation" value="member"/></td></tr>
 <tr><td>Home organisation</td><td><input name="schac_home_organization" value="example.edu"/></td></tr>
 <tr><td>Federation (broker alias)</td><td><input name="identity_provider" value="aaf"/></td></tr>
 </table>
@@ -65,11 +65,11 @@ CLAIM_FIELDS = (
     "name",
     "given_name",
     "family_name",
-    "eduperson_principal_name",
+    "edu_person_principal_name",
     "au_edu_person_shared_token",
     "subject_id",
     "pairwise_id",
-    "eduperson_affiliation",
+    "edu_person_affiliation",
     "schac_home_organization",
     "identity_provider",
 )

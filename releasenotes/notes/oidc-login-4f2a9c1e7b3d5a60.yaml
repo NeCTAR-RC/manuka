@@ -44,7 +44,7 @@ upgrade:
     register a confidential client with the provider whose redirect URI is
     ``<base URL>/oidc/callback``. The provider must emit the claims listed
     in ``OIDCAttrMap`` (``manuka/views.py``), in particular
-    ``eduperson_principal_name``, ``au_edu_person_shared_token``,
+    ``edu_person_principal_name``, ``au_edu_person_shared_token``,
     ``subject_id`` and ``identity_provider``, in the ID token.
   - |
     The account creation progress page now polls ``/account_status``
