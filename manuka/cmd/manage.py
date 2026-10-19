@@ -31,11 +31,10 @@ def cli():
 @click.argument("domain")
 @click.argument("idp")
 def add_domain_mapping(domain, idp):
-    """Adds a mapping for a domain and IdP.
+    """Adds a mapping for a domain and SAML IdP entityID.
 
-    IDP is the key a login presents: a SAML IdP entityID, the alias of
-    the identity provider that brokered an OpenID Connect login (for
-    example tuakiri), or a home organisation.
+    OpenID Connect logins are mapped by [oidc] federation_domains
+    instead.
     """
 
     mapping = (

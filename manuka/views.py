@@ -179,7 +179,7 @@ class OIDCAttrMap(AttrMap):
         "phone_number": "telephonenumber",
         # The alias of the identity provider that brokered the login
         # (for example aaf or tuakiri), not an entityID.
-        "identity_provider": "federation",
+        "federation": "federation",
     }
 
 

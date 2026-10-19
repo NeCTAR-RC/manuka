@@ -183,6 +183,15 @@ oidc_opts = [
         "many days. Institutions can reassign an eppn, so a recent login "
         "is the evidence it still belongs to the same person.",
     ),
+    cfg.DictOpt(
+        "federation_domains",
+        default={},
+        help="Keystone domain for the project of a new user who logs in "
+        "through each federation, as alias:domain_id pairs, for example "
+        "tuakiri:<domain id>. The alias is the identity provider that "
+        "brokered the login. Users from any other federation get a "
+        "project in the default domain.",
+    ),
     cfg.BoolOpt(
         "deny_on_identity_drift",
         default=False,

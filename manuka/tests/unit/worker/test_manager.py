@@ -55,7 +55,7 @@ class TestManager(base.TestCase):
         project.id = "ksp-123"
         user = mock_utils.create_user.return_value
         user.id = "ksu-123"
-        domain = mock_utils.get_domain_for_attrs.return_value
+        domain = mock_utils.get_domain_for_external_id.return_value
         db_user, external_id = self.make_db_user()
         db_user_id = db_user.id
         self.shib_attrs["idp"] = "fake-idp"
@@ -68,8 +68,8 @@ class TestManager(base.TestCase):
 
         db_user = db.session.query(models.User).get(db_user_id)
 
-        mock_utils.get_domain_for_attrs.assert_called_once_with(
-            self.shib_attrs
+        mock_utils.get_domain_for_external_id.assert_called_once_with(
+            external_id
         )
 
         mock_utils.create_project.assert_called_once_with(
@@ -191,7 +191,7 @@ class TestManager(base.TestCase):
             keystoneauth1.exceptions.http.Conflict
         )
         user.id = "ksu-123"
-        domain = mock_utils.get_domain_for_attrs.return_value
+        domain = mock_utils.get_domain_for_external_id.return_value
         db_user, external_id = self.make_db_user(protocol=protocol)
         db_user_id = db_user.id
         self.shib_attrs["idp"] = "fake-idp"
@@ -204,8 +204,8 @@ class TestManager(base.TestCase):
 
         db_user = db.session.query(models.User).get(db_user_id)
 
-        mock_utils.get_domain_for_attrs.assert_called_once_with(
-            self.shib_attrs
+        mock_utils.get_domain_for_external_id.assert_called_once_with(
+            external_id
         )
 
         mock_utils.create_project.assert_called_once_with(

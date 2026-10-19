@@ -48,7 +48,7 @@ CLAIMS = {
     "pairwise_id": PAIRWISE_ID,
     "edu_person_affiliation": ["staff", "member"],
     "schac_home_organization": HOME_ORG,
-    "identity_provider": FEDERATION,
+    "federation": FEDERATION,
 }
 
 

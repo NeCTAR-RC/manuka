@@ -65,6 +65,7 @@ class TestOIDCFaker(base.TestCase):
                 "name": "Dev User",
                 "au_edu_person_shared_token": "tok-7",
                 "edu_person_affiliation": "staff",
+                "federation": "tuakiri",
             },
         )
         self.assertEqual(302, response.status_code)
@@ -81,6 +82,7 @@ class TestOIDCFaker(base.TestCase):
         self.assertEqual("dev@example.edu", attrs["mail"])
         self.assertEqual("tok-7", attrs["shared_token"])
         self.assertEqual(oidc_faker.FAKE_ISSUER, attrs["idp"])
+        self.assertEqual("tuakiri", attrs["federation"])
         self.assertNotIn("eppn", attrs)
 
         response = self.client.get("/oidc/continue/")

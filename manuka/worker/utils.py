@@ -71,35 +71,30 @@ def get_roles(client, role_names):
     return roles
 
 
-# Login attributes that can select the keystone domain for a new user,
-# in order of preference: the SAML IdP entityID, the alias of the
-# identity provider that brokered an OIDC login, and the home
-# organisation. DomainIdpMapping rows are keyed on any of these.
-DOMAIN_MAPPING_ATTRS = ("idp", "federation", "homeorganization")
-
-
-def get_domain_for_attrs(attrs):
+def get_domain_for_external_id(external_id):
     """The keystone domain for the project of a newly created user.
 
-    The first attribute in DOMAIN_MAPPING_ATTRS with a mapping wins;
-    users with no mapping go in the default domain.
+    An OpenID Connect identity is placed by its federation attribute,
+    the identity provider that brokered the login, mapped through
+    [oidc] federation_domains. A SAML identity is placed by its IdP
+    entityID, mapped through DomainIdpMapping. Anything unmapped goes in the default domain.
     """
-    for key in DOMAIN_MAPPING_ATTRS:
-        value = attrs.get(key)
-        if not value:
-            continue
+    if external_id.protocol == models.PROTOCOL_OIDC:
+        federation = (external_id.attributes or {}).get("federation")
+        return CONF.oidc.federation_domains.get(federation, "default")
+    return get_domain_for_idp(external_id.idp)
+
+
+def get_domain_for_idp(idp):
+    if idp:
         mapping = (
             db.session.query(models.DomainIdpMapping)
-            .filter_by(idp_entity_id=value)
+            .filter_by(idp_entity_id=idp)
             .first()
         )
         if mapping:
             return mapping.domain_id
     return "default"
-
-
-def get_domain_for_idp(idp):
-    return get_domain_for_attrs({"idp": idp})
 
 
 def add_security_groups(user_id, project_id, token):

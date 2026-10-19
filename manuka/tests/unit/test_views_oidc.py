@@ -126,10 +126,10 @@ class TestOIDCLogin(OIDCTestCase):
         with self.client.session_transaction() as sess:
             attrs = sess["oidc_attrs"]
             self.assertEqual(fake_oidc.SUB, attrs["id"])
-            self.assertEqual(fake_oidc.ISSUER, attrs["idp"])
             self.assertEqual(fake_oidc.SUBJECT_ID, attrs["subject-id"])
             self.assertEqual(fake_oidc.PAIRWISE_ID, attrs["pairwise-id"])
             self.assertEqual(fake_oidc.SHARED_TOKEN, attrs["shared_token"])
+            self.assertEqual(fake_oidc.ISSUER, attrs["idp"])
             self.assertEqual(fake_oidc.FEDERATION, attrs["federation"])
             self.assertGreater(sess["oidc_attrs_exp"], time.time())
         self.assertEqual([], self.external_ids())

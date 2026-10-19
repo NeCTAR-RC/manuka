@@ -24,11 +24,15 @@ features:
     they already use the new login, will link automatically, or still need
     to act, as CSV with each user's SAML IdP for per-institution follow-up.
   - |
-    The keystone domain of a new user's project can be mapped from the
-    alias of the identity provider that brokered an OpenID Connect login
-    (for example ``tuakiri``) or from the home organisation, as well as
-    from a SAML IdP entityID. ``manuka-manage add-domain-mapping`` accepts
-    any of these as the key.
+    The ``federation`` claim, the alias of the identity provider that
+    brokered an OpenID Connect login (for example ``aaf`` or
+    ``tuakiri``), is stored in the external id's attributes as
+    ``federation``, alongside the issuer in ``idp``. The keystone domain
+    of a new OpenID Connect user's project is chosen from it with
+    ``[oidc] federation_domains``, for example
+    ``federation_domains = tuakiri:<domain id>``; other federations use
+    the default domain. SAML users are still placed by their IdP entityID
+    through ``manuka-manage add-domain-mapping``.
   - |
     ``[oidc] fake = true`` replaces the provider with a local form at
     ``/oidc/fake/`` for development, in the same way as ``fake_shib``.
@@ -45,7 +49,7 @@ upgrade:
     ``<base URL>/oidc/callback``. The provider must emit the claims listed
     in ``OIDCAttrMap`` (``manuka/views.py``), in particular
     ``edu_person_principal_name``, ``au_edu_person_shared_token``,
-    ``subject_id`` and ``identity_provider``, in the ID token.
+    ``subject_id`` and ``federation``, in the ID token.
   - |
     The account creation progress page now polls ``/account_status``
     instead of ``/login/account_status``. The new path must be reachable

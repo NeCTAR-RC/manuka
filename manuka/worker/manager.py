@@ -61,7 +61,7 @@ class Manager:
         )
         db_user = external_id.user
 
-        domain = utils.get_domain_for_attrs(attrs)
+        domain = utils.get_domain_for_external_id(external_id)
         LOG.info("Using project domain_id=%s", domain)
         if CONF.fake_shib:
             project_suffix = uuidutils.generate_uuid()

@@ -51,7 +51,7 @@ fake Shibboleth session to exercise automatic linking.</p>
 <tr><td>pairwise-id</td><td><input name="pairwise_id" value=""/></td></tr>
 <tr><td>Affiliation</td><td><input name="edu_person_affiliation" value="member"/></td></tr>
 <tr><td>Home organisation</td><td><input name="schac_home_organization" value="example.edu"/></td></tr>
-<tr><td>Federation (broker alias)</td><td><input name="identity_provider" value="aaf"/></td></tr>
+<tr><td>Federation (broker alias)</td><td><input name="federation" value="aaf"/></td></tr>
 </table>
 <input type="submit" name="fakeoidc" value="Log in"/>
 </form>
@@ -71,7 +71,7 @@ CLAIM_FIELDS = (
     "pairwise_id",
     "edu_person_affiliation",
     "schac_home_organization",
-    "identity_provider",
+    "federation",
 )
 
 
