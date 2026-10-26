@@ -17,6 +17,6 @@
       </div>
     </noscript>
   </form>
-  <script>document.forms["token"].submit();</script>
+  <script>window.addEventListener("load", () => document.forms["token"].submit());</script>
 </div>
 {% endblock %}
