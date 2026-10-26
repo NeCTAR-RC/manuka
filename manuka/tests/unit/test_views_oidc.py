@@ -98,6 +98,21 @@ class TestOIDCLogin(OIDCTestCase):
         with self.client.session_transaction() as sess:
             self.assertEqual(return_path, sess["oidc_return_path"])
 
+    def test_login_accepts_dashboard_form_post(self):
+        # The dashboard login form posts to this URL with the
+        # return-path in the query string and Django's fields in the
+        # body, the same way it posted to the Shibboleth login.
+        return_path = "https://test.example.com/auth/websso/"
+        CONF.set_override("allow_list", [return_path])
+        response = self.client.post(
+            f"/oidc/login/?return-path={return_path}",
+            data={"csrfmiddlewaretoken": "x", "next": "/project/"},
+        )
+        self.assertEqual(302, response.status_code)
+        self.assertTrue(response.location.startswith(fake_oidc.AUTHORIZE_URL))
+        with self.client.session_transaction() as sess:
+            self.assertEqual(return_path, sess["oidc_return_path"])
+
     def test_login_rejects_bad_return_path(self):
         CONF.set_override(
             "allow_list", ["https://test.example.com/auth/token"]

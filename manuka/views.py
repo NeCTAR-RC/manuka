@@ -721,12 +721,16 @@ def link():
     return flask.render_template("link_confirm.html", **data)
 
 
-@oidc_bp.route("/login/")
+@oidc_bp.route("/login/", methods=("GET", "POST"))
 def oidc_login():
     """Start a login with the OpenID Connect provider.
 
     The return-path is validated before the browser leaves the site
     and carried in the session until the provider sends it back.
+
+    POST is accepted because the dashboard login form submits to this
+    URL, as it did to the Shibboleth login. The form body is ignored;
+    the return-path always comes from the query string.
     """
     return_path = request.args.get("return-path")
     target, error_response = _validate_return_path(return_path)
