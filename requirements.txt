@@ -5,7 +5,7 @@ python-keystoneclient
 python-novaclient
 python-swiftclient
 keystoneauth1
-keystonemiddleware
+keystonemiddleware>=12.1.0
 oslo.context
 oslo.config
 oslo.log
